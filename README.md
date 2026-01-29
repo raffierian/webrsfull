@@ -36,11 +36,7 @@ Sistem Informasi Manajemen Rumah Sakit Soewandhie berbasis web dengan fitur leng
 
 ## 🛠️ Installation
 
-### 1. Clone Repository
-```bash
-git clone <repository-url>
-cd rssoewandhie
-```
+
 
 ### 2. Setup Backend
 
@@ -205,7 +201,7 @@ This project is proprietary software for RS Soewandhie.
 
 ## 👥 Team
 
-- Developer: [Your Name]
+- Developer: Roni Hidayat
 - Client: RS Soewandhie
 
 ## 📞 Support
