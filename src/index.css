@@ -1,0 +1,352 @@
+/* Hospital Design System - Professional Medical Theme */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Primary - Medical Teal Blue */
+    --primary: 192 85% 35%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 192 75% 45%;
+    --primary-dark: 192 90% 25%;
+
+    /* Secondary - Fresh Green (Health) */
+    --secondary: 158 64% 42%;
+    --secondary-foreground: 0 0% 100%;
+    --secondary-light: 158 60% 52%;
+
+    /* Accent - Warm Orange for CTAs */
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Background & Surface */
+    --background: 200 20% 98%;
+    --foreground: 210 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 210 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 25% 15%;
+
+    /* Muted */
+    --muted: 200 15% 94%;
+    --muted-foreground: 210 15% 45%;
+
+    /* Destructive */
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border & Input */
+    --border: 200 20% 88%;
+    --input: 200 20% 88%;
+    --ring: 192 85% 35%;
+
+    --radius: 0.75rem;
+
+    /* Sidebar */
+    --sidebar-background: 192 85% 25%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-primary: 0 0% 100%;
+    --sidebar-primary-foreground: 192 85% 25%;
+    --sidebar-accent: 192 70% 35%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 192 60% 30%;
+    --sidebar-ring: 0 0% 100%;
+
+    /* Custom Medical Colors */
+    --medical-blue: 192 85% 35%;
+    --medical-green: 158 64% 42%;
+    --medical-light-blue: 200 80% 95%;
+    --medical-light-green: 158 60% 95%;
+    --emergency-red: 0 72% 51%;
+    --warning-amber: 38 92% 50%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(192 85% 25%) 0%, hsl(192 90% 18%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(158 64% 30%) 0%, hsl(158 70% 22%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(192 85% 22%) 0%, hsl(158 64% 26%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(200 20% 98%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(210 25% 15% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(210 25% 15% / 0.08), 0 2px 4px -2px hsl(210 25% 15% / 0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(210 25% 15% / 0.1), 0 4px 6px -4px hsl(210 25% 15% / 0.05);
+    --shadow-xl: 0 20px 25px -5px hsl(210 25% 15% / 0.1), 0 8px 10px -6px hsl(210 25% 15% / 0.05);
+    --shadow-card: 0 4px 20px -2px hsl(192 85% 35% / 0.08);
+    --shadow-card-hover: 0 8px 30px -4px hsl(192 85% 35% / 0.15);
+  }
+
+  .dark {
+    --primary: 192 75% 55%;
+    --primary-foreground: 210 25% 10%;
+    --primary-light: 192 70% 65%;
+    --primary-dark: 192 80% 45%;
+
+    --secondary: 158 55% 50%;
+    --secondary-foreground: 210 25% 10%;
+
+    --accent: 24 90% 60%;
+    --accent-foreground: 210 25% 10%;
+
+    --background: 210 25% 8%;
+    --foreground: 200 20% 95%;
+
+    --card: 210 25% 12%;
+    --card-foreground: 200 20% 95%;
+
+    --popover: 210 25% 12%;
+    --popover-foreground: 200 20% 95%;
+
+    --muted: 210 20% 18%;
+    --muted-foreground: 200 15% 60%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 210 20% 20%;
+    --input: 210 20% 20%;
+    --ring: 192 75% 55%;
+
+    --sidebar-background: 210 25% 10%;
+    --sidebar-foreground: 200 20% 95%;
+    --sidebar-primary: 192 75% 55%;
+    --sidebar-primary-foreground: 210 25% 10%;
+    --sidebar-accent: 210 20% 18%;
+    --sidebar-accent-foreground: 200 20% 95%;
+    --sidebar-border: 210 20% 20%;
+    --sidebar-ring: 192 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    @apply font-bold tracking-tight;
+  }
+}
+
+@layer components {
+
+  /* Hero Section Styles */
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+
+  .hero-pattern {
+    background-image:
+      radial-gradient(circle at 20% 50%, hsl(192 85% 35% / 0.25) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsl(158 64% 40% / 0.2) 0%, transparent 40%),
+      radial-gradient(circle at 40% 80%, hsl(192 80% 30% / 0.2) 0%, transparent 45%);
+  }
+
+  /* Card Styles */
+  .card-medical {
+    @apply bg-card rounded-xl border border-border;
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s ease;
+  }
+
+  .card-medical:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+
+  /* Button Variants */
+  .btn-primary-gradient {
+    background: var(--gradient-primary);
+    @apply text-white font-semibold;
+    box-shadow: 0 4px 14px 0 hsl(192 85% 35% / 0.35);
+    transition: all 0.3s ease;
+  }
+
+  .btn-primary-gradient:hover {
+    box-shadow: 0 6px 20px 0 hsl(192 85% 35% / 0.45);
+    transform: translateY(-1px);
+  }
+
+  /* Navigation Styles */
+  .nav-link {
+    @apply relative px-4 py-2 text-sm font-medium text-foreground/80 transition-colors;
+  }
+
+  .nav-link:hover {
+    @apply text-primary;
+  }
+
+  .nav-link-active {
+    @apply text-primary;
+  }
+
+  .nav-link-active::after {
+    content: '';
+    @apply absolute bottom-0 left-4 right-4 h-0.5 bg-primary rounded-full;
+  }
+
+  /* Stats Card */
+  .stats-card {
+    @apply relative overflow-hidden rounded-2xl p-6;
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+  }
+
+  .stats-card::before {
+    content: '';
+    @apply absolute top-0 left-0 w-1 h-full;
+    background: var(--gradient-primary);
+  }
+
+  /* Service Card */
+  .service-card {
+    @apply relative overflow-hidden rounded-2xl bg-card p-6 transition-all duration-300;
+    box-shadow: var(--shadow-md);
+  }
+
+  .service-card:hover {
+    box-shadow: var(--shadow-xl);
+    transform: translateY(-4px);
+  }
+
+  .service-card-icon {
+    @apply w-14 h-14 rounded-xl flex items-center justify-center;
+    background: linear-gradient(135deg, hsl(var(--medical-light-blue)) 0%, hsl(var(--medical-light-green)) 100%);
+  }
+
+  /* Emergency Banner */
+  .emergency-banner {
+    background: linear-gradient(90deg, hsl(var(--emergency-red)) 0%, hsl(0 65% 45%) 100%);
+    @apply text-white;
+  }
+
+  /* Section Styles */
+  .section-heading {
+    @apply text-3xl md:text-4xl font-bold text-foreground;
+  }
+
+  .section-subheading {
+    @apply text-lg text-muted-foreground max-w-2xl;
+  }
+
+  /* Mega Menu */
+  .mega-menu {
+    @apply absolute top-full left-0 w-full bg-card border-t border-border shadow-xl opacity-0 invisible transition-all duration-300;
+  }
+
+  .mega-menu-active {
+    @apply opacity-100 visible;
+  }
+
+  /* Appointment Form */
+  .appointment-form {
+    @apply bg-card rounded-2xl p-8;
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Footer */
+  .footer-gradient {
+    background: linear-gradient(180deg, hsl(210 25% 12%) 0%, hsl(210 30% 8%) 100%);
+  }
+
+  /* Animations */
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  @keyframes pulse-gentle {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-pulse-gentle {
+    animation: pulse-gentle 2s ease-in-out infinite;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out forwards;
+  }
+
+  /* Focus States for Accessibility */
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+  }
+
+  /* Custom Utilities */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}

@@ -1,0 +1,142 @@
+{
+  "common": {
+    "search": "Search",
+    "searchPlaceholder": "Search services, doctors, articles...",
+    "language": "Language",
+    "login": "Login",
+    "register": "Register",
+    "emergency": "EMERGENCY",
+    "emergencyCall": "Call: 118 / 119",
+    "bookAppointment": "Book Appointment",
+    "onlineConsultation": "Online Consultation",
+    "learnMore": "Learn More",
+    "viewAll": "View All",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "loading": "Loading..."
+  },
+  "nav": {
+    "home": "Home",
+    "profile": "Profile",
+    "services": "Services",
+    "outpatient": "Outpatient Care",
+    "inpatient": "Inpatient Care",
+    "emergency": "Emergency Care",
+    "intensive": "Intensive Care",
+    "supporting": "Supporting Services",
+    "visitorDashboard": "Visitor Dashboard",
+    "articles": "Articles",
+    "health": "Health",
+    "achievements": "Achievements & Awards",
+    "training": "Training & Education",
+    "information": "Information",
+    "serviceStandards": "Service Standards",
+    "innovation": "Innovation",
+    "tariffs": "Tariffs",
+    "sakipDocuments": "SAKIP Documents",
+    "otherLinks": "Other Links",
+    "seasonalDiseases": "Seasonal Disease Trends",
+    "pkrs": "PKRS",
+    "integrityZone": "Integrity Zone",
+    "wbk": "WBK",
+    "wbbm": "WBBM",
+    "skm": "SKM",
+    "history": "Hospital History",
+    "ppid": "PPID",
+    "complaints": "Complaints",
+    "contact": "Contact",
+    "careers": "Careers",
+    "sitemap": "Sitemap"
+  },
+  "hero": {
+    "title": "Healthcare Service",
+    "titleHighlight": "Trusted & Professional",
+    "subtitle": "Providing quality healthcare services with professional medical staff, modern facilities, and cutting-edge technology for you and your family's health.",
+    "cta1": "Book Appointment",
+    "cta2": "Online Consultation"
+  },
+  "stats": {
+    "patients": "Patients Served",
+    "doctors": "Specialist Doctors",
+    "experience": "Years of Experience",
+    "satisfaction": "Patient Satisfaction"
+  },
+  "services": {
+    "title": "Our Featured Services",
+    "subtitle": "Providing comprehensive healthcare services with international standards",
+    "outpatient": {
+      "title": "Outpatient Care",
+      "description": "Consultation and health examination services without hospitalization"
+    },
+    "inpatient": {
+      "title": "Inpatient Care",
+      "description": "Complete care facilities with comfortable rooms and 24-hour care"
+    },
+    "emergency": {
+      "title": "Emergency Care",
+      "description": "24-hour emergency services with trained medical team and complete equipment"
+    },
+    "intensive": {
+      "title": "Intensive Care",
+      "description": "ICU, ICCU, NICU, PICU units with intensive monitoring and care"
+    },
+    "supporting": {
+      "title": "Medical Support",
+      "description": "Laboratory, radiology, pharmacy, medical rehabilitation and other support services"
+    },
+    "specialist": {
+      "title": "Specialist Clinics",
+      "description": "Various specialist clinics with experienced doctors in their fields"
+    }
+  },
+  "appointment": {
+    "title": "Book an Appointment",
+    "subtitle": "Schedule your visit easily",
+    "selectService": "Select Service",
+    "selectDoctor": "Select Doctor",
+    "selectDate": "Select Date",
+    "selectTime": "Select Time",
+    "patientName": "Full Name",
+    "patientNIK": "ID Number",
+    "patientPhone": "Phone Number",
+    "patientEmail": "Email",
+    "medicalRecordNo": "Medical Record No. (if any)",
+    "submit": "Book Appointment",
+    "success": "Appointment successfully created!",
+    "confirmation": "Confirmation will be sent to your email"
+  },
+  "doctors": {
+    "title": "Our Medical Team",
+    "subtitle": "Experienced specialist doctors ready to serve you",
+    "viewSchedule": "View Schedule",
+    "makeAppointment": "Make Appointment"
+  },
+  "news": {
+    "title": "Health News & Articles",
+    "subtitle": "Latest information about health and hospital activities",
+    "readMore": "Read More"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "Email",
+    "operationalHours": "Operational Hours",
+    "weekdays": "Monday - Friday",
+    "weekend": "Saturday - Sunday",
+    "allDay": "24 Hours (ER)"
+  },
+  "footer": {
+    "description": "A trusted hospital with international quality healthcare services.",
+    "quickLinks": "Quick Links",
+    "services": "Services",
+    "information": "Information",
+    "contact": "Contact",
+    "followUs": "Follow Us",
+    "copyright": "© 2024 Harapan Sehat Hospital. All Rights Reserved."
+  }
+}

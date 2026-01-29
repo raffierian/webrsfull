@@ -1,0 +1,513 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    String                 @id @default(uuid())
+  username              String                 @unique
+  email                 String                 @unique
+  password              String
+  name                  String
+  role                  UserRole               @default(PATIENT) // Deprecated, use roleId
+  roleId                String?                @map("role_id")
+  userRole              Role?                  @relation(fields: [roleId], references: [id])
+  phone                 String?
+  address               String?
+  dateOfBirth           DateTime?              @map("date_of_birth")
+  gender                Gender?
+  isActive              Boolean                @default(true) @map("is_active")
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+  nik                   String?                @unique
+  otpCode               String?                @map("otp_code")
+  otpExpires            DateTime?              @map("otp_expires")
+  twoFactorEnabled      Boolean                @default(false) @map("two_factor_enabled")
+  twoFactorSecret       String?                @map("two_factor_secret")
+  appointments          Appointment[]
+  articles              Article[]
+  complaintResponses    Complaint[]            @relation("ComplaintResponder")
+  complaints            Complaint[]
+  consultations         Consultation[]         @relation("PatientConsultations")
+  doctor                Doctor?
+  surveys               Survey[]
+  trainingRegistrations TrainingRegistration[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String     @id @default(uuid())
+  name        String     @unique // e.g., "ADMIN", "DOCTOR", "HRD"
+  description String?
+  users       User[]
+  roleMenu    RoleMenu?
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@map("roles")
+}
+
+model Doctor {
+  id              String           @id @default(uuid())
+  userId          String?          @unique @map("user_id")
+  name            String
+  specialization  String
+  licenseNumber   String           @unique @map("license_number")
+  education       String?
+  experienceYears Int?             @map("experience_years")
+  photoUrl        String?          @map("photo_url")
+  bio             String?
+  rating          Decimal?         @default(0) @db.Decimal(3, 2)
+  isAvailable     Boolean          @default(true) @map("is_available")
+  consultationFee Decimal?         @map("consultation_fee") @db.Decimal(10, 2)
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  appointments    Appointment[]
+  consultations   Consultation[]
+  schedules       DoctorSchedule[]
+  user            User?            @relation(fields: [userId], references: [id])
+
+  @@map("doctors")
+}
+
+model DoctorSchedule {
+  id          String   @id @default(uuid())
+  doctorId    String   @map("doctor_id")
+  dayOfWeek   Int      @map("day_of_week")
+  startTime   String   @map("start_time")
+  endTime     String   @map("end_time")
+  poliId      String   @map("poli_id")
+  maxPatients Int      @default(20) @map("max_patients")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  poli        Poli     @relation(fields: [poliId], references: [id])
+
+  @@map("doctor_schedules")
+}
+
+model Poli {
+  id           String           @id @default(uuid())
+  name         String
+  code         String           @unique
+  description  String?
+  icon         String?
+  color        String?
+  isActive     Boolean          @default(true) @map("is_active")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  updatedAt    DateTime         @updatedAt @map("updated_at")
+  appointments Appointment[]
+  schedules    DoctorSchedule[]
+
+  @@map("polis")
+}
+
+model Service {
+  id          String      @id @default(uuid())
+  name        String
+  slug        String      @unique
+  type        ServiceType
+  description String?
+  icon        String?
+  imageUrl    String?     @map("image_url")
+  facilities  Json?
+  isActive    Boolean     @default(true) @map("is_active")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@map("services")
+}
+
+model Appointment {
+  id              String            @id @default(uuid())
+  patientId       String            @map("patient_id")
+  doctorId        String            @map("doctor_id")
+  poliId          String            @map("poli_id")
+  appointmentDate DateTime          @map("appointment_date") @db.Date
+  appointmentTime String            @map("appointment_time")
+  status          AppointmentStatus @default(PENDING)
+  complaint       String?
+  notes           String?
+  queueNumber     Int?              @map("queue_number")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+  doctor          Doctor            @relation(fields: [doctorId], references: [id])
+  patient         User              @relation(fields: [patientId], references: [id])
+  poli            Poli              @relation(fields: [poliId], references: [id])
+
+  @@map("appointments")
+}
+
+model Article {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  content     String
+  excerpt     String?
+  authorId    String    @map("author_id")
+  category    String?
+  tags        Json?
+  imageUrl    String?   @map("image_url")
+  views       Int       @default(0)
+  isPublished Boolean   @default(false) @map("is_published")
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  author      User      @relation(fields: [authorId], references: [id])
+
+  @@map("articles")
+}
+
+model Complaint {
+  id          String          @id @default(uuid())
+  userId      String?         @map("user_id")
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String
+  category    String?
+  status      ComplaintStatus @default(NEW)
+  response    String?
+  respondedBy String?         @map("responded_by")
+  respondedAt DateTime?       @map("responded_at")
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  responder   User?           @relation("ComplaintResponder", fields: [respondedBy], references: [id])
+  user        User?           @relation(fields: [userId], references: [id])
+
+  @@map("complaints")
+}
+
+model Career {
+  id               String           @id @default(uuid())
+  title            String
+  slug             String           @unique
+  department       String?
+  positionType     PositionType     @map("position_type")
+  location         String?
+  description      String
+  requirements     Json?
+  responsibilities Json?
+  salaryRange      String?          @map("salary_range")
+  deadline         DateTime?        @db.Date
+  isActive         Boolean          @default(true) @map("is_active")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+  applications     JobApplication[]
+
+  @@map("careers")
+}
+
+model JobApplication {
+  id          String            @id @default(uuid())
+  careerId    String            @map("career_id")
+  name        String
+  email       String
+  phone       String
+  resumeUrl   String?           @map("resume_url")
+  coverLetter String?           @map("cover_letter")
+  status      ApplicationStatus @default(PENDING)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  career      Career            @relation(fields: [careerId], references: [id], onDelete: Cascade)
+
+  @@map("job_applications")
+}
+
+model Survey {
+  id          String   @id @default(uuid())
+  userId      String?  @map("user_id")
+  serviceType String?  @map("service_type")
+  ratings     Json
+  comments    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@map("surveys")
+}
+
+model SurveyQuestion {
+  id        String   @id @default(uuid())
+  question  String
+  category  String?
+  order     Int      @default(0)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("survey_questions")
+}
+
+model PPIDDocument {
+  id          String   @id @default(uuid())
+  title       String
+  category    String
+  description String?
+  fileUrl     String   @map("file_url")
+  fileType    String   @map("file_type")
+  fileSize    Int      @map("file_size")
+  isPublic    Boolean  @default(true) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("ppid_documents")
+}
+
+model TrainingProgram {
+  id              String                 @id @default(uuid())
+  title           String
+  slug            String                 @unique
+  description     String
+  trainer         String?
+  startDate       DateTime               @map("start_date") @db.Date
+  endDate         DateTime               @map("end_date") @db.Date
+  location        String?
+  maxParticipants Int                    @default(30) @map("max_participants")
+  registeredCount Int                    @default(0) @map("registered_count")
+  fee             Decimal?               @db.Decimal(10, 2)
+  imageUrl        String?                @map("image_url")
+  lmsUrl          String?                @map("lms_url")
+  registrationUrl String?                @map("registration_url")
+  skp             Int?
+  jp              Int?
+  certificateInfo String?                @map("certificate_info")
+  isActive        Boolean                @default(true) @map("is_active")
+  createdAt       DateTime               @default(now()) @map("created_at")
+  updatedAt       DateTime               @updatedAt @map("updated_at")
+  registrations   TrainingRegistration[]
+
+  @@map("training_programs")
+}
+
+model TrainingRegistration {
+  id            String             @id @default(uuid())
+  trainingId    String             @map("training_id")
+  userId        String             @map("user_id")
+  status        RegistrationStatus @default(PENDING)
+  paymentStatus PaymentStatus      @default(PENDING) @map("payment_status")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  training      TrainingProgram    @relation(fields: [trainingId], references: [id], onDelete: Cascade)
+  user          User               @relation(fields: [userId], references: [id])
+
+  @@map("training_registrations")
+}
+
+model Consultation {
+  id               String             @id @default(uuid())
+  patientId        String             @map("patient_id")
+  doctorId         String             @map("doctor_id")
+  consultationDate DateTime           @map("consultation_date")
+  status           ConsultationStatus @default(SCHEDULED)
+  complaint        String?
+  diagnosis        String?
+  prescription     Json?
+  notes            String?
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+  doctor           Doctor             @relation(fields: [doctorId], references: [id])
+  patient          User               @relation("PatientConsultations", fields: [patientId], references: [id])
+
+  @@map("consultations")
+}
+
+model HomepageContent {
+  id        String   @id @default(uuid())
+  section   String   @unique
+  content   Json
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("homepage_content")
+}
+
+model Setting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  description String?
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+model HealthPromo {
+  id           String    @id @default(uuid())
+  title        String
+  type         PromoType
+  description  String?
+  fileUrl      String    @map("file_url")
+  thumbnailUrl String?   @map("thumbnail_url")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@map("health_promos")
+}
+
+model Tariff {
+  id        String   @id @default(uuid())
+  name      String
+  category  String
+  price1    Decimal? @map("price_1") @db.Decimal(12, 2)
+  price2    Decimal? @map("price_2") @db.Decimal(12, 2)
+  price3    Decimal? @map("price_3") @db.Decimal(12, 2)
+  priceVip  Decimal? @map("price_vip") @db.Decimal(12, 2)
+  priceFlat Decimal? @map("price_flat") @db.Decimal(12, 2)
+  isFlat    Boolean  @default(false) @map("is_flat")
+  unit      String?
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("tariffs")
+}
+
+enum UserRole {
+  PATIENT
+  ADMIN
+  SUPER_ADMIN
+  DOCTOR
+  STAFF
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum ServiceType {
+  OUTPATIENT
+  INPATIENT
+  EMERGENCY
+  INTENSIVE
+  SUPPORTING
+  SPECIALIST
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  WAITING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ComplaintStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum PositionType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWED
+  INTERVIEW
+  ACCEPTED
+  REJECTED
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  REFUNDED
+}
+
+enum ConsultationStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum PromoType {
+  LEAFLET
+  POSTER
+  VIDEO
+  BOOKLET
+  OTHER
+}
+
+model InpatientRoom {
+  id           String     @id @default(uuid())
+  roomNumber   String     @unique @map("room_number")
+  roomName     String?    @map("room_name") // Nama Ruangan (e.g. Mawar, Melati)
+  roomType     RoomType   @map("room_type")
+  floor        Int
+  building     String?
+  capacity     Int        @default(1) // Jumlah bed per kamar
+  occupiedBeds Int        @default(0) @map("occupied_beds") // Bed yang terisi
+  facilities   Json? // AC, TV, Kamar Mandi Dalam, dll
+  pricePerDay  Decimal    @map("price_per_day") @db.Decimal(10, 2)
+  status       RoomStatus @default(AVAILABLE)
+  imageUrl     String?    @map("image_url")
+  description  String?
+  isActive     Boolean    @default(true) @map("is_active")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@map("inpatient_rooms")
+}
+
+model RoleMenu {
+  id        String   @id @default(uuid())
+  role      UserRole @unique // Deprecated
+  roleId    String?  @unique @map("role_id")
+  userRole  Role?    @relation(fields: [roleId], references: [id])
+  menus     Json     // Array of allowed menu paths
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("role_menus")
+}
+
+enum RoomType {
+  PAVILIUN_EXECUTIVE
+  PAVILIUN_DELUXE
+  KELAS_1
+  KELAS_2
+  KELAS_3
+  ISOLASI
+  INTENSIF
+  INTENSIF_LAINNYA
+  PERINATOLOGI
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  RESERVED
+}
+
+model DailyStat {
+  id        Int      @id @default(autoincrement())
+  date      DateTime @unique @db.Date // Ensure only one entry per date
+  bor       Float    @default(0)
+  igdCount  Int      @default(0) @map("igd_count")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("daily_stats")
+}

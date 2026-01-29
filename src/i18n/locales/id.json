@@ -1,0 +1,142 @@
+{
+  "common": {
+    "search": "Cari",
+    "searchPlaceholder": "Cari layanan, dokter, artikel...",
+    "language": "Bahasa",
+    "login": "Masuk",
+    "register": "Daftar",
+    "emergency": "GAWAT DARURAT",
+    "emergencyCall": "Hubungi: 118 / 119",
+    "bookAppointment": "Buat Janji Temu",
+    "onlineConsultation": "Konsultasi Online",
+    "learnMore": "Selengkapnya",
+    "viewAll": "Lihat Semua",
+    "submit": "Kirim",
+    "cancel": "Batal",
+    "save": "Simpan",
+    "close": "Tutup",
+    "back": "Kembali",
+    "next": "Selanjutnya",
+    "loading": "Memuat..."
+  },
+  "nav": {
+    "home": "Beranda",
+    "profile": "Profil",
+    "services": "Layanan",
+    "outpatient": "Rawat Jalan",
+    "inpatient": "Rawat Inap",
+    "emergency": "Gawat Darurat",
+    "intensive": "Perawatan Intensif",
+    "supporting": "Penunjang",
+    "visitorDashboard": "Dashboard Kunjungan",
+    "articles": "Artikel",
+    "health": "Kesehatan",
+    "achievements": "Prestasi & Penghargaan",
+    "training": "Diklat & Pelatihan",
+    "information": "Informasi",
+    "serviceStandards": "Standar Pelayanan",
+    "innovation": "Inovasi",
+    "tariffs": "Tarif",
+    "sakipDocuments": "Dokumen SAKIP",
+    "otherLinks": "Link Lainnya",
+    "seasonalDiseases": "Tren Penyakit Musiman",
+    "pkrs": "PKRS",
+    "integrityZone": "Zona Integritas",
+    "wbk": "WBK",
+    "wbbm": "WBBM",
+    "skm": "SKM",
+    "history": "Sejarah Rumah Sakit",
+    "ppid": "PPID",
+    "complaints": "Pengaduan",
+    "contact": "Kontak",
+    "careers": "Karir",
+    "sitemap": "Peta Situs"
+  },
+  "hero": {
+    "title": "Pelayanan Kesehatan",
+    "titleHighlight": "Terpercaya & Profesional",
+    "subtitle": "Memberikan layanan kesehatan berkualitas dengan tenaga medis profesional, fasilitas modern, dan teknologi terkini untuk kesehatan Anda dan keluarga.",
+    "cta1": "Buat Janji Temu",
+    "cta2": "Konsultasi Online"
+  },
+  "stats": {
+    "patients": "Pasien Dilayani",
+    "doctors": "Dokter Spesialis",
+    "experience": "Tahun Pengalaman",
+    "satisfaction": "Kepuasan Pasien"
+  },
+  "services": {
+    "title": "Layanan Unggulan Kami",
+    "subtitle": "Menyediakan berbagai layanan kesehatan komprehensif dengan standar internasional",
+    "outpatient": {
+      "title": "Rawat Jalan",
+      "description": "Pelayanan konsultasi dan pemeriksaan kesehatan tanpa perlu menginap di rumah sakit"
+    },
+    "inpatient": {
+      "title": "Rawat Inap",
+      "description": "Fasilitas perawatan lengkap dengan kamar yang nyaman dan perawatan 24 jam"
+    },
+    "emergency": {
+      "title": "Gawat Darurat",
+      "description": "Layanan darurat 24 jam dengan tim medis terlatih dan peralatan lengkap"
+    },
+    "intensive": {
+      "title": "Perawatan Intensif",
+      "description": "Unit ICU, ICCU, NICU, PICU dengan monitoring dan perawatan intensif"
+    },
+    "supporting": {
+      "title": "Penunjang Medis",
+      "description": "Laboratorium, radiologi, farmasi, rehabilitasi medik dan layanan penunjang lainnya"
+    },
+    "specialist": {
+      "title": "Klinik Spesialis",
+      "description": "Berbagai klinik spesialis dengan dokter berpengalaman di bidangnya"
+    }
+  },
+  "appointment": {
+    "title": "Buat Janji Temu",
+    "subtitle": "Jadwalkan kunjungan Anda dengan mudah",
+    "selectService": "Pilih Layanan",
+    "selectDoctor": "Pilih Dokter",
+    "selectDate": "Pilih Tanggal",
+    "selectTime": "Pilih Waktu",
+    "patientName": "Nama Lengkap",
+    "patientNIK": "Nomor NIK",
+    "patientPhone": "Nomor Telepon",
+    "patientEmail": "Email",
+    "medicalRecordNo": "No. Rekam Medis (jika ada)",
+    "submit": "Buat Janji",
+    "success": "Janji temu berhasil dibuat!",
+    "confirmation": "Konfirmasi akan dikirim ke email Anda"
+  },
+  "doctors": {
+    "title": "Tim Dokter Kami",
+    "subtitle": "Dokter spesialis berpengalaman siap melayani Anda",
+    "viewSchedule": "Lihat Jadwal",
+    "makeAppointment": "Buat Janji"
+  },
+  "news": {
+    "title": "Berita & Artikel Kesehatan",
+    "subtitle": "Informasi terbaru seputar kesehatan dan aktivitas rumah sakit",
+    "readMore": "Baca Selengkapnya"
+  },
+  "contact": {
+    "title": "Hubungi Kami",
+    "address": "Alamat",
+    "phone": "Telepon",
+    "email": "Email",
+    "operationalHours": "Jam Operasional",
+    "weekdays": "Senin - Jumat",
+    "weekend": "Sabtu - Minggu",
+    "allDay": "24 Jam (IGD)"
+  },
+  "footer": {
+    "description": "Rumah sakit terpercaya dengan pelayanan kesehatan berkualitas internasional.",
+    "quickLinks": "Tautan Cepat",
+    "services": "Layanan",
+    "information": "Informasi",
+    "contact": "Kontak",
+    "followUs": "Ikuti Kami",
+    "copyright": "© 2024 RS Harapan Sehat. Hak Cipta Dilindungi."
+  }
+}
