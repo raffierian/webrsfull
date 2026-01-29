@@ -1,6 +1,0 @@
-PORT=6000
-# MASTER KEY: Password for YOU (Developer) to access this tool. Change it!
-MASTER_KEY=rh-secret-master-password
-
-# SECRET KEY: Must match the one in the main RS Soewandhie app
-SECRET_KEY=RH_PRODUCTION_SECRET_2025

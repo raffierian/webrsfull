@@ -26,3 +26,6 @@ dist-ssr
 *.sln
 *.sw?
 *.backup
+
+# License Manager (not needed in repository)
+license-manager/
