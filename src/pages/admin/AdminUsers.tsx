@@ -89,7 +89,7 @@ const AdminUsers = () => {
 
   const roles = rolesData?.map((r: any) => ({ value: r.name, label: r.name })) || [];
 
-  const users = usersResponse?.data || [];
+  const users = usersResponse || [];
 
   const filteredUsers = useMemo(() => {
     return users.filter((user: AdminUserData) => {
