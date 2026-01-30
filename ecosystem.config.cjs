@@ -10,6 +10,8 @@ module.exports = {
             script: "npm",
             args: "run start",
             cwd: "./backend",
+            watch: true,
+            ignore_watch: ["node_modules", "logs", "*.log"],
         },
     ],
 };
