@@ -89,7 +89,7 @@ export const globalSearch = async (req, res, next) => {
                     title: true,
                     department: true,
                     slug: true,
-                    type: true
+                    positionType: true
                 },
                 take: 5
             })
