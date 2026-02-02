@@ -473,7 +473,7 @@ model InpatientRoom {
 
 model RoleMenu {
   id        String   @id @default(uuid())
-  role      UserRole @unique // Deprecated
+  role      UserRole? @unique // Deprecated
   roleId    String?  @unique @map("role_id")
   userRole  Role?    @relation(fields: [roleId], references: [id])
   menus     Json     // Array of allowed menu paths
