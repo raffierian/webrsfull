@@ -158,6 +158,12 @@ export const api = {
         update: (data: any) => fetcher<any>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
     },
 
+    // Surveys (Real Data)
+    surveys: {
+        getStats: (period: string = 'month') => fetcher<any>(`/surveys/stats?period=${period}`),
+        submit: (data: any) => fetcher<any>('/surveys', { method: 'POST', body: JSON.stringify(data), requireAuth: false }),
+    },
+
     // Admin Users Management
     adminUsers: {
         getAll: (params?: string) => fetcher<any>(`/admin/users${params ? `?${params}` : ''}`),

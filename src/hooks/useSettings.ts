@@ -10,6 +10,8 @@ export interface HospitalSettings {
     address: string;
     website: string;
     description: string;
+    emergencyPhone?: string;
+    operatingHours?: string;
     logoUrl?: string;
     faviconUrl?: string;
     external_links?: {

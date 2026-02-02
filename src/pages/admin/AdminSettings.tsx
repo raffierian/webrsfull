@@ -258,13 +258,61 @@ const AdminSettings = () => {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Telepon</Label>
+                  <Label>Telepon Utama</Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
                       className="pl-10"
                       value={hospitalSettings.phone}
                       onChange={(e) => setHospitalSettings({ ...hospitalSettings, phone: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Nomor WhatsApp (628...)</Label>
+                  <div className="relative">
+                    <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      className="pl-10"
+                      value={hospitalSettings.whatsapp}
+                      onChange={(e) => setHospitalSettings({ ...hospitalSettings, whatsapp: e.target.value })}
+                      placeholder="62812345678"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Nomor Darurat (IGD)</Label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground text-red-500" />
+                    <Input
+                      className="pl-10 border-red-200 focus-visible:ring-red-500"
+                      value={hospitalSettings.emergencyPhone || ''}
+                      onChange={(e) => setHospitalSettings({ ...hospitalSettings, emergencyPhone: e.target.value })}
+                      placeholder="(031) 372XXXX"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Jam Operasional</Label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      className="pl-10"
+                      value={hospitalSettings.operatingHours || ''}
+                      onChange={(e) => setHospitalSettings({ ...hospitalSettings, operatingHours: e.target.value })}
+                      placeholder="Contoh: Senin - Minggu (24 Jam)"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Alamat Lengkap</Label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                    <Textarea
+                      className="pl-10 resize-none"
+                      rows={2}
+                      value={hospitalSettings.address}
+                      onChange={(e) => setHospitalSettings({ ...hospitalSettings, address: e.target.value })}
                     />
                   </div>
                 </div>

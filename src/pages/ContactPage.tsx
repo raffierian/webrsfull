@@ -127,7 +127,8 @@ const ContactPage: React.FC = () => {
       title: 'Telepon',
       details: [
         { label: 'Pendaftaran', value: settings?.phone || '(031) 3717141' },
-        { label: 'IGD', value: '(031) 3717141' },
+        { label: 'IGD', value: settings?.emergencyPhone || '(031) 372XXXX' },
+        { label: 'Command Center', value: '112' },
         { label: 'Ambulans', value: '118 / 119' },
       ],
       color: 'bg-primary/10 text-primary'
@@ -146,9 +147,8 @@ const ContactPage: React.FC = () => {
       icon: Clock,
       title: 'Jam Operasional',
       details: [
-        { label: 'Senin - Jumat', value: '08:00 - 21:00' },
-        { label: 'Sabtu - Minggu', value: '08:00 - 17:00' },
-        { label: 'IGD', value: '24 Jam' },
+        { label: 'IGD & Gawat Darurat', value: '24 Jam (Setiap Hari)' },
+        { label: 'Poliklinik', value: settings?.operatingHours || '07:30 - 14:00' },
       ],
       color: 'bg-accent/10 text-accent'
     },

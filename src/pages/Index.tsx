@@ -214,7 +214,7 @@ const Index: React.FC = () => {
             </div>
             <div className="min-w-0">
               <h3 className="font-semibold text-foreground truncate">Gawat Darurat</h3>
-              <p className="text-xs text-muted-foreground truncate">Layanan 24 Jam</p>
+              <p className="text-xs text-muted-foreground truncate">{settings?.operatingHours || 'Layanan 24 Jam'}</p>
             </div>
           </Link>
         </motion.div>

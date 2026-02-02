@@ -14,9 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Star, CheckCircle, ClipboardList } from "lucide-react";
+import { Star, CheckCircle, ClipboardList, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useSettings } from "@/hooks/useSettings";
+import { useMutation } from "@tanstack/react-query";
+import { api } from "@/services/api";
 
 const departments = [
   "Rawat Jalan",
@@ -43,11 +45,30 @@ const SurveyPage = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    visitDate: "",
+    visitDate: new Date().toISOString().split('T')[0],
     department: "",
     ratings: {} as Record<string, number>,
     recommendation: "",
     feedback: "",
+  });
+
+  const submitMutation = useMutation({
+    mutationFn: (data: any) => api.surveys.submit(data),
+    onSuccess: () => {
+      setIsSubmitted(true);
+      toast({
+        title: "Terima Kasih!",
+        description: "Survei Anda telah berhasil dikirim",
+      });
+      // Reset form logic is handled by the success view 'Isi Survei Lagi' button
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Gagal Mengirim",
+        description: error.message || "Terjadi kesalahan saat mengirim survei",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleRating = (questionId: string, rating: number) => {
@@ -60,20 +81,39 @@ const SurveyPage = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.department || Object.keys(formData.ratings).length < questions.length) {
+    if (!formData.department || Object.keys(formData.ratings).length < questions.length || !formData.recommendation) {
       toast({
         title: "Form Belum Lengkap",
-        description: "Mohon lengkapi semua penilaian",
+        description: "Mohon lengkapi semua penilaian, unit layanan, dan rekomendasi.",
         variant: "destructive",
       });
       return;
     }
 
-    setIsSubmitted(true);
-    toast({
-      title: "Terima Kasih!",
-      description: "Survei Anda telah berhasil dikirim",
-    });
+    // Calculate Overall Score
+    const scores = Object.values(formData.ratings);
+    const overall = scores.reduce((a, b) => a + b, 0) / scores.length;
+
+    // Map recommendation to Enum format
+    const recommendationMap: Record<string, string> = {
+      'yes': 'YES',
+      'maybe': 'MAYBE',
+      'no': 'NO'
+    };
+
+    const payload = {
+      respondentName: formData.name || 'Anonim',
+      department: formData.department,
+      serviceType: 'OUTPATIENT', // Defaulting for now, could be inferred from dept
+      ratings: {
+        ...formData.ratings,
+        overall: overall.toFixed(2),
+      },
+      comments: formData.feedback,
+      recommendation: recommendationMap[formData.recommendation]
+    };
+
+    submitMutation.mutate(payload);
   };
 
   const StarRating = ({ questionId, rating }: { questionId: string; rating: number }) => (
@@ -87,8 +127,8 @@ const SurveyPage = () => {
         >
           <Star
             className={`w-8 h-8 ${star <= rating
-                ? "text-yellow-400 fill-yellow-400"
-                : "text-gray-300 hover:text-yellow-200"
+              ? "text-yellow-400 fill-yellow-400"
+              : "text-gray-300 hover:text-yellow-200"
               }`}
           />
         </button>
@@ -111,7 +151,17 @@ const SurveyPage = () => {
                   Umpan balik Anda sangat berharga bagi kami untuk terus meningkatkan
                   kualitas pelayanan {settings?.name || "RS Soewandhie"}.
                 </p>
-                <Button onClick={() => { setIsSubmitted(false); setFormData({ name: "", visitDate: "", department: "", ratings: {}, recommendation: "", feedback: "" }); }}>
+                <Button onClick={() => {
+                  setIsSubmitted(false);
+                  setFormData({
+                    name: "",
+                    visitDate: new Date().toISOString().split('T')[0],
+                    department: "",
+                    ratings: {},
+                    recommendation: "",
+                    feedback: ""
+                  });
+                }}>
                   Isi Survei Lagi
                 </Button>
               </CardContent>
@@ -164,6 +214,7 @@ const SurveyPage = () => {
                         type="date"
                         value={formData.visitDate}
                         onChange={(e) => setFormData({ ...formData, visitDate: e.target.value })}
+                        disabled // Tanggal kunjungan usually current or auto
                       />
                     </div>
                   </div>
@@ -204,7 +255,7 @@ const SurveyPage = () => {
 
                 {/* Recommendation */}
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Rekomendasi</h3>
+                  <h3 className="font-semibold text-lg">Rekomendasi *</h3>
                   <div className="space-y-3">
                     <Label>Apakah Anda akan merekomendasikan {settings?.name || "RS Soewandhie"} kepada keluarga/teman?</Label>
                     <RadioGroup
@@ -242,8 +293,15 @@ const SurveyPage = () => {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" size="lg">
-                  Kirim Survei
+                <Button type="submit" className="w-full" size="lg" disabled={submitMutation.isPending}>
+                  {submitMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Mengirim...
+                    </>
+                  ) : (
+                    "Kirim Survei"
+                  )}
                 </Button>
               </form>
             </CardContent>

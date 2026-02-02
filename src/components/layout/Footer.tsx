@@ -65,7 +65,7 @@ const Footer: React.FC = () => {
     { path: '/information/tariffs', label: t('nav.tariffs') },
     { path: '/ppid', label: t('nav.ppid') },
     { path: '/complaint', label: t('nav.complaints') },
-    { path: '/information/skm', label: t('nav.skm') },
+    { path: '/survey', label: 'Survei Kepuasan (SKM)' },
     { path: '/information/standards', label: 'Standar Pelayanan' },
   ];
 
@@ -118,7 +118,19 @@ const Footer: React.FC = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-primary-light" />
-                <span className="text-white/70 text-sm">24 Jam (IGD)</span>
+                <span className="text-white/70 text-sm">{settings?.operatingHours || "24 Jam (IGD)"}</span>
+              </div>
+
+              {/* Emergency Numbers */}
+              <div className="pt-2 mt-2 border-t border-white/10">
+                <div className="flex items-start gap-3 mb-1">
+                  <Phone className="w-5 h-5 text-red-400 mt-0.5" />
+                  <div className="flex flex-col gap-1">
+                    <span className="text-white/90 text-sm font-semibold">Gawat Darurat 24 Jam:</span>
+                    <span className="text-white/70 text-sm">IGD RS: {settings?.emergencyPhone || "(031) 372XXXX"}</span>
+                    <span className="text-white/70 text-sm">Command Center: 112</span>
+                  </div>
+                </div>
               </div>
             </div>
 
