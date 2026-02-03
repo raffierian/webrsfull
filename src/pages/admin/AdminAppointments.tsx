@@ -49,7 +49,7 @@ interface Appointment {
   patientName: string;
   patientPhone: string;
   patientNIK: string;
-  poli: string;
+  service: string;
   doctor: string;
   date: string;
   time: string;
@@ -79,12 +79,12 @@ const AdminAppointments = () => {
   });
 
   // Map backend data to frontend model
-  const appointments: Appointment[] = (appointmentsData?.data || []).map((apt: any) => ({
+  const appointments: Appointment[] = (Array.isArray(appointmentsData) ? appointmentsData : []).map((apt: any) => ({
     id: apt.id,
     patientName: apt.patient?.name || 'Unknown',
     patientPhone: apt.patient?.phone || '-',
-    patientNIK: apt.patient?.id || '-', // Using ID as NIK placeholder
-    poli: apt.poli?.name || '-',
+    patientNIK: apt.patient?.nik || '-',
+    service: apt.service?.name || '-',
     doctor: apt.doctor?.name || '-',
     date: apt.appointmentDate,
     time: apt.appointmentTime,
@@ -149,8 +149,32 @@ const AdminAppointments = () => {
     updateStatusMutation.mutate({ id: String(id), status: "CONFIRMED" });
   };
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.appointments.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-appointments"] });
+      toast({ title: "Berhasil", description: "Janji temu telah dihapus secara permanen" });
+      setIsDeleteOpen(false);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Gagal",
+        description: error.message || "Gagal menghapus janji temu",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleCancel = (id: any) => {
-    updateStatusMutation.mutate({ id: String(id), status: "CANCELLED" });
+    // Optionally use api.appointments.cancel(id) if we want specific endpoint
+    // But updateStatus to CANCELLED works too. Let's keep existing for now or switch? 
+    // Switching to specific cancel endpoint is cleaner.
+    api.appointments.cancel(String(id)).then(() => {
+      queryClient.invalidateQueries({ queryKey: ["admin-appointments"] });
+      toast({ title: "Berhasil", description: "Janji temu dibatalkan" });
+    }).catch(err => {
+      toast({ title: "Gagal", description: err.message, variant: "destructive" });
+    });
   };
 
   const handleComplete = (id: any) => {
@@ -168,12 +192,8 @@ const AdminAppointments = () => {
   };
 
   const handleDelete = () => {
-    // Delete API not implemented yet in this iteration for appointments specifically?
-    // Checking api.ts... no delete in appointments. Update to CANCELLED instead?
-    // Or assume it's implemented. Let's just toast for now or implement cancel.
     if (selectedAppointment) {
-      handleCancel(selectedAppointment.id);
-      setIsDeleteOpen(false);
+      deleteMutation.mutate(String(selectedAppointment.id));
     }
   };
 
@@ -189,13 +209,13 @@ const AdminAppointments = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ["ID", "Pasien", "NIK", "Telepon", "Poli", "Dokter", "Tanggal", "Jam", "Status"];
+    const headers = ["ID", "Pasien", "NIK", "Telepon", "Layanan", "Dokter", "Tanggal", "Jam", "Status"];
     const rows = filteredAppointments.map(apt => [
       apt.id,
       apt.patientName,
       apt.patientNIK,
       apt.patientPhone,
-      apt.poli,
+      apt.service,
       apt.doctor,
       apt.date,
       apt.time,
@@ -279,7 +299,7 @@ const AdminAppointments = () => {
               <thead>
                 <tr className="border-b bg-muted/50">
                   <th className="text-left py-3 px-4 text-sm font-medium">Pasien</th>
-                  <th className="text-left py-3 px-4 text-sm font-medium">Poli / Dokter</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium">Layanan / Dokter</th>
                   <th className="text-left py-3 px-4 text-sm font-medium">Jadwal</th>
                   <th className="text-left py-3 px-4 text-sm font-medium">Status</th>
                   <th className="text-center py-3 px-4 text-sm font-medium">Aksi</th>
@@ -303,7 +323,7 @@ const AdminAppointments = () => {
                       </td>
                       <td className="py-4 px-4">
                         <div>
-                          <p className="font-medium">{apt.poli}</p>
+                          <p className="font-medium">{apt.service}</p>
                           <p className="text-sm text-muted-foreground">{apt.doctor}</p>
                         </div>
                       </td>
@@ -413,8 +433,8 @@ const AdminAppointments = () => {
                   <div className="mt-1">{getStatusBadge(selectedAppointment.status)}</div>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Poli</Label>
-                  <p className="font-medium">{selectedAppointment.poli}</p>
+                  <Label className="text-muted-foreground">Layanan</Label>
+                  <p className="font-medium">{selectedAppointment.service}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Dokter</Label>

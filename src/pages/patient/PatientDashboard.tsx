@@ -17,7 +17,7 @@ const PatientDashboard = () => {
         queryFn: () => api.appointments.getMy('limit=5&status=PENDING,CONFIRMED,WAITING'),
     });
 
-    const nextAppointment = appointments?.data?.[0];
+    const nextAppointment = appointments?.[0];
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -82,7 +82,7 @@ const PatientDashboard = () => {
                                                     }
                                                 </span>
                                             </div>
-                                            <h3 className="text-xl font-bold mb-1">{nextAppointment.poli?.name || 'Poli Umum'}</h3>
+                                            <h3 className="text-xl font-bold mb-1">{nextAppointment.service?.name || 'Poli Umum'}</h3>
                                             <div className="flex items-center gap-2 text-gray-600 mb-4">
                                                 <User className="w-4 h-4" />
                                                 <span>{nextAppointment.doctor?.name}</span>

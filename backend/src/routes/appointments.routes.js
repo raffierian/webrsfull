@@ -4,12 +4,15 @@ import { verifyToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// All appointment routes require authentication
+// Public route for creating appointment
+router.post('/', appointmentsController.createAppointment);
+
+// Protected routes
 router.use(verifyToken);
 
-router.post('/', appointmentsController.createAppointment);
 router.get('/', appointmentsController.getUserAppointments);
 router.get('/:id', appointmentsController.getAppointmentById);
-router.delete('/:id', appointmentsController.cancelAppointment);
+router.put('/:id/cancel', appointmentsController.cancelAppointment); // Soft delete / cancel
+router.delete('/:id', appointmentsController.deleteAppointment); // Hard delete
 
 export default router;

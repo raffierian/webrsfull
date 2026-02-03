@@ -7,7 +7,7 @@ import { successResponse, errorResponse, paginatedResponse } from '../utils/resp
  */
 export const getAllDoctors = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, specialization, search, isAvailable } = req.query;
+        const { page = 1, limit = 10, specialization, search, isAvailable, isActive } = req.query;
         const skip = (page - 1) * limit;
 
         const where = {};
@@ -27,6 +27,10 @@ export const getAllDoctors = async (req, res, next) => {
             where.isAvailable = isAvailable === 'true';
         }
 
+        if (isActive !== undefined) {
+            where.isActive = isActive === 'true';
+        }
+
         const [doctors, total] = await Promise.all([
             prisma.doctor.findMany({
                 where,
@@ -41,8 +45,12 @@ export const getAllDoctors = async (req, res, next) => {
                     bio: true,
                     rating: true,
                     isAvailable: true,
+                    isActive: true,
                     consultationFee: true,
                     experienceYears: true,
+                    licenseNumber: true,
+                    education: true,
+                    schedule: true,
                 },
             }),
             prisma.doctor.count({ where }),

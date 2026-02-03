@@ -15,7 +15,7 @@ async function fetcher<T>(endpoint: string, options: FetchOptions = {}): Promise
     };
 
     if (requireAuth) {
-        const token = localStorage.getItem('adminToken');
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
@@ -30,6 +30,17 @@ async function fetcher<T>(endpoint: string, options: FetchOptions = {}): Promise
         const data = await response.json();
 
         if (!response.ok) {
+            if (response.status === 401) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('token');
+
+                // Redirect based on current path
+                if (window.location.pathname.startsWith('/admin')) {
+                    window.location.href = '/admin/login';
+                } else {
+                    window.location.href = '/patient/login';
+                }
+            }
             throw new Error(data.message || 'An error occurred');
         }
 
@@ -110,7 +121,9 @@ export const api = {
             method: 'PUT',
             body: JSON.stringify({ status, notes })
         }),
-        create: (data: any) => fetcher<any>('/appointments', { method: 'POST', body: JSON.stringify(data), requireAuth: true }), // Require auth for patient booking
+        create: (data: any) => fetcher<any>('/appointments', { method: 'POST', body: JSON.stringify(data), requireAuth: false }), // Public booking allowed
+        delete: (id: string) => fetcher<any>(`/appointments/${id}`, { method: 'DELETE' }),
+        cancel: (id: string) => fetcher<any>(`/appointments/${id}/cancel`, { method: 'PUT' }),
     },
 
     // Articles

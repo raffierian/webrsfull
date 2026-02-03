@@ -77,7 +77,7 @@ const AdminDashboard = () => {
     queryFn: () => api.appointments.getAllAdmin('limit=5&status=PENDING'),
   });
 
-  const recentAppointments = appointmentsValue?.data || [];
+  const recentAppointments = Array.isArray(appointmentsValue) ? appointmentsValue : [];
 
   // Prepare chart data from API response
   const chartData = trendData ? Object.entries(trendData).map(([month, count]) => ({
@@ -364,7 +364,7 @@ const AdminDashboard = () => {
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Pasien</th>
-                  <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Poli</th>
+                  <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Layanan</th>
                   <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Dokter</th>
                   <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Waktu</th>
                   <th className="text-left py-3 px-2 text-sm font-medium text-muted-foreground">Status</th>
@@ -381,7 +381,7 @@ const AdminDashboard = () => {
                   recentAppointments.map((apt: any) => (
                     <tr key={apt.id} className="border-b last:border-0 hover:bg-muted/50">
                       <td className="py-3 px-2 font-medium">{apt.patient?.name}</td>
-                      <td className="py-3 px-2 text-muted-foreground">{apt.poli?.name}</td>
+                      <td className="py-3 px-2 text-muted-foreground">{apt.service?.name}</td>
                       <td className="py-3 px-2 text-muted-foreground">{apt.doctor?.name}</td>
                       <td className="py-3 px-2 text-muted-foreground">
                         {new Date(apt.appointmentDate).toLocaleDateString()} {apt.appointmentTime}

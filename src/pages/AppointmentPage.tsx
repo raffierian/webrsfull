@@ -40,6 +40,49 @@ const AppointmentPage: React.FC = () => {
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState('');
+  // Parse schedule string like "Senin - Jumat | 08:00 - 14:00"
+  // Returns { days: [1,2,3,4,5], start: "08:00", end: "14:00" }
+  const parseSchedule = (scheduleStr: string) => {
+    try {
+      if (!scheduleStr) return { days: [1, 2, 3, 4, 5], start: '08:00', end: '16:00' }; // Default
+
+      const [dayPart, timePart] = scheduleStr.split('|').map(s => s.trim());
+
+      // Parse Days
+      let days: number[] = [];
+      const dayMap: { [key: string]: number } = {
+        'senin': 1, 'selasa': 2, 'rabu': 3, 'kamis': 4, 'jumat': 5, 'sabtu': 6, 'minggu': 0
+      };
+
+      const lowerDay = dayPart.toLowerCase();
+      if (lowerDay.includes('senin - jumat')) days = [1, 2, 3, 4, 5];
+      else if (lowerDay.includes('senin - sabtu')) days = [1, 2, 3, 4, 5, 6];
+      else if (lowerDay.includes('setiap hari')) days = [0, 1, 2, 3, 4, 5, 6];
+      else {
+        // Simple exact match check or fallback
+        Object.keys(dayMap).forEach(day => {
+          if (lowerDay.includes(day)) days.push(dayMap[day]);
+        });
+        if (days.length === 0) days = [1, 2, 3, 4, 5]; // Fallback
+      }
+
+      // Parse Time
+      let start = '08:00';
+      let end = '16:00';
+      if (timePart) {
+        const parts = timePart.split('-').map(s => s.trim());
+        if (parts.length === 2) {
+          start = parts[0];
+          end = parts[1];
+        }
+      }
+
+      return { days, start, end };
+    } catch (e) {
+      return { days: [1, 2, 3, 4, 5], start: '08:00', end: '16:00' };
+    }
+  };
+
   const [formData, setFormData] = useState({
     name: '',
     nik: '',
@@ -65,11 +108,36 @@ const AppointmentPage: React.FC = () => {
 
   const { data: doctorsData, isLoading: doctorsLoading } = useQuery({
     queryKey: ['public-doctors-appointment', selectedServiceName],
-    queryFn: () => api.doctors.getAllPublic(selectedServiceName ? `specialization=${selectedServiceName}` : ''),
+    queryFn: () => api.doctors.getAllPublic(`isAvailable=true${selectedServiceName ? `&specialization=${encodeURIComponent(selectedServiceName)}` : ''}`),
     enabled: !!selectedService // Only fetch when service is selected
   });
 
-  const availableDoctors = doctorsData?.data || [];
+  const availableDoctors = Array.isArray(doctorsData) ? doctorsData : (doctorsData?.data || []);
+
+  const selectedDoctorObj = availableDoctors.find((d: any) => d.id === selectedDoctor);
+
+  const scheduleData = React.useMemo(() => {
+    return parseSchedule(selectedDoctorObj?.schedule || '');
+  }, [selectedDoctorObj]);
+
+  const availableTimeSlots = React.useMemo(() => {
+    const startParts = scheduleData.start.split(':').map(Number);
+    const endParts = scheduleData.end.split(':').map(Number);
+
+    if (startParts.length !== 2 || endParts.length !== 2) return [];
+
+    const slots = [];
+    let current = new Date();
+    current.setHours(startParts[0], startParts[1], 0, 0);
+    const end = new Date();
+    end.setHours(endParts[0], endParts[1], 0, 0);
+
+    while (current <= end) {
+      slots.push(format(current, 'HH:mm'));
+      current.setMinutes(current.getMinutes() + 30);
+    }
+    return slots;
+  }, [scheduleData]);
 
   // Submit Mutation
   const mutation = useMutation({
@@ -101,7 +169,7 @@ const AppointmentPage: React.FC = () => {
       patientNIK: formData.nik, // Ensure backend accepts NIK or maps it to user
       patientPhone: formData.phone,
       patientEmail: formData.email,
-      poliId: selectedService,
+      serviceId: selectedService,
       doctorId: selectedDoctor,
       appointmentDate: format(selectedDate, 'yyyy-MM-dd'),
       appointmentTime: selectedTime,
@@ -203,7 +271,7 @@ const AppointmentPage: React.FC = () => {
                         </div>
                       ) : (
                         <Select value={selectedService} onValueChange={setSelectedService}>
-                          <SelectTrigger className="h-12">
+                          <SelectTrigger id="service" className="h-12">
                             <SelectValue placeholder="Pilih layanan/poli" />
                           </SelectTrigger>
                           <SelectContent>
@@ -308,7 +376,7 @@ const AppointmentPage: React.FC = () => {
                           locale={id}
                           disabled={(date) =>
                             date < new Date() ||
-                            date.getDay() === 0
+                            !scheduleData.days.includes(date.getDay())
                           }
                           className="mx-auto"
                         />
@@ -319,22 +387,28 @@ const AppointmentPage: React.FC = () => {
                       <Label className="text-base font-medium mb-2 block">
                         {t('appointment.selectTime')} *
                       </Label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {timeSlots.map((time) => (
-                          <button
-                            key={time}
-                            onClick={() => setSelectedTime(time)}
-                            className={cn(
-                              "p-3 rounded-lg border-2 font-medium transition-all",
-                              selectedTime === time
-                                ? "border-primary bg-primary text-white"
-                                : "border-border hover:border-primary/50"
-                            )}
-                          >
-                            {time}
-                          </button>
-                        ))}
-                      </div>
+                      {availableTimeSlots.length > 0 ? (
+                        <div className="grid grid-cols-3 gap-2">
+                          {availableTimeSlots.map((time) => (
+                            <button
+                              key={time}
+                              onClick={() => setSelectedTime(time)}
+                              className={cn(
+                                "p-3 rounded-lg border-2 font-medium transition-all",
+                                selectedTime === time
+                                  ? "border-primary bg-primary text-white"
+                                  : "border-border hover:border-primary/50"
+                              )}
+                            >
+                              {time}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg text-center">
+                          Tidak ada jadwal tersedia untuk dokter ini.
+                        </div>
+                      )}
                     </div>
                   </div>
 

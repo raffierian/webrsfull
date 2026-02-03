@@ -78,7 +78,7 @@ const AdminServices: React.FC = () => {
     queryFn: () => api.services.getAllAdmin(),
   });
 
-  const services = servicesData?.data || [];
+  const services = Array.isArray(servicesData) ? servicesData : (servicesData?.data || []);
 
   // Update selectedType when editingService changes
   useEffect(() => {
@@ -197,7 +197,7 @@ const AdminServices: React.FC = () => {
               <div>
                 <Label htmlFor="type">Tipe Layanan *</Label>
                 <Select value={selectedType} onValueChange={setSelectedType} required>
-                  <SelectTrigger>
+                  <SelectTrigger id="type">
                     <SelectValue placeholder="Pilih tipe layanan" />
                   </SelectTrigger>
                   <SelectContent>

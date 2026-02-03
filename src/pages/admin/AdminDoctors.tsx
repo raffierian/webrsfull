@@ -29,10 +29,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-
-const initialDoctors = [];
 
 const departments = ['Semua', 'Kardiologi', 'Pediatri', 'Bedah Umum', 'Obstetri & Ginekologi', 'Penyakit Dalam', 'Umum', 'Saraf', 'Mata', 'THT'];
 
@@ -52,7 +49,7 @@ const AdminDoctors: React.FC = () => {
     queryFn: api.doctors.getAllAdmin,
   });
 
-  const doctors = doctorsData?.data || [];
+  const doctors = Array.isArray(doctorsData) ? doctorsData : (doctorsData?.data || []);
 
   // Mutations
   const createMutation = useMutation({
@@ -107,7 +104,8 @@ const AdminDoctors: React.FC = () => {
   const filteredDoctors = doctors.filter((doctor: any) => {
     const matchSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchDepartment = departmentFilter === 'Semua' || (doctor.specialization && doctor.specialization.includes(departmentFilter));
-    const matchStatus = statusFilter === 'all' || (statusFilter === 'active' ? doctor.isAvailable : !doctor.isAvailable);
+    // Status filter: logic can be refined. Assuming 'active' checks isActive.
+    const matchStatus = statusFilter === 'all' || (statusFilter === 'active' ? doctor.isActive : !doctor.isActive);
     return matchSearch && matchDepartment && matchStatus;
   });
 
@@ -117,10 +115,17 @@ const AdminDoctors: React.FC = () => {
     }
   };
 
-  const handleToggleActive = (doctor: any) => {
+  const handleToggleAvailability = (doctor: any) => {
     updateMutation.mutate({
       id: doctor.id,
       data: { isAvailable: !doctor.isAvailable }
+    });
+  };
+
+  const handleToggleEmployeeStatus = (doctor: any) => {
+    updateMutation.mutate({
+      id: doctor.id,
+      data: { isActive: !doctor.isActive }
     });
   };
 
@@ -130,13 +135,18 @@ const AdminDoctors: React.FC = () => {
 
     const doctorData = {
       name: formData.get('name') as string,
-      specialization: formData.get('specialty') as string, // Mapping specialty to specialization
-      // Map other fields that backend accepts
-      licenseNumber: formData.get('licenseNumber') as string || `DOC-${Date.now()}`, // Temporary fallback
-      experienceYears: 5, // Default for now
-      consultationFee: 150000,
-      bio: formData.get('department') as string, // Storing department in bio for now? Or just ignore
-      photoUrl: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200', // Default image
+      specialization: formData.get('specialty') as string,
+      licenseNumber: formData.get('licenseNumber') as string,
+      education: formData.get('education') as string,
+      experienceYears: parseInt(formData.get('experienceYears') as string) || 0,
+      consultationFee: parseFloat(formData.get('consultationFee') as string) || 0,
+      photoUrl: formData.get('photoUrl') as string,
+      bio: formData.get('bio') as string,
+      schedule: formData.get('schedule') as string,
+      // Default / Hidden fields
+      department: 'Umum',
+      isActive: editingDoctor ? editingDoctor.isActive : true,
+      isAvailable: editingDoctor ? editingDoctor.isAvailable : true,
     };
 
     if (editingDoctor) {
@@ -150,12 +160,15 @@ const AdminDoctors: React.FC = () => {
     return <div className="p-8 text-center">Loading data...</div>;
   }
 
+  // Get dynamic departments from data
+  const dynamicDepartments = Array.from(new Set(doctors.map((d: any) => d.specialization).filter(Boolean))).sort() as string[];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Kelola Dokter</h1>
-          <p className="text-muted-foreground">Kelola data dokter dan jadwal praktik</p>
+          <p className="text-muted-foreground">Kelola data dokter, status kepegawaian, dan jadwal praktik</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-2 border-primary text-primary hover:bg-primary/10" onClick={() => setIsImportOpen(true)}>
@@ -174,17 +187,17 @@ const AdminDoctors: React.FC = () => {
                 <DialogTitle>{editingDoctor ? 'Edit Data Dokter' : 'Tambah Dokter Baru'}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Nama Lengkap *</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    defaultValue={editingDoctor?.name}
-                    placeholder="Dr. Nama Lengkap, Sp.XX"
-                    required
-                  />
-                </div>
                 <div className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <Label htmlFor="name">Nama Lengkap *</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      defaultValue={editingDoctor?.name}
+                      placeholder="Dr. Nama Lengkap, Sp.XX"
+                      required
+                    />
+                  </div>
                   <div>
                     <Label htmlFor="specialty">Spesialisasi *</Label>
                     <Input
@@ -196,30 +209,77 @@ const AdminDoctors: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="department">Departemen</Label>
-                    <Select name="department" defaultValue="Umum">
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {departments.filter(d => d !== 'Semua').map(dept => (
-                          <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="licenseNumber">SIP (Nomor Izin) *</Label>
+                    <Input
+                      id="licenseNumber"
+                      name="licenseNumber"
+                      defaultValue={editingDoctor?.licenseNumber}
+                      placeholder="123/SIP/2024"
+                      required
+                    />
                   </div>
+                  <div>
+                    <Label htmlFor="education">Pendidikan Terakhir</Label>
+                    <Input
+                      id="education"
+                      name="education"
+                      defaultValue={editingDoctor?.education}
+                      placeholder="S3 Kedokteran UI"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="experienceYears">Pengalaman (Tahun)</Label>
+                    <Input
+                      id="experienceYears"
+                      name="experienceYears"
+                      type="number"
+                      defaultValue={editingDoctor?.experienceYears}
+                      placeholder="10"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="consultationFee">Biaya Konsultasi (Rp)</Label>
+                    <Input
+                      id="consultationFee"
+                      name="consultationFee"
+                      type="number"
+                      defaultValue={editingDoctor?.consultationFee}
+                      placeholder="150000"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="photoUrl">Foto URL</Label>
+                    <Input
+                      id="photoUrl"
+                      name="photoUrl"
+                      defaultValue={editingDoctor?.photoUrl}
+                      placeholder="https://example.com/photo.jpg"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label htmlFor="bio">Bio / Deskripsi Singkat</Label>
+                    <Input
+                      id="bio"
+                      name="bio"
+                      defaultValue={editingDoctor?.bio}
+                      placeholder="Dokter spesialis berpengalaman..."
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label htmlFor="schedule">Jadwal Praktik (Info Teks) *</Label>
+                    <Input
+                      id="schedule"
+                      name="schedule"
+                      defaultValue={editingDoctor?.schedule}
+                      placeholder="Senin - Jumat | 08:00 - 14:00"
+                      required
+                    />
+                  </div>
+                  {/* Department is optional/deprecated in favor of specialization, keeping as hidden or removed? keeping as hidden default */}
+                  <input type="hidden" name="department" value="Umum" />
                 </div>
-                {/* Note: Phone/Email are not yet in backend Doctor model, hiding for now or keeping as UI only */}
 
-                <div>
-                  <Label htmlFor="schedule">Jadwal Praktik (Info) *</Label>
-                  <Input
-                    id="schedule"
-                    name="schedule"
-                    defaultValue="Senin - Jumat | 08:00 - 14:00"
-                    placeholder="Senin - Jumat | 08:00 - 14:00"
-                  />
-                </div>
+
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Batal
@@ -246,18 +306,19 @@ const AdminDoctors: React.FC = () => {
           />
         </div>
         <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-          <SelectTrigger className="w-[200px]">
-            <SelectValue placeholder="Departemen" />
+          <SelectTrigger className="w-[250px]">
+            <SelectValue placeholder="Pilih Spesialisasi" />
           </SelectTrigger>
           <SelectContent>
-            {departments.map(dept => (
+            <SelectItem value="Semua">Semua Spesialisasi</SelectItem>
+            {dynamicDepartments.map((dept: any) => (
               <SelectItem key={dept} value={dept}>{dept}</SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder="Status Pegawai" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Semua</SelectItem>
@@ -275,15 +336,15 @@ const AdminDoctors: React.FC = () => {
         </div>
         <div className="bg-card p-4 rounded-lg border">
           <div className="text-2xl font-bold text-green-600">
-            {doctors.filter((d: any) => d.isAvailable).length}
+            {doctors.filter((d: any) => d.isActive).length}
           </div>
-          <div className="text-sm text-muted-foreground">Dokter Aktif</div>
+          <div className="text-sm text-muted-foreground">Pegawai Aktif</div>
         </div>
         <div className="bg-card p-4 rounded-lg border">
-          <div className="text-2xl font-bold text-primary">
-            {new Set(doctors.map((d: any) => d.specialization)).size}
+          <div className="text-2xl font-bold text-blue-600">
+            {doctors.filter((d: any) => d.isAvailable).length}
           </div>
-          <div className="text-sm text-muted-foreground">Spesialisasi</div>
+          <div className="text-sm text-muted-foreground">Buka Praktik</div>
         </div>
         <div className="bg-card p-4 rounded-lg border">
           <div className="text-2xl font-bold text-yellow-600">
@@ -296,7 +357,7 @@ const AdminDoctors: React.FC = () => {
       {/* Doctors Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredDoctors.map((doctor: any) => (
-          <div key={doctor.id} className="bg-card rounded-lg border overflow-hidden">
+          <div key={doctor.id} className="bg-card rounded-lg border overflow-hidden transition-colors hover:bg-muted/30">
             <div className="p-6">
               <div className="flex items-start gap-4">
                 <img
@@ -306,30 +367,47 @@ const AdminDoctors: React.FC = () => {
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <h3 className="font-bold truncate">{doctor.name}</h3>
-                      <p className="text-sm text-primary">{doctor.specialization}</p>
+                    <div className="min-w-0">
+                      <h3 className="font-bold truncate" title={doctor.name}>{doctor.name}</h3>
+                      <p className="text-sm text-primary truncate">{doctor.specialization}</p>
                     </div>
-                    <Switch
-                      checked={doctor.isAvailable}
-                      onCheckedChange={() => handleToggleActive(doctor)}
-                    />
                   </div>
+
+                  {/* Status Switches */}
+                  <div className="flex flex-col gap-2 mt-3 p-2 bg-muted/40 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <span className={`text-xs font-medium ${doctor.isActive ? 'text-green-600' : 'text-gray-400'}`}>
+                        {doctor.isActive ? 'Pegawai Aktif' : 'Pegawai Nonaktif'}
+                      </span>
+                      <Switch
+                        checked={doctor.isActive ?? true}
+                        onCheckedChange={() => handleToggleEmployeeStatus(doctor)}
+                        className="scale-75 origin-right"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between border-t pt-2 border-dashed border-gray-200">
+                      <span className={`text-xs font-medium ${doctor.isAvailable ? 'text-blue-600' : 'text-gray-400'}`}>
+                        {doctor.isAvailable ? 'Buka Praktik' : 'Tutup Praktik'}
+                      </span>
+                      <Switch
+                        checked={doctor.isAvailable}
+                        onCheckedChange={() => handleToggleAvailability(doctor)}
+                        disabled={!doctor.isActive} // Disable if employee is inactive
+                        className="scale-75 origin-right"
+                      />
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
               <div className="mt-4 space-y-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Clock className="w-4 h-4" />
-                  {/* Backend doesn't return schedule yet */}
                   Senin - Jumat | 08:00 - 15:00
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Phone className="w-4 h-4" />
-                  -
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Mail className="w-4 h-4" />
                   -
                 </div>
               </div>
@@ -345,13 +423,10 @@ const AdminDoctors: React.FC = () => {
                     0 pasien
                   </span>
                 </div>
-                <Badge variant={doctor.isAvailable ? 'default' : 'secondary'}>
-                  {doctor.specialization}
-                </Badge>
               </div>
             </div>
 
-            <div className="px-6 py-3 bg-muted/50 flex justify-end gap-2">
+            <div className="px-6 py-3 bg-muted/50 flex justify-end gap-2 border-t">
               <Button
                 variant="ghost"
                 size="sm"

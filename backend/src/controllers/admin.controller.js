@@ -1,7 +1,7 @@
 import prisma from '../config/database.js';
 import { successResponse, errorResponse, paginatedResponse } from '../utils/response.js';
 import bcrypt from 'bcryptjs';
-import * as xlsx from 'xlsx';
+import xlsx from 'xlsx';
 
 // ============================================
 // DASHBOARD ANALYTICS
@@ -122,23 +122,23 @@ export const getVisitTrends = async (req, res, next) => {
 export const getPoliDistribution = async (req, res, next) => {
     try {
         const distribution = await prisma.appointment.groupBy({
-            by: ['poliId'],
+            by: ['serviceId'],
             _count: true,
             orderBy: {
                 _count: {
-                    poliId: 'desc',
+                    serviceId: 'desc',
                 },
             },
         });
 
         const poliData = await Promise.all(
             distribution.map(async (item) => {
-                const poli = await prisma.poli.findUnique({
-                    where: { id: item.poliId },
+                const service = await prisma.service.findUnique({
+                    where: { id: item.serviceId },
                     select: { name: true },
                 });
                 return {
-                    name: poli?.name || 'Unknown',
+                    name: service?.name || 'Unknown',
                     value: item._count,
                 };
             })
@@ -171,12 +171,12 @@ export const getAllAppointments = async (req, res, next) => {
                 orderBy: { appointmentDate: 'desc' },
                 include: {
                     patient: {
-                        select: { id: true, name: true, email: true, phone: true },
+                        select: { id: true, name: true, email: true, phone: true, nik: true },
                     },
                     doctor: {
                         select: { id: true, name: true, specialization: true },
                     },
-                    poli: true,
+                    service: true,
                 },
             }),
             prisma.appointment.count({ where }),
@@ -239,6 +239,8 @@ export const createDoctor = async (req, res, next) => {
                 photoUrl,
                 bio,
                 consultationFee: parseFloat(consultationFee),
+                isActive: req.body.isActive ?? true,
+                isAvailable: req.body.isAvailable ?? true,
             },
         });
 
@@ -251,7 +253,34 @@ export const createDoctor = async (req, res, next) => {
 export const updateDoctor = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const updateData = req.body;
+        const {
+            name,
+            specialization,
+            licenseNumber,
+            education,
+            experienceYears,
+            photoUrl,
+            bio,
+            consultationFee,
+            isActive,
+            isAvailable,
+            schedule
+        } = req.body;
+
+        const updateData = {
+            name,
+            specialization,
+            licenseNumber,
+            education,
+            photoUrl,
+            bio,
+            isActive,
+            isAvailable,
+            schedule
+        };
+
+        if (experienceYears !== undefined) updateData.experienceYears = parseInt(experienceYears);
+        if (consultationFee !== undefined) updateData.consultationFee = parseFloat(consultationFee);
 
         const doctor = await prisma.doctor.update({
             where: { id },
@@ -284,10 +313,18 @@ export const importDoctors = async (req, res, next) => {
             return errorResponse(res, 'No file uploaded', 400);
         }
 
+        console.log('Importing file:', req.file.path);
+
         const workbook = xlsx.readFile(req.file.path);
         const sheetName = workbook.SheetNames[0];
+        console.log('Sheet Name:', sheetName);
+
         const worksheet = workbook.Sheets[sheetName];
         const data = xlsx.utils.sheet_to_json(worksheet);
+        console.log('Parsed Data Length:', data.length);
+        if (data.length > 0) {
+            console.log('First Row Keys:', Object.keys(data[0]));
+        }
 
         const results = [];
         for (const row of data) {
@@ -781,7 +818,7 @@ export const deleteComplaint = async (req, res, next) => {
 export const getAllServicesAdmin = async (req, res, next) => {
     try {
         const services = await prisma.service.findMany({
-            orderBy: { order: 'asc' }, // Or name: 'asc'
+            orderBy: { name: 'asc' },
         });
 
         return successResponse(res, services);

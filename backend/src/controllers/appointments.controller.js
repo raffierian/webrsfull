@@ -1,5 +1,6 @@
 import prisma from '../config/database.js';
 import { successResponse, errorResponse, paginatedResponse } from '../utils/response.js';
+import bcrypt from 'bcryptjs';
 
 /**
  * Create appointment
@@ -7,8 +8,54 @@ import { successResponse, errorResponse, paginatedResponse } from '../utils/resp
  */
 export const createAppointment = async (req, res, next) => {
     try {
-        const { doctorId, poliId, appointmentDate, appointmentTime, complaint } = req.body;
-        const patientId = req.user.id;
+        const { doctorId, serviceId, appointmentDate, appointmentTime, complaint, patientName, patientNIK, patientPhone, patientEmail } = req.body;
+        let patientId = req.user?.id;
+
+        // Validasi input dasar
+        if (!doctorId || !serviceId || !appointmentDate || !appointmentTime) {
+            return errorResponse(res, 'Missing required appointment details', 400);
+        }
+
+        // --- Handle Guest / Public Appointment ---
+        if (!patientId) {
+            // Jika tidak login, wajib isi data pasien
+            if (!patientName || !patientNIK || !patientPhone) {
+                return errorResponse(res, 'Mohon lengkapi Nama, NIK, dan No. HP Pasien', 400);
+            }
+
+            // Cek apakah user dengan NIK ini sudah ada
+            let user = await prisma.user.findUnique({
+                where: { nik: patientNIK },
+            });
+
+            if (user) {
+                // User sudah ada, pakai ID-nya
+                patientId = user.id;
+            } else {
+                // User belum ada -> Auto Register
+                // Password default = NIK
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(patientNIK, salt);
+
+                // Buat username unik (misal: nama + random) atau pakai NIK sebagai username
+                // Disini kita pakai NIK sebagai username untuk simplify
+                // Cek username conflict chances (NIK unique, so okay)
+
+                user = await prisma.user.create({
+                    data: {
+                        name: patientName,
+                        nik: patientNIK,
+                        username: patientNIK, // Use NIK as username
+                        email: patientEmail || null, // Email optional
+                        password: hashedPassword,
+                        phone: patientPhone,
+                        role: 'PATIENT', // Default role
+                        isActive: true
+                    }
+                });
+                patientId = user.id;
+            }
+        }
 
         // Check if doctor exists and is available
         const doctor = await prisma.doctor.findUnique({
@@ -16,7 +63,7 @@ export const createAppointment = async (req, res, next) => {
         });
 
         if (!doctor || !doctor.isAvailable) {
-            return errorResponse(res, 'Doctor not available', 400);
+            return errorResponse(res, 'Maaf, Dokter tidak tersedia', 400);
         }
 
         // Check for existing appointment at the same time
@@ -30,7 +77,7 @@ export const createAppointment = async (req, res, next) => {
         });
 
         if (existingAppointment) {
-            return errorResponse(res, 'Time slot already booked', 409);
+            return errorResponse(res, 'Jam praktek ini sudah terisi, silakan pilih jam lain', 409);
         }
 
         // Get queue number for the day
@@ -45,7 +92,7 @@ export const createAppointment = async (req, res, next) => {
             data: {
                 patientId,
                 doctorId,
-                poliId,
+                serviceId,
                 appointmentDate: new Date(appointmentDate),
                 appointmentTime,
                 complaint,
@@ -60,7 +107,7 @@ export const createAppointment = async (req, res, next) => {
                         specialization: true,
                     },
                 },
-                poli: true,
+                service: true,
             },
         });
 
@@ -101,7 +148,7 @@ export const getUserAppointments = async (req, res, next) => {
                             photoUrl: true,
                         },
                     },
-                    poli: true,
+                    service: true,
                 },
             }),
             prisma.appointment.count({ where }),
@@ -140,7 +187,7 @@ export const getAppointmentById = async (req, res, next) => {
                         photoUrl: true,
                     },
                 },
-                poli: true,
+                service: true,
             },
         });
 
@@ -160,8 +207,8 @@ export const getAppointmentById = async (req, res, next) => {
 };
 
 /**
- * Cancel appointment
- * DELETE /api/appointments/:id
+ * Cancel appointment (Status = CANCELLED)
+ * PUT /api/appointments/:id/cancel
  */
 export const cancelAppointment = async (req, res, next) => {
     try {
@@ -175,14 +222,9 @@ export const cancelAppointment = async (req, res, next) => {
             return errorResponse(res, 'Appointment not found', 404);
         }
 
-        // Check if user owns this appointment
-        if (appointment.patientId !== req.user.id) {
+        // Check permisison
+        if (appointment.patientId !== req.user.id && !['ADMIN', 'SUPER_ADMIN'].includes(req.user.role)) {
             return errorResponse(res, 'Forbidden', 403);
-        }
-
-        // Can only cancel pending or confirmed appointments
-        if (!['PENDING', 'CONFIRMED'].includes(appointment.status)) {
-            return errorResponse(res, 'Cannot cancel this appointment', 400);
         }
 
         const updatedAppointment = await prisma.appointment.update({
@@ -191,6 +233,37 @@ export const cancelAppointment = async (req, res, next) => {
         });
 
         return successResponse(res, updatedAppointment, 'Appointment cancelled successfully');
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Delete appointment (Hard Delete)
+ * DELETE /api/appointments/:id
+ */
+export const deleteAppointment = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        const appointment = await prisma.appointment.findUnique({
+            where: { id },
+        });
+
+        if (!appointment) {
+            return errorResponse(res, 'Appointment not found', 404);
+        }
+
+        // Only Admin can hard delete
+        if (!['ADMIN', 'SUPER_ADMIN'].includes(req.user.role)) {
+            return errorResponse(res, 'Only Admin can delete appointments permanently', 403);
+        }
+
+        await prisma.appointment.delete({
+            where: { id },
+        });
+
+        return successResponse(res, null, 'Appointment deleted permanently');
     } catch (error) {
         next(error);
     }

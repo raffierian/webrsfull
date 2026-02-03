@@ -62,7 +62,9 @@ model Doctor {
   experienceYears Int?             @map("experience_years")
   photoUrl        String?          @map("photo_url")
   bio             String?
+  schedule        String?          @map("schedule")
   rating          Decimal?         @default(0) @db.Decimal(3, 2)
+  isActive        Boolean          @default(true) @map("is_active")
   isAvailable     Boolean          @default(true) @map("is_available")
   consultationFee Decimal?         @map("consultation_fee") @db.Decimal(10, 2)
   createdAt       DateTime         @default(now()) @map("created_at")
@@ -101,7 +103,7 @@ model Poli {
   isActive     Boolean          @default(true) @map("is_active")
   createdAt    DateTime         @default(now()) @map("created_at")
   updatedAt    DateTime         @updatedAt @map("updated_at")
-  appointments Appointment[]
+
   schedules    DoctorSchedule[]
 
   @@map("polis")
@@ -119,6 +121,7 @@ model Service {
   isActive    Boolean     @default(true) @map("is_active")
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
+  appointments Appointment[]
 
   @@map("services")
 }
@@ -127,7 +130,7 @@ model Appointment {
   id              String            @id @default(uuid())
   patientId       String            @map("patient_id")
   doctorId        String            @map("doctor_id")
-  poliId          String            @map("poli_id")
+  serviceId       String            @map("service_id")
   appointmentDate DateTime          @map("appointment_date") @db.Date
   appointmentTime String            @map("appointment_time")
   status          AppointmentStatus @default(PENDING)
@@ -138,7 +141,7 @@ model Appointment {
   updatedAt       DateTime          @updatedAt @map("updated_at")
   doctor          Doctor            @relation(fields: [doctorId], references: [id])
   patient         User              @relation(fields: [patientId], references: [id])
-  poli            Poli              @relation(fields: [poliId], references: [id])
+  service         Service           @relation(fields: [serviceId], references: [id])
 
   @@map("appointments")
 }

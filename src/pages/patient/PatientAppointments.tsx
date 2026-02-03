@@ -20,11 +20,11 @@ const PatientAppointments = () => {
         queryFn: () => api.appointments.getMy('limit=50'),
     });
 
-    const upcomingList = appointments?.data?.filter((app: any) =>
+    const upcomingList = appointments?.filter((app: any) =>
         ['PENDING', 'CONFIRMED', 'WAITING', 'IN_PROGRESS'].includes(app.status)
     ) || [];
 
-    const historyList = appointments?.data?.filter((app: any) =>
+    const historyList = appointments?.filter((app: any) =>
         ['COMPLETED', 'CANCELLED'].includes(app.status)
     ) || [];
 
@@ -60,7 +60,7 @@ const PatientAppointments = () => {
                     <div className="flex-1 space-y-3">
                         <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-2">
                             <div>
-                                <h3 className="text-lg font-bold text-gray-900">{appointment.poli?.name}</h3>
+                                <h3 className="text-lg font-bold text-gray-900">{appointment.service?.name}</h3>
                                 <div className="flex items-center gap-2 text-primary font-medium mt-1">
                                     <User className="w-4 h-4" />
                                     dr. {appointment.doctor?.name}
