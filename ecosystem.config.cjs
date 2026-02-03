@@ -1,17 +1,19 @@
 module.exports = {
-    apps: [
-        {
-            name: "frontend",
-            script: "pm2",
-            args: "serve dist 8080 --spa",
-        },
-        {
-            name: "backend",
-            script: "npm",
-            args: "run start",
-            cwd: "./backend",
-            watch: true,
-            ignore_watch: ["node_modules", "logs", "*.log"],
-        },
-    ],
+  apps: [
+    {
+      name: "frontend-dev",
+      script: "npm",
+      args: ["run", "dev"],
+      cwd: "./",
+      watch: false, // HMR sudah di-handle Vite
+    },
+    {
+      name: "backend-dev",
+      script: "npm",
+      args: ["run", "dev"],
+      cwd: "./backend",
+      watch: false, // nodemon / ts-node-dev yang handle
+    },
+  ],
 };
+
