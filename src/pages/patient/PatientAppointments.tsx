@@ -9,11 +9,16 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { Input } from '@/components/ui/input';
+
 import { useSettings } from '@/hooks/useSettings';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import AppointmentTicket from '@/components/appointment/AppointmentTicket';
+import { QrCode } from 'lucide-react';
 
 const PatientAppointments = () => {
     const [activeTab, setActiveTab] = useState('upcoming');
     const { settings } = useSettings();
+    const [selectedTicket, setSelectedTicket] = useState<any>(null);
 
     const { data: appointments, isLoading } = useQuery({
         queryKey: ['my-appointments', activeTab],
@@ -88,6 +93,18 @@ const PatientAppointments = () => {
                                 <span className="text-gray-600">{appointment.complaint}</span>
                             </div>
                         )}
+
+                        <div className="pt-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setSelectedTicket(appointment)}
+                                className="w-full md:w-auto border-[#0F766E] text-[#0F766E] hover:bg-teal-50"
+                            >
+                                <QrCode className="w-4 h-4 mr-2" />
+                                Lihat E-Tiket
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </CardContent>
@@ -97,6 +114,30 @@ const PatientAppointments = () => {
     return (
         <div className="p-4 lg:p-8 max-w-5xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                {/* ... existing header ... */}
+            </div>
+
+            {/* Dialog Ticket */}
+            <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
+                <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none text-left">
+                    <DialogHeader className="hidden">
+                        <DialogTitle>E-Tiket</DialogTitle>
+                    </DialogHeader>
+                    {selectedTicket && (
+                        <div className="bg-transparent">
+                            <AppointmentTicket
+                                appointment={selectedTicket}
+                                patientName={selectedTicket.patient?.name || "Pasien"} // appointments.getMy usually includes patient or use user context if simpler
+                                serviceName={selectedTicket.service?.name}
+                                settings={settings}
+                            />
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+
                 <div>
                     <h1 className="text-2xl font-bold">Janji Temu Saya</h1>
                     <p className="text-muted-foreground">Kelola jadwal konsultasi dan riwayat kunjungan Anda</p>

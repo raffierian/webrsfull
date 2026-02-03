@@ -160,7 +160,13 @@ export const getAllAppointments = async (req, res, next) => {
         const skip = (page - 1) * limit;
 
         const where = {};
-        if (status) where.status = status;
+        if (status) {
+            if (status.includes(',')) {
+                where.status = { in: status.split(',') };
+            } else {
+                where.status = status;
+            }
+        }
         if (date) where.appointmentDate = new Date(date);
 
         const [appointments, total] = await Promise.all([
@@ -191,11 +197,15 @@ export const getAllAppointments = async (req, res, next) => {
 export const updateAppointmentStatus = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const { status, notes } = req.body;
+        const { status, notes, appointmentDate, appointmentTime } = req.body;
+
+        const updateData = { status, notes };
+        if (appointmentDate) updateData.appointmentDate = new Date(appointmentDate);
+        if (appointmentTime) updateData.appointmentTime = appointmentTime;
 
         const appointment = await prisma.appointment.update({
             where: { id },
-            data: { status, notes },
+            data: updateData,
             include: {
                 patient: {
                     select: { name: true, email: true },

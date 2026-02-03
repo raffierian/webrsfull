@@ -96,6 +96,12 @@
   "appointment": {
     "title": "Buat Janji Temu",
     "subtitle": "Jadwalkan kunjungan Anda dengan mudah",
+    "step1": "Layanan & Dokter",
+    "step2": "Jadwal",
+    "step3": "Data Diri",
+    "step4": "Selesai",
+    "select_service": "Pilih Layanan / Poli",
+    "select_doctor": "Pilih Dokter",
     "selectService": "Pilih Layanan",
     "selectDoctor": "Pilih Dokter",
     "selectDate": "Pilih Tanggal",
@@ -107,6 +113,8 @@
     "medicalRecordNo": "No. Rekam Medis (jika ada)",
     "submit": "Buat Janji",
     "success": "Janji temu berhasil dibuat!",
+    "success_desc": "Tiket antrean Anda telah berhasil dibuat.",
+    "error_desc": "Gagal membuat janji temu. Silakan coba lagi.",
     "confirmation": "Konfirmasi akan dikirim ke email Anda"
   },
   "doctors": {

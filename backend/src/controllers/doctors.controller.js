@@ -7,10 +7,17 @@ import { successResponse, errorResponse, paginatedResponse } from '../utils/resp
  */
 export const getAllDoctors = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, specialization, search, isAvailable, isActive } = req.query;
+        const { page = 1, limit = 10, specialization, search, isAvailable, isActive, serviceId } = req.query;
         const skip = (page - 1) * limit;
 
         const where = {};
+
+        if (serviceId) {
+            const service = await prisma.service.findUnique({ where: { id: serviceId } });
+            if (service) {
+                where.specialization = { contains: service.name, mode: 'insensitive' };
+            }
+        }
 
         if (specialization) {
             where.specialization = { contains: specialization, mode: 'insensitive' };

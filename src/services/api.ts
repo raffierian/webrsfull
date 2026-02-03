@@ -88,6 +88,7 @@ export const api = {
     // Doctors
     doctors: {
         getAllPublic: (params?: string) => fetcher<any>(`/doctors${params ? `?${params}` : ''}`, { requireAuth: false }),
+        getByService: (serviceId: string) => fetcher<any>(`/doctors?serviceId=${serviceId}`, { requireAuth: false }),
         getAllAdmin: () => fetcher<any>('/doctors?limit=100'), // Use public endpoint for list, admin routes for CRUD are separate or use public? Admin routes don't have GET.
         create: (data: any) => fetcher<any>('/admin/doctors', { method: 'POST', body: JSON.stringify(data) }),
         update: (id: string, data: any) => fetcher<any>(`/admin/doctors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -117,9 +118,9 @@ export const api = {
     appointments: {
         getAllAdmin: (params?: string) => fetcher<any>(`/admin/appointments${params ? `?${params}` : ''}`),
         getMy: (params?: string) => fetcher<any>(`/appointments${params ? `?${params}` : ''}`),
-        updateStatus: (id: string, status: string, notes?: string) => fetcher<any>(`/admin/appointments/${id}`, {
+        updateStatus: (id: string, status: string, notes?: string, appointmentDate?: string, appointmentTime?: string) => fetcher<any>(`/admin/appointments/${id}`, {
             method: 'PUT',
-            body: JSON.stringify({ status, notes })
+            body: JSON.stringify({ status, notes, appointmentDate, appointmentTime })
         }),
         create: (data: any) => fetcher<any>('/appointments', { method: 'POST', body: JSON.stringify(data), requireAuth: false }), // Public booking allowed
         delete: (id: string) => fetcher<any>(`/appointments/${id}`, { method: 'DELETE' }),

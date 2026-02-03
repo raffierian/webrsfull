@@ -130,7 +130,11 @@ export const getUserAppointments = async (req, res, next) => {
         const where = { patientId: userId };
 
         if (status) {
-            where.status = status;
+            if (status.includes(',')) {
+                where.status = { in: status.split(',') };
+            } else {
+                where.status = status;
+            }
         }
 
         const [appointments, total] = await Promise.all([

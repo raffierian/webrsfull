@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -14,7 +14,9 @@ import {
   CheckCircle,
   ArrowRight,
   ArrowLeft,
-  Loader2
+  Loader2,
+  Heart,
+  Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +27,16 @@ import Layout from '@/components/layout/Layout';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+// import { toast } from 'sonner'; // Original used sonner, but let's stick to useToast if other files use it. Use whatever was there. Original used 'sonner' for toast export but maybe hooks/use-toast in other files? 
+// Checking imports, the original file used: import { toast } from 'sonner';
+// However, in other files (e.g., PatientLogin.tsx), we used `useToast` from `@/hooks/use-toast`.
+// Let's stick with what was in the file originally (sonner) to minimize breakage, OR switch to useToast if consistent.
+// The snippet showed `import { toast } from 'sonner';`. I will keep it.
 import { toast } from 'sonner';
+import QRCode from "react-qr-code";
+import html2canvas from "html2canvas";
+import { useSettings } from "@/hooks/useSettings";
+import AppointmentTicket from '@/components/appointment/AppointmentTicket';
 
 const timeSlots = [
   '08:00', '08:30', '09:00', '09:30', '10:00', '10:30',
@@ -35,11 +46,24 @@ const timeSlots = [
 
 const AppointmentPage: React.FC = () => {
   const { t } = useTranslation();
+  const { settings } = useSettings();
   const [step, setStep] = useState(1);
   const [selectedService, setSelectedService] = useState('');
   const [selectedDoctor, setSelectedDoctor] = useState('');
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState('');
+
+
+  const [appointmentResult, setAppointmentResult] = useState<any>(null);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    nik: '',
+    phone: '',
+    email: '',
+    medicalRecordNo: '',
+  });
+
   // Parse schedule string like "Senin - Jumat | 08:00 - 14:00"
   // Returns { days: [1,2,3,4,5], start: "08:00", end: "14:00" }
   const parseSchedule = (scheduleStr: string) => {
@@ -83,13 +107,6 @@ const AppointmentPage: React.FC = () => {
     }
   };
 
-  const [formData, setFormData] = useState({
-    name: '',
-    nik: '',
-    phone: '',
-    email: '',
-    medicalRecordNo: '',
-  });
 
   // Fetch Services (Polies)
   const { data: servicesData, isLoading: servicesLoading } = useQuery({
@@ -99,87 +116,75 @@ const AppointmentPage: React.FC = () => {
 
   const services = servicesData || [];
 
-  // Fetch Doctors for selected service
-  // Note: Backend might not support filtering doctors by service/poli ID directly if relation is complex, 
-  // but looking at controller it has specialization search. 
-  // Ideally, valid polies should be linked to doctors.
-  // For now, let's fetch all doctors and filter client side or assume backend can filter if we pass specialization.
-  const selectedServiceName = services.find((s: any) => s.id === selectedService)?.name;
-
+  // Fetch Doctors based on service
   const { data: doctorsData, isLoading: doctorsLoading } = useQuery({
-    queryKey: ['public-doctors-appointment', selectedServiceName],
-    queryFn: () => api.doctors.getAllPublic(`isAvailable=true${selectedServiceName ? `&specialization=${encodeURIComponent(selectedServiceName)}` : ''}`),
-    enabled: !!selectedService // Only fetch when service is selected
+    queryKey: ['doctors', selectedService],
+    queryFn: () => api.doctors.getByService(selectedService),
+    enabled: !!selectedService,
   });
 
-  const availableDoctors = Array.isArray(doctorsData) ? doctorsData : (doctorsData?.data || []);
+  const availableDoctors = doctorsData || [];
 
-  const selectedDoctorObj = availableDoctors.find((d: any) => d.id === selectedDoctor);
-
-  const scheduleData = React.useMemo(() => {
-    return parseSchedule(selectedDoctorObj?.schedule || '');
-  }, [selectedDoctorObj]);
-
-  const availableTimeSlots = React.useMemo(() => {
-    const startParts = scheduleData.start.split(':').map(Number);
-    const endParts = scheduleData.end.split(':').map(Number);
-
-    if (startParts.length !== 2 || endParts.length !== 2) return [];
-
-    const slots = [];
-    let current = new Date();
-    current.setHours(startParts[0], startParts[1], 0, 0);
-    const end = new Date();
-    end.setHours(endParts[0], endParts[1], 0, 0);
-
-    while (current <= end) {
-      slots.push(format(current, 'HH:mm'));
-      current.setMinutes(current.getMinutes() + 30);
-    }
-    return slots;
-  }, [scheduleData]);
-
-  // Submit Mutation
   const mutation = useMutation({
     mutationFn: (data: any) => api.appointments.create(data),
-    onSuccess: () => {
-      toast.success('Janji temu berhasil dibuat!', {
-        description: 'Konfirmasi akan dikirim ke email/WhatsApp Anda.',
-      });
+    onSuccess: (data) => {
+      setAppointmentResult(data);
       setStep(4);
+      toast.success(t('appointment.success'));
     },
     onError: (error: any) => {
-      toast.error('Gagal membuat janji temu', {
-        description: error.message || 'Silakan coba lagi.',
-      });
-    }
+      console.error(error);
+      toast.error(error.response?.data?.message || t('common.error_desc'));
+    },
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  const handleNextStep = () => {
+    if (step === 1 && selectedService && selectedDoctor) setStep(2);
+    else if (step === 2 && selectedDate && selectedTime) setStep(3);
+  };
+
+  const handlePrevStep = () => {
+    setStep((prev) => Math.max(1, prev - 1));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedDate || !selectedTime || !selectedDoctor || !selectedService) return;
+    if (!selectedDate) return;
 
+    // Create a new date object with the selected time
+    // selectedDate is just the date at 00:00:00 usually. 
+    // Actually api expects appointmentDate as ISO string, and time as string "HH:mm".
     const payload = {
       patientName: formData.name,
-      patientNIK: formData.nik, // Ensure backend accepts NIK or maps it to user
+      patientNIK: formData.nik,
       patientPhone: formData.phone,
       patientEmail: formData.email,
+      medicalRecordNo: formData.medicalRecordNo,
       serviceId: selectedService,
       doctorId: selectedDoctor,
       appointmentDate: format(selectedDate, 'yyyy-MM-dd'),
       appointmentTime: selectedTime,
     };
-
-    // Note: Backend create appointment might expect authenticated user or different payload structure.
-    // If public appointment is allowed, it usually needs patient details in body.
-    // Let's assume standard public body. 
     mutation.mutate(payload);
   };
+
+
+
+
+  // 6. Generate Time Slots based on doctor schedule
+  // ... (keeping simplified time slots logic or enhancing it)
+  // For now, using static time slots but filtering could be added if we had real doctor schedules.
+  const doctorSchedule = selectedDoctor ? availableDoctors.find((d: any) => d.id === selectedDoctor)?.schedule : null;
+  const parsedSchedule = doctorSchedule ? parseSchedule(doctorSchedule) : { days: [1, 2, 3, 4, 5], start: '08:00', end: '16:00' };
+
+  // Filter dates in calendar
+  const isDateDisabled = (date: Date) => {
+    const day = date.getDay();
+    return !parsedSchedule.days.includes(day) || date < new Date();
+  };
+
+  const currentService = services.find((s: any) => s.id === selectedService);
+  const currentDoctor = availableDoctors.find((d: any) => d.id === selectedDoctor);
 
   const canProceedStep1 = selectedService && selectedDoctor;
   const canProceedStep2 = selectedDate && selectedTime;
@@ -188,447 +193,337 @@ const AppointmentPage: React.FC = () => {
   return (
     <Layout>
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary to-primary-dark py-16">
-        <div className="container mx-auto px-4">
-          <motion.div
+      <section className="relative py-20 bg-[#0F766E] text-white overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px] opacity-10"></div>
+        <div className="container px-4 mx-auto relative z-10 text-center">
+          <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center text-white"
+            className="text-4xl md:text-5xl font-bold mb-6"
           >
-            <h1 className="text-3xl md:text-4xl font-bold mb-4">{t('appointment.title')}</h1>
-            <p className="text-lg text-white/80">{t('appointment.subtitle')}</p>
-          </motion.div>
+            {t('appointment.title')}
+          </motion.h1>
+          <p className="text-xl text-teal-100 max-w-2xl mx-auto">
+            {t('appointment.subtitle')}
+          </p>
         </div>
       </section>
 
-      {/* Progress Steps */}
-      <section className="py-8 bg-muted/30">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center gap-4 md:gap-8">
-            {[1, 2, 3].map((s) => (
-              <React.Fragment key={s}>
-                <div className={cn(
-                  "flex items-center gap-2",
-                  step >= s ? "text-primary" : "text-muted-foreground"
-                )}>
-                  <div className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center font-bold transition-colors",
-                    step >= s ? "bg-primary text-white" : "bg-muted text-muted-foreground",
-                    step === s && "ring-4 ring-primary/20"
-                  )}>
-                    {step > s ? <CheckCircle className="w-5 h-5" /> : s}
+      {/* Appointment Form Section */}
+      <section className="py-20 -mt-10">
+        <div className="container px-4 mx-auto">
+          <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-slate-100">
+            {/* Steps Indicator */}
+            <div className="bg-slate-50 p-6 border-b border-slate-100">
+              <div className="flex items-center justify-center space-x-4 md:space-x-12">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="flex items-center">
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-colors relative",
+                      step >= i ? "bg-[#0F766E] text-white" : "bg-slate-200 text-slate-500"
+                    )}>
+                      {step > i ? <CheckCircle className="w-5 h-5" /> : i}
+                      {i < 4 && (
+                        <div className={cn(
+                          "absolute left-10 w-12 md:w-24 h-1 top-1/2 -translate-y-1/2 -z-10",
+                          step > i ? "bg-[#0F766E]" : "bg-slate-200"
+                        )} />
+                      )}
+                    </div>
+                    <span className={cn(
+                      "ml-2 text-sm font-medium hidden md:block",
+                      step >= i ? "text-[#0F766E]" : "text-slate-400"
+                    )}>
+                      {i === 1 && t('appointment.step1')}
+                      {i === 2 && t('appointment.step2')}
+                      {i === 3 && t('appointment.step3')}
+                      {i === 4 && t('appointment.step4')}
+                    </span>
                   </div>
-                  <span className="hidden md:block font-medium">
-                    {s === 1 && 'Pilih Layanan'}
-                    {s === 2 && 'Pilih Jadwal'}
-                    {s === 3 && 'Data Pasien'}
-                  </span>
-                </div>
-                {s < 3 && (
-                  <div className={cn(
-                    "w-16 md:w-24 h-1 rounded-full transition-colors",
-                    step > s ? "bg-primary" : "bg-muted"
-                  )} />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      </section>
+                ))}
+              </div>
+            </div>
 
-      {/* Form Section */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto">
             <motion.div
               key={step}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="card-medical p-8"
+              className="p-8 md:p-12"
             >
-              {/* Step 1: Select Service & Doctor */}
+              {/* Step 1: Services & Doctor */}
               {step === 1 && (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Stethoscope className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold">Pilih Layanan & Dokter</h2>
-                      <p className="text-sm text-muted-foreground">Pilih poli dan dokter yang Anda inginkan</p>
-                    </div>
-                  </div>
-
+                <div className="space-y-8">
                   <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="service" className="text-base font-medium mb-2 block">
-                        {t('appointment.selectService')} *
-                      </Label>
+                    <Label className="text-lg font-semibold flex items-center gap-2">
+                      <Stethoscope className="w-5 h-5 text-[#0F766E]" />
+                      {t('appointment.select_service')}
+                    </Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {servicesLoading ? (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Loader2 className="w-4 h-4 animate-spin" /> Memuat layanan...
-                        </div>
+                        [...Array(6)].map((_, i) => <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />)
                       ) : (
-                        <Select value={selectedService} onValueChange={setSelectedService}>
-                          <SelectTrigger id="service" className="h-12">
-                            <SelectValue placeholder="Pilih layanan/poli" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {services.map((service: any) => (
-                              <SelectItem key={service.id} value={service.id}>
-                                {service.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        services.map((service: any) => (
+                          <button
+                            key={service.id}
+                            onClick={() => {
+                              setSelectedService(service.id);
+                              setSelectedDoctor('');
+                            }}
+                            className={cn(
+                              "p-4 rounded-xl border-2 text-left transition-all hover:border-[#0F766E]/50 hover:bg-teal-50",
+                              selectedService === service.id ? "border-[#0F766E] bg-teal-50 ring-2 ring-[#0F766E]/20" : "border-slate-100"
+                            )}
+                          >
+                            <h3 className="font-bold text-slate-800">{service.name}</h3>
+                            <p className="text-xs text-slate-500 mt-1">{service.description || 'Layanan Rawat Jalan'}</p>
+                          </button>
+                        ))
                       )}
                     </div>
-
-                    {selectedService && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                      >
-                        <Label className="text-base font-medium mb-2 block">
-                          {t('appointment.selectDoctor')} *
-                        </Label>
-                        {doctorsLoading ? (
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Loader2 className="w-4 h-4 animate-spin" /> Memuat dokter...
-                          </div>
-                        ) : availableDoctors.length > 0 ? (
-                          <div className="space-y-3">
-                            {availableDoctors.map((doctor: any) => (
-                              <div
-                                key={doctor.id}
-                                onClick={() => setSelectedDoctor(doctor.id)}
-                                className={cn(
-                                  "p-4 rounded-xl border-2 cursor-pointer transition-all",
-                                  selectedDoctor === doctor.id
-                                    ? "border-primary bg-primary/5"
-                                    : "border-border hover:border-primary/50"
-                                )}
-                              >
-                                <div className="flex items-center justify-between">
-                                  <div>
-                                    <p className="font-semibold">{doctor.name}</p>
-                                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                                      <Clock className="w-3 h-3" />
-                                      {/* Mock schedule for now as API might not return parsed textual schedule in list */}
-                                      Senin - Jumat | 08:00 - 15:00
-                                    </p>
-                                  </div>
-                                  {selectedDoctor === doctor.id && (
-                                    <CheckCircle className="w-5 h-5 text-primary" />
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-muted-foreground text-sm">
-                            Tidak ada dokter tersedia untuk layanan ini saat ini.
-                          </p>
-                        )}
-                      </motion.div>
-                    )}
                   </div>
+
+                  {selectedService && (
+                    <div className="space-y-4">
+                      <Label className="text-lg font-semibold flex items-center gap-2">
+                        <User className="w-5 h-5 text-[#0F766E]" />
+                        {t('appointment.select_doctor')}
+                      </Label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {doctorsLoading ? (
+                          [...Array(4)].map((_, i) => <div key={i} className="h-20 bg-slate-100 rounded-xl animate-pulse" />)
+                        ) : availableDoctors.length > 0 ? (
+                          availableDoctors.map((doctor: any) => (
+                            <button
+                              key={doctor.id}
+                              onClick={() => setSelectedDoctor(doctor.id)}
+                              className={cn(
+                                "flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all hover:border-[#0F766E]/50 hover:bg-teal-50",
+                                selectedDoctor === doctor.id ? "border-[#0F766E] bg-teal-50 ring-2 ring-[#0F766E]/20" : "border-slate-100"
+                              )}
+                            >
+                              <div className="w-12 h-12 bg-slate-200 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                {doctor.photoUrl ? (
+                                  <img src={doctor.photoUrl} alt={doctor.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <User className="w-6 h-6 text-slate-400" />
+                                )}
+                              </div>
+                              <div>
+                                <h3 className="font-bold text-slate-800">{doctor.name}</h3>
+                                <p className="text-xs text-slate-500">{doctor.specialization}</p>
+                                <p className="text-[10px] text-teal-600 mt-1">{doctor.schedule || "Jadwal: Senin - Jumat"}</p>
+                              </div>
+                            </button>
+                          ))
+                        ) : (
+                          <p className="text-slate-500 italic">Tidak ada dokter tersedia untuk poli ini.</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex justify-end pt-4">
                     <Button
-                      variant="medical"
                       size="lg"
-                      onClick={() => setStep(2)}
+                      onClick={handleNextStep}
                       disabled={!canProceedStep1}
-                      className="gap-2"
+                      className="bg-[#0F766E] hover:bg-[#0d655e]"
                     >
-                      Lanjutkan
-                      <ArrowRight className="w-5 h-5" />
+                      {t('common.next')} <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* Step 2: Select Date & Time */}
+              {/* Step 2: Date & Time */}
               {step === 2 && (
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <Calendar className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold">Pilih Tanggal & Waktu</h2>
-                      <p className="text-sm text-muted-foreground">Pilih jadwal kunjungan yang tersedia</p>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <Label className="text-base font-medium mb-2 block">
-                        {t('appointment.selectDate')} *
+                <div className="space-y-8">
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-4">
+                      <Label className="text-lg font-semibold flex items-center gap-2">
+                        <Calendar className="w-5 h-5 text-[#0F766E]" />
+                        Pilih Tanggal
                       </Label>
-                      <div className="border rounded-xl p-4">
-                        <CalendarComponent
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          locale={id}
-                          disabled={(date) =>
-                            date < new Date() ||
-                            !scheduleData.days.includes(date.getDay())
-                          }
-                          className="mx-auto"
-                        />
-                      </div>
+                      <CalendarComponent
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        disabled={isDateDisabled}
+                        className="rounded-xl border shadow-sm mx-auto md:mx-0"
+                      />
                     </div>
-
-                    <div>
-                      <Label className="text-base font-medium mb-2 block">
-                        {t('appointment.selectTime')} *
+                    <div className="space-y-4">
+                      <Label className="text-lg font-semibold flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-[#0F766E]" />
+                        Pilih Jam
                       </Label>
-                      {availableTimeSlots.length > 0 ? (
-                        <div className="grid grid-cols-3 gap-2">
-                          {availableTimeSlots.map((time) => (
+                      <div className="grid grid-cols-3 gap-3">
+                        {timeSlots
+                          .filter(time => {
+                            if (!parsedSchedule) return true;
+                            return time >= parsedSchedule.start && time < parsedSchedule.end;
+                          })
+                          .map((time) => (
                             <button
                               key={time}
                               onClick={() => setSelectedTime(time)}
+                              disabled={!selectedDate}
                               className={cn(
-                                "p-3 rounded-lg border-2 font-medium transition-all",
+                                "py-2 px-4 rounded-lg text-sm font-medium transition-all border",
                                 selectedTime === time
-                                  ? "border-primary bg-primary text-white"
-                                  : "border-border hover:border-primary/50"
+                                  ? "bg-[#0F766E] text-white border-[#0F766E]"
+                                  : "bg-white text-slate-700 border-slate-200 hover:border-[#0F766E] hover:text-[#0F766E]",
+                                !selectedDate && "opacity-50 cursor-not-allowed"
                               )}
                             >
                               {time}
                             </button>
                           ))}
-                        </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg text-center">
-                          Tidak ada jadwal tersedia untuk dokter ini.
-                        </div>
-                      )}
+                      </div>
                     </div>
                   </div>
 
                   <div className="flex justify-between pt-4">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      onClick={() => setStep(1)}
-                      className="gap-2"
-                    >
-                      <ArrowLeft className="w-5 h-5" />
-                      Kembali
+                    <Button variant="outline" size="lg" onClick={handlePrevStep}>
+                      <ArrowLeft className="mr-2 w-4 h-4" /> {t('common.back')}
                     </Button>
                     <Button
-                      variant="medical"
                       size="lg"
-                      onClick={() => setStep(3)}
+                      onClick={handleNextStep}
                       disabled={!canProceedStep2}
-                      className="gap-2"
+                      className="bg-[#0F766E] hover:bg-[#0d655e]"
                     >
-                      Lanjutkan
-                      <ArrowRight className="w-5 h-5" />
+                      {t('common.next')} <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
                   </div>
                 </div>
               )}
 
-              {/* Step 3: Patient Data */}
+              {/* Step 3: Patient Details */}
               {step === 3 && (
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <User className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold">Data Pasien</h2>
-                      <p className="text-sm text-muted-foreground">Lengkapi data diri Anda</p>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="md:col-span-2">
-                      <Label htmlFor="name" className="mb-2 block">
-                        {t('appointment.patientName')} *
-                      </Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="name"
-                          name="name"
-                          value={formData.name}
-                          onChange={handleInputChange}
-                          placeholder="Nama lengkap sesuai KTP"
-                          className="pl-10 h-12"
-                          required
-                        />
+                  <div className="bg-teal-50 p-6 rounded-xl border border-teal-100 mb-8">
+                    <h4 className="font-semibold text-[#0F766E] mb-4">Ringkasan Pilihan:</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                      <div>
+                        <span className="text-slate-500 block mb-1">Layanan</span>
+                        <span className="font-medium text-slate-900">{currentService?.name}</span>
                       </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="nik" className="mb-2 block">
-                        {t('appointment.patientNIK')} *
-                      </Label>
-                      <div className="relative">
-                        <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="nik"
-                          name="nik"
-                          value={formData.nik}
-                          onChange={handleInputChange}
-                          placeholder="16 digit NIK"
-                          maxLength={16}
-                          className="pl-10 h-12"
-                          required
-                        />
+                      <div>
+                        <span className="text-slate-500 block mb-1">Dokter</span>
+                        <span className="font-medium text-slate-900">{currentDoctor?.name}</span>
                       </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="phone" className="mb-2 block">
-                        {t('appointment.patientPhone')} *
-                      </Label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="phone"
-                          name="phone"
-                          type="tel"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          placeholder="08xxxxxxxxxx"
-                          className="pl-10 h-12"
-                          required
-                        />
+                      <div>
+                        <span className="text-slate-500 block mb-1">Tanggal</span>
+                        <span className="font-medium text-slate-900">{selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: id }) : '-'}</span>
                       </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="email" className="mb-2 block">
-                        {t('appointment.patientEmail')}
-                      </Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="email"
-                          name="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          placeholder="email@example.com"
-                          className="pl-10 h-12"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label htmlFor="medicalRecordNo" className="mb-2 block">
-                        {t('appointment.medicalRecordNo')}
-                      </Label>
-                      <div className="relative">
-                        <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                        <Input
-                          id="medicalRecordNo"
-                          name="medicalRecordNo"
-                          value={formData.medicalRecordNo}
-                          onChange={handleInputChange}
-                          placeholder="Untuk pasien lama"
-                          className="pl-10 h-12"
-                        />
+                      <div>
+                        <span className="text-slate-500 block mb-1">Jam</span>
+                        <span className="font-medium text-slate-900">{selectedTime}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Summary */}
-                  <div className="bg-muted/50 rounded-xl p-4 space-y-2">
-                    <h4 className="font-semibold text-sm text-muted-foreground uppercase">Ringkasan Janji Temu</h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <span className="text-muted-foreground">Layanan:</span>
-                        <p className="font-medium">{services.find((s: any) => s.id === selectedService)?.name}</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Dokter:</span>
-                        <p className="font-medium">{availableDoctors.find((d: any) => d.id === selectedDoctor)?.name}</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Tanggal:</span>
-                        <p className="font-medium">{selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: id }) : '-'}</p>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Waktu:</span>
-                        <p className="font-medium">{selectedTime || '-'}</p>
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="nik">NIK (Nomor Induk Kependudukan)</Label>
+                      <Input
+                        id="nik"
+                        required
+                        placeholder="Contoh: 3578..."
+                        value={formData.nik}
+                        onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
+                        maxLength={16}
+                      />
                     </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="name">Nama Lengkap</Label>
+                      <Input
+                        id="name"
+                        required
+                        placeholder="Sesuai KTP"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">No. WhatsApp</Label>
+                      <Input
+                        id="phone"
+                        required
+                        type="tel"
+                        placeholder="Contoh: 0812..."
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email (Opsional)</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="email@contoh.com"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="mr" className="text-slate-500">Nomor Rekam Medis (Jika Ada)</Label>
+                    <Input
+                      id="mr"
+                      placeholder="Kosongkan jika pasien baru"
+                      value={formData.medicalRecordNo}
+                      onChange={(e) => setFormData({ ...formData, medicalRecordNo: e.target.value })}
+                    />
                   </div>
 
                   <div className="flex justify-between pt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="lg"
-                      onClick={() => setStep(2)}
-                      className="gap-2"
-                    >
-                      <ArrowLeft className="w-5 h-5" />
-                      Kembali
+                    <Button type="button" variant="outline" size="lg" onClick={handlePrevStep}>
+                      <ArrowLeft className="mr-2 w-4 h-4" /> {t('common.back')}
                     </Button>
                     <Button
                       type="submit"
-                      variant="medical"
                       size="lg"
                       disabled={!canProceedStep3 || mutation.isPending}
-                      className="gap-2"
+                      className="bg-[#0F766E] hover:bg-[#0d655e]"
                     >
-                      {mutation.isPending ? (<><Loader2 className="w-4 h-4 animate-spin" /> Memproses...</>) : (<>Buat Janji Temu <CheckCircle className="w-5 h-5" /></>)}
+                      {mutation.isPending ? (<><Loader2 className="w-4 h-4 animate-spin mr-2" /> Memproses...</>) : (<>Konfirmasi Janji Temu <CheckCircle className="ml-2 w-4 h-4" /></>)}
                     </Button>
                   </div>
                 </form>
               )}
 
-              {/* Step 4: Success */}
               {step === 4 && (
-                <div className="text-center py-8">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className="w-20 h-20 rounded-full bg-secondary/20 flex items-center justify-center mx-auto mb-6"
-                  >
-                    <CheckCircle className="w-10 h-10 text-secondary" />
-                  </motion.div>
-                  <h2 className="text-2xl font-bold mb-2">{t('appointment.success')}</h2>
-                  <p className="text-muted-foreground mb-6">{t('appointment.confirmation')}</p>
+                <div className="flex flex-col items-center py-6">
 
-                  <div className="bg-muted/50 rounded-xl p-6 text-left max-w-md mx-auto mb-6">
-                    <h4 className="font-semibold mb-4">Detail Janji Temu:</h4>
-                    <div className="space-y-2 text-sm">
-                      <p><span className="text-muted-foreground">Nama:</span> {formData.name}</p>
-                      <p><span className="text-muted-foreground">Layanan:</span> {services.find((s: any) => s.id === selectedService)?.name}</p>
-                      <p><span className="text-muted-foreground">Dokter:</span> {availableDoctors.find((d: any) => d.id === selectedDoctor)?.name}</p>
-                      <p><span className="text-muted-foreground">Tanggal:</span> {selectedDate ? format(selectedDate, 'dd MMMM yyyy', { locale: id }) : '-'}</p>
-                      <p><span className="text-muted-foreground">Waktu:</span> {selectedTime}</p>
-                    </div>
+                  <AppointmentTicket
+                    appointment={appointmentResult?.data || appointmentResult}
+                    patientName={formData.name}
+                    serviceName={services.find((s: any) => s.id === selectedService)?.name}
+                    settings={settings}
+                  />
+
+                  <div className="mt-4 w-full max-w-sm">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setStep(1);
+                        setSelectedService('');
+                        setSelectedDoctor('');
+                        setSelectedDate(undefined);
+                        setSelectedTime('');
+                        setFormData({ name: '', nik: '', phone: '', email: '', medicalRecordNo: '' });
+                      }}
+                      className="w-full"
+                    >
+                      Buat Janji Baru
+                    </Button>
                   </div>
-
-                  <Button
-                    variant="medical"
-                    size="lg"
-                    onClick={() => {
-                      setStep(1);
-                      setSelectedService('');
-                      setSelectedDoctor('');
-                      setSelectedDate(undefined);
-                      setSelectedTime('');
-                      setFormData({ name: '', nik: '', phone: '', email: '', medicalRecordNo: '' });
-                    }}
-                  >
-                    Buat Janji Temu Lain
-                  </Button>
                 </div>
               )}
+
             </motion.div>
           </div>
         </div>

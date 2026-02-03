@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { format } from 'date-fns';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -53,6 +54,8 @@ interface Appointment {
   doctor: string;
   date: string;
   time: string;
+  appointmentDate?: string | Date;
+  appointmentTime?: string;
   status: "pending" | "confirmed" | "cancelled" | "completed";
   notes?: string;
   createdAt: string;
@@ -69,7 +72,12 @@ const AdminAppointments = () => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [editForm, setEditForm] = useState<Partial<Appointment>>({});
+  const [editForm, setEditForm] = useState<{ status: Appointment["status"] | ""; notes: string; appointmentDate: string; appointmentTime: string }>({
+    status: "",
+    notes: "",
+    appointmentDate: "",
+    appointmentTime: ""
+  });
   const queryClient = useQueryClient();
 
   // Fetch appointments
@@ -95,8 +103,8 @@ const AdminAppointments = () => {
 
   // Update status mutation
   const updateStatusMutation = useMutation({
-    mutationFn: ({ id, status, notes }: { id: string; status: string; notes?: string }) =>
-      api.appointments.updateStatus(id, status.toUpperCase(), notes),
+    mutationFn: (data: { id: string; status: string; notes?: string; appointmentDate?: string; appointmentTime?: string }) =>
+      api.appointments.updateStatus(data.id, data.status.toUpperCase(), data.notes, data.appointmentDate, data.appointmentTime),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-appointments'] });
       toast({ title: "Berhasil", description: "Status janji temu diperbarui" });
@@ -186,7 +194,9 @@ const AdminAppointments = () => {
       updateStatusMutation.mutate({
         id: String(selectedAppointment.id),
         status: editForm.status,
-        notes: editForm.notes
+        notes: editForm.notes,
+        appointmentDate: editForm.appointmentDate,
+        appointmentTime: editForm.appointmentTime
       });
     }
   };
@@ -199,11 +209,16 @@ const AdminAppointments = () => {
 
   const openEditModal = (apt: Appointment) => {
     setSelectedAppointment(apt);
+    // Prefer appointmentDate from backend, fallback to date string if present
+    const dateVal = apt.appointmentDate
+      ? new Date(apt.appointmentDate)
+      : (apt.date ? new Date(apt.date) : new Date());
+
     setEditForm({
-      date: apt.date,
-      time: apt.time,
       status: apt.status,
       notes: apt.notes || "",
+      appointmentDate: !isNaN(dateVal.getTime()) ? format(dateVal, "yyyy-MM-dd") : "",
+      appointmentTime: apt.appointmentTime || apt.time || "",
     });
     setIsEditOpen(true);
   };
@@ -482,18 +497,16 @@ const AdminAppointments = () => {
                 <Label>Tanggal</Label>
                 <Input
                   type="date"
-                  disabled // Date shouldn't be edited freely without re-validation
-                  value={editForm.date ? new Date(editForm.date).toISOString().split('T')[0] : ""}
-                  onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                  value={editForm.appointmentDate}
+                  onChange={(e) => setEditForm({ ...editForm, appointmentDate: e.target.value })}
                 />
               </div>
               <div className="space-y-2">
                 <Label>Jam</Label>
                 <Input
                   type="time"
-                  disabled // Time too
-                  value={editForm.time || ""}
-                  onChange={(e) => setEditForm({ ...editForm, time: e.target.value })}
+                  value={editForm.appointmentTime}
+                  onChange={(e) => setEditForm({ ...editForm, appointmentTime: e.target.value })}
                 />
               </div>
             </div>
@@ -514,6 +527,9 @@ const AdminAppointments = () => {
                 </SelectContent>
               </Select>
             </div>
+
+
+
             <div className="space-y-2">
               <Label>Catatan</Label>
               <Input
