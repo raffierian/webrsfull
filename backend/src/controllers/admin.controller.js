@@ -839,7 +839,7 @@ export const getAllServicesAdmin = async (req, res, next) => {
 
 export const createService = async (req, res, next) => {
     try {
-        const { name, slug, type, description, icon, imageUrl, facilities } = req.body;
+        const { name, slug, type, description, icon, imageUrl, facilities, isFeatured, isBookable } = req.body;
 
         const service = await prisma.service.create({
             data: {
@@ -850,6 +850,8 @@ export const createService = async (req, res, next) => {
                 icon,
                 imageUrl,
                 facilities,
+                isFeatured: isFeatured || false,
+                isBookable: isBookable !== undefined ? isBookable : true,
             },
         });
 

@@ -111,7 +111,7 @@ const AppointmentPage: React.FC = () => {
   // Fetch Services (Polies)
   const { data: servicesData, isLoading: servicesLoading } = useQuery({
     queryKey: ['public-services'],
-    queryFn: () => api.services.getAllPublic(),
+    queryFn: () => api.services.getAllPublic('isBookable=true'),
   });
 
   const services = servicesData || [];

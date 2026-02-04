@@ -52,8 +52,8 @@ const Index: React.FC = () => {
 
   // Fetch Services (Public)
   const { data: servicesData } = useQuery({
-    queryKey: ['public-services'],
-    queryFn: () => api.services.getAllPublic(),
+    queryKey: ['public-services', 'featured'],
+    queryFn: () => api.services.getAllPublic('isFeatured=true'),
   });
 
   // Fetch Doctors (Public - Limit 4)

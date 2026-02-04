@@ -140,7 +140,7 @@ export const api = {
 
     // Services
     services: {
-        getAllPublic: () => fetcher<any>('/services', { requireAuth: false }),
+        getAllPublic: (params?: string) => fetcher<any>(`/services${params ? `?${params}` : ''}`, { requireAuth: false }),
         getAllAdmin: () => fetcher<any>('/admin/services'),
         create: (data: any) => fetcher<any>('/admin/services', { method: 'POST', body: JSON.stringify(data) }),
         update: (id: string, data: any) => fetcher<any>(`/admin/services/${id}`, { method: 'PUT', body: JSON.stringify(data) }),

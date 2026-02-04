@@ -138,6 +138,21 @@ const AdminServices: React.FC = () => {
     }
   };
 
+  const handleToggleFeatured = (id: string) => {
+    const service = services.find((s: any) => s.id === id);
+    if (service) {
+      updateMutation.mutate({ id, data: { isFeatured: !service.isFeatured } });
+    }
+  };
+
+  const handleToggleBookable = (id: string) => {
+    const service = services.find((s: any) => s.id === id);
+    if (service) {
+      const currentVal = service.isBookable !== undefined ? service.isBookable : true;
+      updateMutation.mutate({ id, data: { isBookable: !currentVal } });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -270,11 +285,30 @@ const AdminServices: React.FC = () => {
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Icon className="w-6 h-6 text-primary" />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={service.isActive}
-                      onCheckedChange={() => handleToggleActive(service.id)}
-                    />
+                  <div className="flex flex-col gap-2 items-end">
+                    <div className="flex items-center gap-2" title="Aktifkan Layanan">
+                      <span className="text-xs text-muted-foreground">Aktif</span>
+                      <Switch
+                        checked={service.isActive}
+                        onCheckedChange={() => handleToggleActive(service.id)}
+                      />
+                    </div>
+                    <div className="flex items-center gap-2" title="Layanan Unggulan">
+                      <span className="text-xs text-muted-foreground">Unggulan</span>
+                      <Switch
+                        checked={service.isFeatured}
+                        onCheckedChange={() => handleToggleFeatured(service.id)}
+                        className="data-[state=checked]:bg-yellow-500"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2" title="Tersedia untuk Booking">
+                      <span className="text-xs text-muted-foreground">Booking</span>
+                      <Switch
+                        checked={service.isBookable !== false}
+                        onCheckedChange={() => handleToggleBookable(service.id)}
+                        className="data-[state=checked]:bg-green-600"
+                      />
+                    </div>
                   </div>
                 </div>
 

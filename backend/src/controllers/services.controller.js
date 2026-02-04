@@ -3,10 +3,13 @@ import { successResponse, paginatedResponse } from '../utils/response.js';
 
 export const getAllServices = async (req, res, next) => {
     try {
-        const { type } = req.query;
+        const { type, isFeatured, isBookable } = req.query;
         const where = { isActive: true };
+        // const where = {};
 
         if (type) where.type = type.toUpperCase();
+        if (isFeatured) where.isFeatured = isFeatured === 'true';
+        if (isBookable) where.isBookable = isBookable === 'true';
 
         const services = await prisma.service.findMany({
             where,

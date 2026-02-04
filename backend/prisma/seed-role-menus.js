@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+// import { PrismaClient } from '@prisma/client';
+// const prisma = new PrismaClient();
 
 const allMenus = [
     "/admin/dashboard",
@@ -22,22 +21,24 @@ const allMenus = [
     "/admin/settings",
 ];
 
-async function main() {
-    console.log('Seeding Role Menus...');
+// Exportable function
+export async function seedRoleMenus(prisma) {
+    console.log('Seeding Roles and Role Menus...');
 
-    // Grant ADMIN access to everything by default
-    await prisma.roleMenu.upsert({
-        where: { role: 'ADMIN' },
-        update: { menus: allMenus },
-        create: { role: 'ADMIN', menus: allMenus },
-    });
-
-    // Grant DOCTOR access to specific menus
-    await prisma.roleMenu.upsert({
-        where: { role: 'DOCTOR' },
-        update: {}, // Don't overwrite if exists
-        create: {
-            role: 'DOCTOR',
+    const rolesData = [
+        {
+            name: 'SUPER_ADMIN',
+            description: 'Super Administrator with full access',
+            menus: allMenus
+        },
+        {
+            name: 'ADMIN',
+            description: 'Administrator',
+            menus: allMenus
+        },
+        {
+            name: 'DOCTOR',
+            description: 'Medical Doctor',
             menus: [
                 "/admin/dashboard",
                 "/admin/appointments",
@@ -45,14 +46,9 @@ async function main() {
                 "/admin/consultations"
             ]
         },
-    });
-
-    // Grant STAFF access to specific menus
-    await prisma.roleMenu.upsert({
-        where: { role: 'STAFF' },
-        update: {}, // Don't overwrite if exists
-        create: {
-            role: 'STAFF',
+        {
+            name: 'STAFF',
+            description: 'Hospital Staff',
             menus: [
                 "/admin/dashboard",
                 "/admin/appointments",
@@ -60,16 +56,40 @@ async function main() {
                 "/admin/inpatient-rooms"
             ]
         },
-    });
+        {
+            name: 'PATIENT',
+            description: 'Patient User',
+            menus: [] // Patients typically don't have admin menus
+        }
+    ];
 
-    console.log('Role Menus seeded successfully.');
+    for (const r of rolesData) {
+        // 1. Create Role
+        const roleRecord = await prisma.role.upsert({
+            where: { name: r.name },
+            update: {},
+            create: {
+                name: r.name,
+                description: r.description
+            }
+        });
+
+        // 2. Create RoleMenu
+        if (r.menus.length > 0) {
+            await prisma.roleMenu.upsert({
+                where: { role: r.name },
+                update: {
+                    menus: r.menus,
+                    roleId: roleRecord.id
+                },
+                create: {
+                    role: r.name,
+                    roleId: roleRecord.id,
+                    menus: r.menus
+                }
+            });
+        }
+    }
+
+    console.log('Roles and Role Menus seeded successfully.');
 }
-
-main()
-    .catch((e) => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });

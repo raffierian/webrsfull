@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { seedRoleMenus } from './seed-role-menus.js';
 
 const prisma = new PrismaClient();
 
@@ -257,6 +258,9 @@ async function main() {
         }),
     ]);
     console.log('✅ Survey questions created');
+
+    await seedRoleMenus(prisma);
+    console.log('✅ Role Menus created');
 
     console.log('🎉 Database seeding completed successfully!');
     console.log('\n📝 Default credentials:');
