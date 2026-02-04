@@ -304,6 +304,15 @@ export const api = {
         delete: (id: string) => fetcher<any>(`/roles/${id}`, { method: 'DELETE' }),
     },
 
+    // Health Promos (PKRS)
+    healthPromos: {
+        getAllPublic: (query: string = '') => fetcher<any>(`/health-promos?${query}`, { requireAuth: false }),
+        getAllAdmin: (query: string = '') => fetcher<any>(`/health-promos?${query}`),
+        create: (data: any) => fetcher<any>('/health-promos', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id: string, data: any) => fetcher<any>(`/health-promos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+        delete: (id: string) => fetcher<any>(`/health-promos/${id}`, { method: 'DELETE' }),
+    },
+
     // Role Menus
     roleMenus: {
         getByRole: (role: string) => fetcher<string[]>(`/role-menus/${role}`),

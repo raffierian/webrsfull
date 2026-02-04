@@ -52,6 +52,11 @@ const AdminHealthPromo = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<any | null>(null);
+
+    // New Upload State
+    const [uploadFile, setUploadFile] = useState<File | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+
     const [formData, setFormData] = useState({
         title: "",
         type: "LEAFLET",
@@ -66,9 +71,21 @@ const AdminHealthPromo = () => {
         queryFn: () => api.healthPromos.getAllAdmin(`type=${typeFilter !== 'all' ? typeFilter : ''}&search=${searchTerm}`),
     });
 
-    const promos = promosData?.data || [];
+    const promos = promosData || [];
 
-    // Mutations
+    // Upload Mutation
+    const uploadFileMutation = useMutation({
+        mutationFn: (file: File) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            return api.upload(formData);
+        },
+        onError: (error: any) => {
+            toast({ title: "Upload Gagal", description: error.message, variant: "destructive" });
+        }
+    });
+
+    // CRUD Mutations
     const createMutation = useMutation({
         mutationFn: (data: any) => api.healthPromos.create(data),
         onSuccess: () => {
@@ -102,21 +119,43 @@ const AdminHealthPromo = () => {
         onError: (error: any) => toast({ title: "Error", description: error.message, variant: "destructive" }),
     });
 
-    const handleSubmit = () => {
-        if (!formData.title || !formData.fileUrl) {
-            toast({ title: "Error", description: "Judul dan URL File wajib diisi", variant: "destructive" });
+    const handleSubmit = async () => {
+        if (!formData.title) {
+            toast({ title: "Error", description: "Judul wajib diisi", variant: "destructive" });
             return;
         }
 
-        if (selectedItem) {
-            updateMutation.mutate(formData);
-        } else {
-            createMutation.mutate(formData);
+        try {
+            let finalFileUrl = formData.fileUrl;
+
+            // Handle File Upload if selected
+            if (uploadFile) {
+                setIsUploading(true);
+                const uploadRes = await uploadFileMutation.mutateAsync(uploadFile);
+                finalFileUrl = uploadRes.url;
+                setIsUploading(false);
+            }
+
+            if (!finalFileUrl) {
+                toast({ title: "Error", description: "Wajib upload file atau isi URL", variant: "destructive" });
+                return;
+            }
+
+            const dataToSave = { ...formData, fileUrl: finalFileUrl };
+
+            if (selectedItem) {
+                await updateMutation.mutateAsync(dataToSave);
+            } else {
+                await createMutation.mutateAsync(dataToSave);
+            }
+        } catch (error) {
+            setIsUploading(false);
         }
     };
 
     const openEditForm = (item: any) => {
         setSelectedItem(item);
+        setUploadFile(null); // Reset upload file logic
         setFormData({
             title: item.title,
             type: item.type,
@@ -129,6 +168,7 @@ const AdminHealthPromo = () => {
 
     const resetForm = () => {
         setSelectedItem(null);
+        setUploadFile(null);
         setFormData({
             title: "",
             type: "LEAFLET",
@@ -254,20 +294,31 @@ const AdminHealthPromo = () => {
                             <Select value={formData.type} onValueChange={(v) => setFormData({ ...formData, type: v })}>
                                 <SelectTrigger><SelectValue /></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="LEAFLET">Leaflet</SelectItem>
-                                    <SelectItem value="POSTER">Poster</SelectItem>
-                                    <SelectItem value="VIDEO">Video</SelectItem>
-                                    <SelectItem value="BOOKLET">Booklet</SelectItem>
+                                    <SelectItem value="LEAFLET">Leaflet (PDF)</SelectItem>
+                                    <SelectItem value="POSTER">Poster (Gambar)</SelectItem>
+                                    <SelectItem value="VIDEO">Video (Youtube/MP4)</SelectItem>
+                                    <SelectItem value="BOOKLET">Booklet (PDF)</SelectItem>
                                     <SelectItem value="OTHER">Lainnya</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label>URL File (PDF/Image/Youtube) *</Label>
+                            <Label>Upload File {formData.type === 'VIDEO' ? '(Opsional jika pakai Link)' : '*'}</Label>
+                            <Input
+                                type="file"
+                                onChange={(e) => setUploadFile(e.target.files ? e.target.files[0] : null)}
+                                accept={formData.type === 'POSTER' ? "image/*" : formData.type === 'VIDEO' ? "video/*" : ".pdf,.doc,.docx"}
+                            />
+                            {formData.fileUrl && (
+                                <p className="text-xs text-muted-foreground break-all">File saat ini: {formData.fileUrl}</p>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Atau Masukkan URL (External Link/Youtube)</Label>
                             <Input value={formData.fileUrl} onChange={(e) => setFormData({ ...formData, fileUrl: e.target.value })} placeholder="https://..." />
                         </div>
                         <div className="space-y-2">
-                            <Label>URL Thumbnail (Opsional)</Label>
+                            <Label>Thumbnail URL (Opsional)</Label>
                             <Input value={formData.thumbnailUrl} onChange={(e) => setFormData({ ...formData, thumbnailUrl: e.target.value })} placeholder="https://..." />
                         </div>
                         <div className="space-y-2">
@@ -277,8 +328,8 @@ const AdminHealthPromo = () => {
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setIsFormOpen(false)}>Batal</Button>
-                        <Button onClick={handleSubmit} disabled={createMutation.isPending || updateMutation.isPending}>
-                            {createMutation.isPending || updateMutation.isPending ? "Menyimpan..." : "Simpan"}
+                        <Button onClick={handleSubmit} disabled={isUploading || createMutation.isPending || updateMutation.isPending}>
+                            {isUploading ? "Mengupload..." : createMutation.isPending || updateMutation.isPending ? "Menyimpan..." : "Simpan"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -16,7 +16,7 @@ const InformationPage: React.FC = () => {
         queryFn: api.tariffs.getAll,
     });
 
-    const tariffs = (tariffsData as any)?.data || [];
+    const tariffs = Array.isArray(tariffsData) ? tariffsData : (tariffsData as any)?.data || [];
 
     const formatCurrency = (val: any) => {
         if (val === null || val === undefined) return '-';
@@ -63,52 +63,57 @@ const InformationPage: React.FC = () => {
                             </div>
                         ) : (
                             <div className="space-y-8">
-                                {Array.from(new Set(tariffs.map((t: any) => t.category))).map((category: any) => (
-                                    <div key={category} className="space-y-4">
-                                        <h3 className="text-xl font-bold text-primary flex items-center gap-2">
-                                            <div className="w-2 h-6 bg-primary rounded-full" />
-                                            {category}
-                                        </h3>
-                                        <div className="overflow-x-auto rounded-xl border">
-                                            <table className="w-full text-sm text-left">
-                                                <thead className="bg-muted">
-                                                    <tr>
-                                                        <th className="p-4 font-semibold uppercase tracking-wider">Layanan</th>
-                                                        {tariffs.find((t: any) => t.category === category && !t.isFlat) ? (
-                                                            <>
-                                                                <th className="p-4 font-semibold text-center uppercase tracking-wider">Kelas 1</th>
-                                                                <th className="p-4 font-semibold text-center uppercase tracking-wider">Kelas 2</th>
-                                                                <th className="p-4 font-semibold text-center uppercase tracking-wider">Kelas 3</th>
-                                                            </>
-                                                        ) : (
-                                                            <th className="p-4 font-semibold text-center uppercase tracking-wider">Harga</th>
-                                                        )}
-                                                        <th className="p-4 font-semibold text-center uppercase tracking-wider font-bold">VIP</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {tariffs.filter((t: any) => t.category === category).map((tariff: any) => (
-                                                        <tr key={tariff.id} className="border-t hover:bg-muted/30 transition-colors">
-                                                            <td className="p-4 font-medium">{tariff.name}</td>
-                                                            {tariff.isFlat ? (
-                                                                <td className="p-4 text-center font-bold text-blue-600" colSpan={3}>
-                                                                    {formatCurrency(tariff.priceFlat)}
-                                                                </td>
-                                                            ) : (
+                                {Array.from(new Set(tariffs.map((t: any) => t.category))).map((category: any) => {
+                                    const categoryTariffs = tariffs.filter((t: any) => t.category === category);
+                                    const hasClasses = categoryTariffs.some((t: any) => !t.isFlat);
+
+                                    return (
+                                        <div key={category} className="space-y-4">
+                                            <h3 className="text-xl font-bold text-primary flex items-center gap-2">
+                                                <div className="w-2 h-6 bg-primary rounded-full" />
+                                                {category}
+                                            </h3>
+                                            <div className="overflow-x-auto rounded-xl border">
+                                                <table className="w-full text-sm text-left">
+                                                    <thead className="bg-muted">
+                                                        <tr>
+                                                            <th className="p-4 font-semibold uppercase tracking-wider">Layanan</th>
+                                                            {hasClasses ? (
                                                                 <>
-                                                                    <td className="p-4 text-center">{formatCurrency(tariff.price1)}</td>
-                                                                    <td className="p-4 text-center">{formatCurrency(tariff.price2)}</td>
-                                                                    <td className="p-4 text-center">{formatCurrency(tariff.price3)}</td>
+                                                                    <th className="p-4 font-semibold text-center uppercase tracking-wider">Kelas 1</th>
+                                                                    <th className="p-4 font-semibold text-center uppercase tracking-wider">Kelas 2</th>
+                                                                    <th className="p-4 font-semibold text-center uppercase tracking-wider">Kelas 3</th>
                                                                 </>
+                                                            ) : (
+                                                                <th className="p-4 font-semibold text-center uppercase tracking-wider">Harga</th>
                                                             )}
-                                                            <td className="p-4 text-center font-bold text-primary">{formatCurrency(tariff.priceVip)}</td>
+                                                            <th className="p-4 font-semibold text-center uppercase tracking-wider font-bold">VIP</th>
                                                         </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody>
+                                                        {categoryTariffs.map((tariff: any) => (
+                                                            <tr key={tariff.id} className="border-t hover:bg-muted/30 transition-colors">
+                                                                <td className="p-4 font-medium">{tariff.name}</td>
+                                                                {tariff.isFlat ? (
+                                                                    <td className="p-4 text-center font-bold text-blue-600" colSpan={hasClasses ? 3 : 1}>
+                                                                        {formatCurrency(tariff.priceFlat)}
+                                                                    </td>
+                                                                ) : (
+                                                                    <>
+                                                                        <td className="p-4 text-center">{formatCurrency(tariff.price1)}</td>
+                                                                        <td className="p-4 text-center">{formatCurrency(tariff.price2)}</td>
+                                                                        <td className="p-4 text-center">{formatCurrency(tariff.price3)}</td>
+                                                                    </>
+                                                                )}
+                                                                <td className="p-4 text-center font-bold text-primary">{formatCurrency(tariff.priceVip)}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

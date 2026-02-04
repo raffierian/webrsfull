@@ -27,7 +27,7 @@ const HealthPromoPage = () => {
         queryFn: () => api.healthPromos.getAllPublic(`type=${selectedType !== 'all' ? selectedType : ''}&search=${searchTerm}`),
     });
 
-    const promos = promosData?.data || [];
+    const promos = promosData || [];
     const types = ["all", "LEAFLET", "POSTER", "VIDEO", "BOOKLET"];
 
     const getIcon = (type: string) => {

@@ -101,7 +101,8 @@ const AdminArticles: React.FC = () => {
 
   const filteredArticles = articles.filter((article: any) => {
     const matchSearch = article.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchCategory = categoryFilter === 'Semua' || article.category === categoryFilter;
+    const articleCategory = article.tags && article.tags.length > 0 ? article.tags[0] : 'Uncategorized';
+    const matchCategory = categoryFilter === 'Semua' || articleCategory === categoryFilter;
     const matchStatus = statusFilter === 'all' || (statusFilter === 'published' ? article.isPublished : !article.isPublished);
     return matchSearch && matchCategory && matchStatus;
   });
@@ -126,13 +127,13 @@ const AdminArticles: React.FC = () => {
 
     const payload = {
       title,
-      slug: editingArticle ? editingArticle.slug : slug, // Keep original slug on edit or allow change? Usually constant.
+      slug: editingArticle ? editingArticle.slug : slug,
+      // Map category back to tags for backend
       category: formData.get('category') as string,
       content: formData.get('content') as string,
-      excerpt: (formData.get('content') as string).substring(0, 150) + '...', // Auto excerpt if not provided
-      imageUrl: formData.get('imageUrl') as string || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800', // Default or from input
-      // Author is handled by backend based on logged in admin
-      tags: ['Kesehatan'], // Simple default, add tag input if needed
+      // excerpt removed
+      imageUrl: formData.get('imageUrl') as string || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800',
+      tags: [formData.get('category') as string], // Send as tags array
     };
 
     if (editingArticle) {
@@ -174,7 +175,7 @@ const AdminArticles: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="category">Kategori *</Label>
-                  <Select name="category" defaultValue={editingArticle?.category || 'Kesehatan'}>
+                  <Select name="category" defaultValue={(editingArticle?.tags && editingArticle.tags[0]) || 'Kesehatan'}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -190,7 +191,7 @@ const AdminArticles: React.FC = () => {
                   <Input
                     id="imageUrl"
                     name="imageUrl"
-                    defaultValue={editingArticle?.imageUrl}
+                    defaultValue={editingArticle?.thumbnailUrl}
                     placeholder="https://..."
                   />
                 </div>
@@ -306,7 +307,7 @@ const AdminArticles: React.FC = () => {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <img
-                        src={article.imageUrl || 'https://via.placeholder.com/50'}
+                        src={article.thumbnailUrl || article.imageUrl || 'https://via.placeholder.com/50'}
                         alt={article.title}
                         className="w-12 h-12 rounded-lg object-cover"
                       />
@@ -317,7 +318,7 @@ const AdminArticles: React.FC = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{article.category}</Badge>
+                    <Badge variant="outline">{article.tags && article.tags.length > 0 ? article.tags[0] : 'Umum'}</Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

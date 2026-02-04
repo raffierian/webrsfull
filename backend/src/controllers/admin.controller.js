@@ -481,16 +481,20 @@ export const createArticle = async (req, res, next) => {
         const { title, slug, content, excerpt, category, tags, imageUrl } = req.body;
         const authorId = req.user.id;
 
+        // Map category to tags array if tags not provided
+        const tagsToSave = tags || (category ? [category] : []);
+
         const article = await prisma.article.create({
             data: {
                 title,
                 slug,
                 content,
-                excerpt,
+                // excerpt, // Removed: Field does not exist in schema
                 authorId,
-                category,
-                tags,
-                imageUrl,
+                tags: tagsToSave, // Fixed: category -> tags array
+                thumbnailUrl: imageUrl, // Fixed: imageUrl -> thumbnailUrl
+                isPublished: true, // Default to published for simplicity
+                createdAt: new Date(),
             },
         });
 
@@ -503,11 +507,20 @@ export const createArticle = async (req, res, next) => {
 export const updateArticle = async (req, res, next) => {
     try {
         const { id } = req.params;
-        const updateData = req.body;
+        const { title, slug, content, excerpt, category, tags, imageUrl, isPublished } = req.body;
+
+        const dataToUpdate = {};
+        if (title) dataToUpdate.title = title;
+        if (slug) dataToUpdate.slug = slug;
+        if (content) dataToUpdate.content = content;
+        if (imageUrl) dataToUpdate.thumbnailUrl = imageUrl;
+        if (tags) dataToUpdate.tags = tags;
+        if (category && !tags) dataToUpdate.tags = [category];
+        if (isPublished !== undefined) dataToUpdate.isPublished = isPublished;
 
         const article = await prisma.article.update({
             where: { id },
-            data: updateData,
+            data: dataToUpdate,
         });
 
         return successResponse(res, article, 'Article updated successfully');

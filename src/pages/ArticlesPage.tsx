@@ -129,7 +129,7 @@ const ArticlesPage = () => {
                 <div className="grid md:grid-cols-2">
                   <div className="h-64 md:h-auto">
                     <img
-                      src={featuredArticle.imageUrl || 'https://via.placeholder.com/800x400'}
+                      src={featuredArticle.thumbnailUrl || featuredArticle.imageUrl || 'https://via.placeholder.com/800x400'}
                       alt={featuredArticle.title}
                       className="w-full h-full object-cover"
                     />
@@ -137,7 +137,9 @@ const ArticlesPage = () => {
                   <CardContent className="p-8 flex flex-col justify-center">
                     <Badge className="w-fit mb-4">Artikel Pilihan</Badge>
                     <h2 className="text-2xl font-bold mb-3">{featuredArticle.title}</h2>
-                    <p className="text-muted-foreground mb-4">{featuredArticle.excerpt}</p>
+                    <p className="text-muted-foreground mb-4">
+                      {featuredArticle.excerpt || (featuredArticle.content ? featuredArticle.content.substring(0, 150) + '...' : '')}
+                    </p>
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-6">
                       <span className="flex items-center gap-1">
                         <User className="w-4 h-4" />
@@ -145,7 +147,7 @@ const ArticlesPage = () => {
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        {new Date(featuredArticle.publishedAt).toLocaleDateString("id-ID")}
+                        {new Date(featuredArticle.createdAt || featuredArticle.publishedAt || new Date()).toLocaleDateString("id-ID")}
                       </span>
                     </div>
                     <Link to={`/articles/${featuredArticle.slug}`}>
@@ -180,29 +182,29 @@ const ArticlesPage = () => {
                     <Card className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer group h-full">
                       <div className="h-48 overflow-hidden">
                         <img
-                          src={article.imageUrl || 'https://via.placeholder.com/400x300'}
+                          src={article.thumbnailUrl || article.imageUrl || 'https://via.placeholder.com/400x300'}
                           alt={article.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                       </div>
                       <CardContent className="p-6">
                         <Badge variant="secondary" className="mb-3">
-                          {article.category}
+                          {article.tags && article.tags.length > 0 ? article.tags[0] : (article.category || 'Umum')}
                         </Badge>
                         <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2">
                           {article.title}
                         </h3>
                         <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                          {article.excerpt}
+                          {article.excerpt || (article.content ? article.content.substring(0, 100) + '...' : '')}
                         </p>
                         <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
-                            {new Date(article.publishedAt).toLocaleDateString("id-ID")}
+                            {new Date(article.createdAt || article.publishedAt || new Date()).toLocaleDateString("id-ID")}
                           </span>
                           <span className="flex items-center gap-1">
                             <Eye className="w-3 h-3" />
-                            {article.views} views
+                            {(article.views || 0)} views
                           </span>
                         </div>
                       </CardContent>

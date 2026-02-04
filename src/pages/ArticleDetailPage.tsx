@@ -62,7 +62,7 @@ const ArticleDetailPage: React.FC = () => {
       <section className="relative h-[50vh] overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${article.imageUrl || 'https://via.placeholder.com/1200x600'})` }}
+          style={{ backgroundImage: `url(${article.thumbnailUrl || article.imageUrl || 'https://via.placeholder.com/1200x600'})` }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
         <div className="container mx-auto px-4 h-full flex items-end pb-12 relative z-10">
@@ -72,13 +72,13 @@ const ArticleDetailPage: React.FC = () => {
             className="text-white max-w-3xl"
           >
             <span className="inline-block px-3 py-1 rounded-full bg-primary text-white text-sm font-medium mb-4">
-              {article.category}
+              {article.tags && article.tags.length > 0 ? article.tags[0] : (article.category || 'Umum')}
             </span>
             <h1 className="text-3xl md:text-4xl font-bold mb-4">{article.title}</h1>
             <div className="flex flex-wrap items-center gap-4 text-white/80 text-sm">
               <span className="flex items-center gap-1">
                 <Calendar className="w-4 h-4" />
-                {new Date(article.publishedAt).toLocaleDateString('id-ID', {
+                {new Date(article.createdAt || article.publishedAt || new Date()).toLocaleDateString('id-ID', {
                   day: 'numeric',
                   month: 'long',
                   year: 'numeric'
@@ -90,7 +90,7 @@ const ArticleDetailPage: React.FC = () => {
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                {Math.ceil(article.content.length / 1000)} menit baca
+                {Math.ceil((article.content?.length || 0) / 1000)} menit baca
               </span>
             </div>
           </motion.div>

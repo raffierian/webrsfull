@@ -47,7 +47,7 @@ const AdminTariffs: React.FC = () => {
         queryFn: api.tariffs.getAllAdmin,
     });
 
-    const tariffs = (tariffsData as any)?.data || [];
+    const tariffs = Array.isArray(tariffsData) ? tariffsData : (tariffsData as any)?.data || [];
 
     // Mutations
     const createMutation = useMutation({
@@ -322,15 +322,16 @@ const AdminTariffs: React.FC = () => {
                             <TableHead>Kategori</TableHead>
                             <TableHead>Satuan</TableHead>
                             <TableHead>Tipe</TableHead>
+                            <TableHead>Status</TableHead>
                             <TableHead className="text-right">Harga (Rp)</TableHead>
                             <TableHead className="text-right">Aksi</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {isLoading ? (
-                            <TableRow><TableCell colSpan={6} className="text-center py-8">Memuat data...</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={7} className="text-center py-8">Memuat data...</TableCell></TableRow>
                         ) : filteredTariffs.length === 0 ? (
-                            <TableRow><TableCell colSpan={6} className="text-center py-8">Tidak ada data tarif</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={7} className="text-center py-8">Tidak ada data tarif</TableCell></TableRow>
                         ) : filteredTariffs.map((tariff: any) => (
                             <TableRow key={tariff.id}>
                                 <TableCell className="font-medium">{tariff.name}</TableCell>
@@ -342,6 +343,20 @@ const AdminTariffs: React.FC = () => {
                                     ) : (
                                         <Badge variant="secondary" className="bg-orange-100 text-orange-700 hover:bg-orange-100">Kelas</Badge>
                                     )}
+                                </TableCell>
+                                <TableCell>
+                                    <div className="flex items-center gap-2">
+                                        <Switch
+                                            checked={tariff.isActive}
+                                            onCheckedChange={(checked) => updateMutation.mutate({
+                                                id: tariff.id,
+                                                data: { isActive: checked }
+                                            })}
+                                        />
+                                        <span className={`text-xs ${tariff.isActive ? 'text-green-600' : 'text-muted-foreground'}`}>
+                                            {tariff.isActive ? 'Aktif' : 'Nonaktif'}
+                                        </span>
+                                    </div>
                                 </TableCell>
                                 <TableCell className="text-right">
                                     {tariff.isFlat ? (
