@@ -73,12 +73,14 @@ const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [user, setUser] = useState<AdminUser | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Fetch Stats for Badges
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: api.dashboard.stats,
     refetchInterval: 30000, // Refresh every 30s
+    enabled: isAdmin,
   });
 
   const totalBadges = (stats?.scheduledAppointments || 0) + (stats?.activeComplaints || 0);
@@ -93,7 +95,9 @@ const AdminLayout = () => {
     }
 
     try {
-      setUser(JSON.parse(userData));
+      const parsedUser = JSON.parse(userData);
+      setUser(parsedUser);
+      setIsAdmin(['ADMIN', 'SUPER_ADMIN'].includes(parsedUser.role));
     } catch {
       navigate("/admin/login");
     }

@@ -47,9 +47,20 @@ const AdminDashboard = () => {
   const [statsForm, setStatsForm] = useState({ bor: "", igdCount: "" });
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    const userData = localStorage.getItem("adminUser");
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setIsAdmin(['ADMIN', 'SUPER_ADMIN'].includes(user.role));
+      } catch (e) {
+        console.error("Failed to parse admin user", e);
+      }
+    }
     return () => clearInterval(timer);
   }, []);
 
@@ -57,24 +68,28 @@ const AdminDashboard = () => {
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: api.dashboard.stats,
+    enabled: isAdmin,
   });
 
   // Fetch Visit Trends
   const { data: trendData, isLoading: trendsLoading } = useQuery({
     queryKey: ['admin-trends'],
     queryFn: api.dashboard.visitTrends,
+    enabled: isAdmin,
   });
 
   // Fetch Poli Distribution
   const { data: poliData, isLoading: poliLoading } = useQuery({
     queryKey: ['admin-poli'],
     queryFn: api.dashboard.poliDistribution,
+    enabled: isAdmin,
   });
 
   // Fetch Recent Appointments
   const { data: appointmentsValue, isLoading: appointmentsLoading } = useQuery({
     queryKey: ['admin-appointments-recent'],
     queryFn: () => api.appointments.getAllAdmin('limit=5&status=PENDING'),
+    enabled: isAdmin,
   });
 
   const recentAppointments = Array.isArray(appointmentsValue) ? appointmentsValue : [];

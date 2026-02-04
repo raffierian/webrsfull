@@ -28,6 +28,7 @@ model User {
   otpExpires            DateTime?              @map("otp_expires")
   twoFactorEnabled      Boolean                @default(false) @map("two_factor_enabled")
   twoFactorSecret       String?                @map("two_factor_secret")
+  lastLogin             DateTime?              @map("last_login")
   appointments          Appointment[]
   articles              Article[]
   complaintResponses    Complaint[]            @relation("ComplaintResponder")
@@ -139,31 +140,32 @@ model Appointment {
   complaint       String?
   notes           String?
   queueNumber     Int?              @map("queue_number")
+  ticketCode      String?            @unique @map("ticket_code")
   createdAt       DateTime          @default(now()) @map("created_at")
   updatedAt       DateTime          @updatedAt @map("updated_at")
-  doctor          Doctor            @relation(fields: [doctorId], references: [id])
-  patient         User              @relation(fields: [patientId], references: [id])
-  service         Service           @relation(fields: [serviceId], references: [id])
+
+  patient User    @relation(fields: [patientId], references: [id])
+  doctor  Doctor  @relation(fields: [doctorId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+
+  consultation Consultation?
 
   @@map("appointments")
 }
 
 model Article {
-  id          String    @id @default(uuid())
-  title       String
-  slug        String    @unique
-  content     String
-  excerpt     String?
-  authorId    String    @map("author_id")
-  category    String?
-  tags        Json?
-  imageUrl    String?   @map("image_url")
-  views       Int       @default(0)
-  isPublished Boolean   @default(false) @map("is_published")
-  publishedAt DateTime? @map("published_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  author      User      @relation(fields: [authorId], references: [id])
+  id           String   @id @default(uuid())
+  title        String
+  slug         String   @unique
+  content      String   @db.Text
+  thumbnailUrl String?  @map("thumbnail_url")
+  authorId     String   @map("author_id")
+  tags         String[]
+  isPublished  Boolean  @default(false) @map("is_published")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  author User @relation(fields: [authorId], references: [id])
 
   @@map("articles")
 }
@@ -183,8 +185,9 @@ model Complaint {
   respondedAt DateTime?       @map("responded_at")
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
-  responder   User?           @relation("ComplaintResponder", fields: [respondedBy], references: [id])
-  user        User?           @relation(fields: [userId], references: [id])
+
+  user      User? @relation(fields: [userId], references: [id])
+  responder User? @relation("ComplaintResponder", fields: [respondedBy], references: [id])
 
   @@map("complaints")
 }
@@ -227,15 +230,16 @@ model JobApplication {
 
 model Survey {
   id          String   @id @default(uuid())
-  userId         String?             @map("user_id")
-  respondentName String?             @map("respondent_name")
-  serviceType    String?             @map("service_type")
-  department     String?
-  ratings        Json
-  comments       String?
+  userId      String?  @map("user_id") // Optional for anonymous
+  rating      Int // 1-5
+  feedback    String?
+  department  String?
+  respondent_name String? @map("respondent_name")
+  serviceType ServiceType? @map("service_type")
   recommendation RecommendationType?
-  createdAt      DateTime            @default(now()) @map("created_at")
-  user           User?               @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id])
 
   @@map("surveys")
 }
@@ -313,18 +317,19 @@ model TrainingRegistration {
 }
 
 model Consultation {
-  id               String             @id @default(uuid())
-  patientId        String             @map("patient_id")
-  doctorId         String             @map("doctor_id")
-  consultationDate DateTime           @map("consultation_date")
-  status           ConsultationStatus @default(SCHEDULED)
-  complaint        String?
-  diagnosis        String?
-  prescription     Json?
-  notes            String?
-  createdAt        DateTime           @default(now()) @map("created_at")
-  updatedAt        DateTime           @updatedAt @map("updated_at")
-  doctor           Doctor             @relation(fields: [doctorId], references: [id])
+  id        String             @id @default(uuid())
+  appointmentId String          @unique @map("appointment_id")
+  patientId String             @map("patient_id")
+  doctorId  String             @map("doctor_id")
+  diagnosis String
+  prescription String?
+  notes     String?
+  status    ConsultationStatus @default(COMPLETED)
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  appointment Appointment    @relation(fields: [appointmentId], references: [id])
+  doctor      Doctor         @relation(fields: [doctorId], references: [id])
   patient          User               @relation("PatientConsultations", fields: [patientId], references: [id])
 
   @@map("consultations")

@@ -65,10 +65,14 @@ export const verifyToken = async (req, res, next) => {
 export const requireRole = (...roles) => {
     return (req, res, next) => {
         if (!req.user) {
+            console.log('Access Denied: No user found in request');
             return errorResponse(res, 'Unauthorized', 401);
         }
 
+        console.log(`Checking Role: User=${req.user.username}, Role=${req.user.role}, Required=[${roles.join(', ')}]`);
+
         if (!roles.includes(req.user.role)) {
+            console.log(`Access Forbidden: User role '${req.user.role}' is not in allowed roles: [${roles.join(', ')}]`);
             return errorResponse(res, 'Forbidden - Insufficient permissions', 403);
         }
 
@@ -80,6 +84,11 @@ export const requireRole = (...roles) => {
  * Check if user is admin
  */
 export const requireAdmin = requireRole('ADMIN', 'SUPER_ADMIN');
+
+/**
+ * Check if user has PPID access (Admin, Super Admin, PKRS, Staff, Mutu)
+ */
+export const requirePpidAccess = requireRole('ADMIN', 'SUPER_ADMIN', 'PKRS', 'STAFF', 'MUTU');
 
 /**
  * Optional authentication (doesn't fail if no token)

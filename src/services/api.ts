@@ -321,5 +321,37 @@ export const api = {
             body: JSON.stringify({ message, history }),
             requireAuth: false
         }),
+    },
+
+    // Upload
+    upload: (formData: FormData) => {
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+        const headers: HeadersInit = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        // Note: fetcher automatically sets Content-Type: application/json, which breaks FormData
+        // So we use raw fetch here or modify fetcher. Let's use raw fetch for safety.
+        return fetch(`${API_URL}/upload`, {
+            method: 'POST',
+            body: formData,
+            headers
+        }).then(res => res.json()).then(data => {
+            if (!data.success) throw new Error(data.message);
+            return data.data;
+        });
+    },
+
+    // PPID
+    ppid: {
+        getAll: (params?: { isPublic?: boolean; category?: string; search?: string }) => {
+            const cleanParams = Object.fromEntries(
+                Object.entries(params || {}).filter(([_, v]) => v != null)
+            );
+            const query = new URLSearchParams(cleanParams as any).toString();
+            return fetcher<any[]>(`/ppid?${query}`, { requireAuth: false });
+        },
+        create: (data: any) => fetcher<any>('/ppid', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id: string, data: any) => fetcher<any>(`/ppid/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+        delete: (id: string) => fetcher<any>(`/ppid/${id}`, { method: 'DELETE' }),
     }
 };

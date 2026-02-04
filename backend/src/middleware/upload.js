@@ -20,9 +20,10 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req, file, cb) => {
-    // Accept images only
-    if (!file.originalname.match(/\.(jpg|jpeg|png|gif|svg|webp)$/)) {
-        return cb(new Error('Only image files are allowed!'), false);
+    // Check extension
+    const allowedExtensions = /\.(jpg|jpeg|png|gif|svg|webp|pdf|doc|docx|xls|xlsx|ppt|pptx)$/i;
+    if (!file.originalname.match(allowedExtensions)) {
+        return cb(new Error('Invalid file type! Only images and documents are allowed.'), false);
     }
     cb(null, true);
 };
@@ -31,7 +32,7 @@ export const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 5 * 1024 * 1024 // 5MB limit
+        fileSize: 50 * 1024 * 1024 // 50MB limit
     }
 });
 

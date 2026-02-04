@@ -25,112 +25,40 @@ const categories = [
   { value: "standar", label: "Standar Pelayanan" },
 ];
 
-const documents = [
-  {
-    id: 1,
-    title: `Profil RS Soewandhie 2024`,
-    category: "profil",
-    description: "Dokumen profil lengkap rumah sakit tahun 2024",
-    fileSize: "2.5 MB",
-    fileType: "PDF",
-    year: 2024,
-    downloadCount: 156,
-    uploadDate: "2024-01-01",
-  },
-  {
-    id: 2,
-    title: "Rencana Strategis 2024-2028",
-    category: "renstra",
-    description: "Dokumen rencana strategis lima tahunan",
-    fileSize: "5.2 MB",
-    fileType: "PDF",
-    year: 2024,
-    downloadCount: 89,
-    uploadDate: "2024-01-05",
-  },
-  {
-    id: 3,
-    title: "LAKIP Tahun 2023",
-    category: "lakip",
-    description: "Laporan Akuntabilitas Kinerja Instansi Pemerintah",
-    fileSize: "8.1 MB",
-    fileType: "PDF",
-    year: 2023,
-    downloadCount: 234,
-    uploadDate: "2024-01-10",
-  },
-  {
-    id: 4,
-    title: "Standar Pelayanan Minimal",
-    category: "standar",
-    description: "Dokumen SPM Rumah Sakit",
-    fileSize: "1.8 MB",
-    fileType: "PDF",
-    year: 2024,
-    downloadCount: 312,
-    uploadDate: "2024-01-15",
-  },
-  {
-    id: 5,
-    title: "Rencana Anggaran 2024",
-    category: "anggaran",
-    description: "Rencana Kerja dan Anggaran tahun 2024",
-    fileSize: "3.2 MB",
-    fileType: "PDF",
-    year: 2024,
-    downloadCount: 145,
-    uploadDate: "2023-12-20",
-  },
-  {
-    id: 6,
-    title: "Peraturan Internal RS",
-    category: "regulasi",
-    description: "Hospital By Laws dan peraturan internal rumah sakit",
-    fileSize: "4.5 MB",
-    fileType: "PDF",
-    year: 2023,
-    downloadCount: 267,
-    uploadDate: "2023-06-15",
-  },
-  {
-    id: 7,
-    title: "Daftar Informasi Publik",
-    category: "profil",
-    description: "Daftar informasi yang dapat diakses publik",
-    fileSize: "1.2 MB",
-    fileType: "PDF",
-    year: 2024,
-    downloadCount: 98,
-    uploadDate: "2024-01-02",
-  },
-  {
-    id: 8,
-    title: "Laporan Pengadaan Barang 2023",
-    category: "pengadaan",
-    description: "Rekap pengadaan barang dan jasa tahun 2023",
-    fileSize: "6.7 MB",
-    fileType: "PDF",
-    year: 2023,
-    downloadCount: 76,
-    uploadDate: "2024-01-20",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/services/api";
+import { Loader2 } from "lucide-react";
+
+// ... categories constant remains ...
 
 const PPIDPage = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [yearFilter, setYearFilter] = useState("all");
+  // Year filter disabled for now as API doesn't support complex date filtering yet
+  // const [yearFilter, setYearFilter] = useState("all");
 
-  const filteredDocuments = documents.filter((doc) => {
-    const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || doc.category === categoryFilter;
-    const matchesYear = yearFilter === "all" || doc.year === parseInt(yearFilter);
-    return matchesSearch && matchesCategory && matchesYear;
+  const { data: documents = [], isLoading } = useQuery({
+    queryKey: ['public-ppid', categoryFilter, searchTerm],
+    queryFn: () => api.ppid.getAll({
+      isPublic: true,
+      category: categoryFilter === 'all' ? undefined : categoryFilter,
+      search: searchTerm
+    })
   });
 
-  const years = [...new Set(documents.map(d => d.year))].sort((a, b) => b - a);
+  const formatFileSize = (bytes: number) => {
+    if (!bytes) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  };
+
+  // Extract years dynamically if needed, or rely on API date filtering in future
+  // For now we don't filter by year on client side to avoid confusion with server pagination if implemented later
+
 
   return (
     <Layout>
@@ -217,62 +145,59 @@ const PPIDPage = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                  {/* Year filter temporarily hidden until API supports it */}
+                  {/*
                   <Select value={yearFilter} onValueChange={setYearFilter}>
                     <SelectTrigger className="w-[150px]">
                       <SelectValue placeholder="Tahun" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Semua Tahun</SelectItem>
-                      {years.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
+                       <SelectItem value="2024">2024</SelectItem>
                     </SelectContent>
                   </Select>
+                  */}
                 </div>
               </CardContent>
             </Card>
 
             {/* Documents List */}
             <div className="space-y-4">
-              {filteredDocuments.map((doc) => (
-                <Card key={doc.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <FileText className="w-6 h-6 text-red-600" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold text-lg">{doc.title}</h3>
-                          <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
-                          <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground">
-                            <span className="px-2 py-1 bg-muted rounded">
-                              {categories.find(c => c.value === doc.category)?.label}
-                            </span>
-                            <span>{doc.fileType} • {doc.fileSize}</span>
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(doc.uploadDate).toLocaleDateString("id-ID")}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Download className="w-3 h-3" />
-                              {doc.downloadCount} unduhan
-                            </span>
+              {isLoading ? (
+                <div className="text-center py-12"><Loader2 className="w-8 h-8 mx-auto animate-spin" /></div>
+              ) : documents.length > 0 ? (
+                documents.map((doc: any) => (
+                  <Card key={doc.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <FileText className="w-6 h-6 text-red-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-lg">{doc.title}</h3>
+                            <p className="text-sm text-muted-foreground mt-1">{doc.description}</p>
+                            <div className="flex flex-wrap items-center gap-4 mt-3 text-xs text-muted-foreground">
+                              <span className="px-2 py-1 bg-muted rounded">
+                                {categories.find(c => c.value === doc.category)?.label || doc.category}
+                              </span>
+                              <span>{doc.fileType} • {formatFileSize(doc.fileSize)}</span>
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {new Date(doc.createdAt).toLocaleDateString("id-ID")}
+                              </span>
+                            </div>
                           </div>
                         </div>
+                        <Button className="flex-shrink-0" onClick={() => window.open(doc.fileUrl, '_blank')}>
+                          <Download className="w-4 h-4 mr-2" />
+                          Unduh
+                        </Button>
                       </div>
-                      <Button className="flex-shrink-0">
-                        <Download className="w-4 h-4 mr-2" />
-                        Unduh
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-
-              {filteredDocuments.length === 0 && (
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
                 <div className="text-center py-12 text-muted-foreground">
                   <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>Tidak ada dokumen yang sesuai dengan pencarian Anda</p>

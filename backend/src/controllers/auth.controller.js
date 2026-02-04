@@ -137,8 +137,6 @@ export const login = async (req, res, next) => {
                     data: { otpCode, otpExpires }
                 });
 
-                await sendOTP(user.email, otpCode);
-
                 return successResponse(res, {
                     twoFactorRequired: true,
                     twoFactorType: 'EMAIL',
@@ -147,6 +145,14 @@ export const login = async (req, res, next) => {
                 }, '2FA Email OTP code required');
             }
         }
+
+        // Update last login
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLogin: new Date() }
+        });
+
+
 
         // Generate token
         const token = jwt.sign(

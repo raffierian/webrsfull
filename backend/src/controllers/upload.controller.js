@@ -12,7 +12,13 @@ export const uploadFile = (req, res) => {
         const host = req.get('host');
         const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
 
-        return successResponse(res, { url: fileUrl }, 'File uploaded successfully');
+        return successResponse(res, {
+            url: fileUrl,
+            filename: req.file.filename,
+            size: req.file.size,
+            mimetype: req.file.mimetype,
+            originalname: req.file.originalname
+        }, 'File uploaded successfully');
     } catch (error) {
         return errorResponse(res, error.message, 500);
     }

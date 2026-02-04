@@ -576,6 +576,9 @@ export const getAllUsers = async (req, res, next) => {
                     email: true,
                     name: true,
                     role: true,
+                    userRole: {
+                        select: { name: true }
+                    },
                     phone: true,
                     isActive: true,
                     createdAt: true,
@@ -584,7 +587,13 @@ export const getAllUsers = async (req, res, next) => {
             prisma.user.count({ where }),
         ]);
 
-        return paginatedResponse(res, users, page, limit, total);
+        const mappedUsers = users.map(user => ({
+            ...user,
+            role: user.userRole?.name || user.role,
+            userRole: undefined // clean up response
+        }));
+
+        return paginatedResponse(res, mappedUsers, page, limit, total);
     } catch (error) {
         next(error);
     }
@@ -654,7 +663,7 @@ export const createUser = async (req, res, next) => {
         }
 
         // Check if role is valid for enum (backward compatibility)
-        const validEnumRoles = ['PATIENT', 'ADMIN', 'SUPER_ADMIN', 'DOCTOR', 'STAFF'];
+        const validEnumRoles = ['PATIENT', 'ADMIN', 'SUPER_ADMIN', 'DOCTOR', 'STAFF', 'PKRS'];
         const enumRole = validEnumRoles.includes(role) ? role : 'STAFF';
 
         const user = await prisma.user.create({
