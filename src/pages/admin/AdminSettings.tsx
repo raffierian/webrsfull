@@ -678,18 +678,34 @@ const AdminSettings = () => {
                         <Input
                           type="file"
                           accept="image/*"
-                          onChange={(e) => {
+                          onChange={async (e) => {
                             const file = e.target.files?.[0];
-                            if (file) {
+                            if (!file) return;
+
+                            try {
                               toast({ description: "Mengupload logo..." });
-                              api.upload(file)
-                                .then(res => {
-                                  setAppearanceSettings(prev => ({ ...prev, logoUrl: res.url }));
-                                  toast({ title: "Upload Berhasil", description: "Logo berhasil diupload" });
-                                })
-                                .catch(err => {
-                                  toast({ title: "Upload Gagal", description: err.message, variant: "destructive" });
-                                });
+
+                              // Direct Upload Logic to bypass potential api.ts cache issues
+                              const formData = new FormData();
+                              formData.append('file', file);
+                              const token = localStorage.getItem('adminToken');
+
+                              const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+                              const response = await fetch(`${apiUrl}/upload`, {
+                                method: 'POST',
+                                body: formData,
+                                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                              });
+
+                              const data = await response.json();
+
+                              if (!data.success) throw new Error(data.message || 'Upload failed');
+
+                              setAppearanceSettings(prev => ({ ...prev, logoUrl: data.data.url }));
+                              toast({ title: "Upload Berhasil", description: "Logo berhasil diupload" });
+                            } catch (err: any) {
+                              console.error("Upload failed", err);
+                              toast({ title: "Upload Gagal", description: err.message, variant: "destructive" });
                             }
                           }}
                         />
@@ -722,18 +738,33 @@ const AdminSettings = () => {
                       <Input
                         type="file"
                         accept="image/*"
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const file = e.target.files?.[0];
-                          if (file) {
+                          if (!file) return;
+
+                          try {
                             toast({ description: "Mengupload favicon..." });
-                            api.upload(file)
-                              .then(res => {
-                                setAppearanceSettings(prev => ({ ...prev, faviconUrl: res.url }));
-                                toast({ title: "Upload Berhasil" });
-                              })
-                              .catch(err => {
-                                toast({ title: "Upload Gagal", description: err.message, variant: "destructive" });
-                              });
+
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            const token = localStorage.getItem('adminToken');
+
+                            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+                            const response = await fetch(`${apiUrl}/upload`, {
+                              method: 'POST',
+                              body: formData,
+                              headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                            });
+
+                            const data = await response.json();
+
+                            if (!data.success) throw new Error(data.message || 'Upload failed');
+
+                            setAppearanceSettings(prev => ({ ...prev, faviconUrl: data.data.url }));
+                            toast({ title: "Upload Berhasil" });
+                          } catch (err: any) {
+                            console.error("Upload failed", err);
+                            toast({ title: "Upload Gagal", description: err.message, variant: "destructive" });
                           }
                         }}
                       />
