@@ -1,3 +1,4 @@
+import { config } from '../config/index.js';
 import { successResponse, errorResponse } from '../utils/response.js';
 
 export const uploadFile = (req, res) => {
@@ -6,11 +7,8 @@ export const uploadFile = (req, res) => {
             return errorResponse(res, 'No file uploaded', 400);
         }
 
-        // Construct public URL
-        // Assuming server serves 'public' folder statically
-        const protocol = req.protocol;
-        const host = req.get('host');
-        const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+        // Construct public URL using configured API_URL to ensure correct protocol/domain
+        const fileUrl = `${config.apiUrl}/uploads/${req.file.filename}`;
 
         return successResponse(res, {
             url: fileUrl,
