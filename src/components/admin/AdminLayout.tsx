@@ -281,11 +281,11 @@ const AdminLayout = () => {
                   <Globe className="w-4 h-4 mr-2" />
                   Lihat Website
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/admin/settings')}>
+                <DropdownMenuItem onClick={() => navigate('/admin/profile')}>
                   <User className="w-4 h-4 mr-2" />
                   Profil
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/admin/settings')}>
+                <DropdownMenuItem onClick={() => navigate('/admin/profile')}>
                   <Settings className="w-4 h-4 mr-2" />
                   Pengaturan
                 </DropdownMenuItem>

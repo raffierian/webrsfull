@@ -40,6 +40,8 @@ const AdminSettings = () => {
     address: "Jl. Tambak Rejo No.45-47, Simokerto, Surabaya",
     website: "https://rs-soewandhie.surabaya.go.id",
     description: "Rumah Sakit Umum Daerah dr. Mohamad Soewandhie adalah rumah sakit milik Pemerintah Kota Surabaya.",
+    emergencyPhone: "",
+    operatingHours: "",
   };
 
   const defaultProfileSettings = {
@@ -91,12 +93,7 @@ const AdminSettings = () => {
   const [securitySettings, setSecuritySettings] = useState(defaultSecuritySettings);
   const [appearanceSettings, setAppearanceSettings] = useState(defaultAppearanceSettings);
 
-  // Personal 2FA states
-  const [twoFactorStep, setTwoFactorStep] = useState<"IDLE" | "SETUP" | "VERIFY">("IDLE");
-  const [qrCodeUrl, setQrCodeUrl] = useState("");
-  const [twoFactorSecret, setTwoFactorSecret] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  const [isPersonal2FAEnabled, setIsPersonal2FAEnabled] = useState(false);
+
 
   // Fetch Settings
   const { data: settingsData, isLoading } = useQuery({
@@ -116,17 +113,7 @@ const AdminSettings = () => {
     }
   }, [settingsData]);
 
-  // Fetch Current user profile for 2FA status
-  const { data: userData } = useQuery({
-    queryKey: ['me'],
-    queryFn: () => api.auth.me(),
-  });
 
-  useEffect(() => {
-    if (userData) {
-      setIsPersonal2FAEnabled(userData.twoFactorEnabled);
-    }
-  }, [userData]);
 
   // Mutation
   const updateSettingsMutation = useMutation({
@@ -145,41 +132,7 @@ const AdminSettings = () => {
   const handleSaveSecurity = () => updateSettingsMutation.mutate({ security_settings: securitySettings });
   const handleSaveAppearance = () => updateSettingsMutation.mutate({ appearance_settings: appearanceSettings });
 
-  const handleSetup2FA = async () => {
-    try {
-      const data = await api.auth.setup2FA();
-      setQrCodeUrl(data.qrCodeUrl);
-      setTwoFactorSecret(data.secret);
-      setTwoFactorStep("SETUP");
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
-  };
 
-  const handleVerify2FA = async () => {
-    try {
-      await api.auth.verify2FA(verificationCode);
-      setIsPersonal2FAEnabled(true);
-      setTwoFactorStep("IDLE");
-      setVerificationCode("");
-      toast({ title: "Berhasil", description: "Google Authenticator berhasil diaktifkan" });
-      queryClient.invalidateQueries({ queryKey: ['me'] });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
-  };
-
-  const handleDisable2FA = async () => {
-    if (!confirm("Apakah Anda yakin ingin menonaktifkan Google Authenticator?")) return;
-    try {
-      await api.auth.disable2FA();
-      setIsPersonal2FAEnabled(false);
-      toast({ title: "Berhasil", description: "Google Authenticator dinonaktifkan" });
-      queryClient.invalidateQueries({ queryKey: ['me'] });
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
-  };
 
   if (isLoading) return <div>Loading settings...</div>;
 
@@ -547,74 +500,7 @@ const AdminSettings = () => {
                 />
               </div>
 
-              {/* Personal 2FA setup */}
-              <div className="space-y-4 p-4 border rounded-lg bg-slate-50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Smartphone className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Google Authenticator (Personal)</p>
-                    <p className="text-sm text-muted-foreground">Tingkatkan keamanan akun Anda dengan TOTP.</p>
-                  </div>
-                  <div className="ml-auto">
-                    {isPersonal2FAEnabled ? (
-                      <Button variant="outline" className="text-destructive border-destructive" onClick={handleDisable2FA}>
-                        Nonaktifkan
-                      </Button>
-                    ) : twoFactorStep === "IDLE" ? (
-                      <Button onClick={handleSetup2FA}>Siapkan Sekarang</Button>
-                    ) : null}
-                  </div>
-                </div>
 
-                {twoFactorStep === "SETUP" && (
-                  <div className="mt-6 space-y-6 pt-6 border-t animate-in fade-in slide-in-from-top-4">
-                    <div className="flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-                      <div className="bg-white p-4 border rounded-xl shadow-sm">
-                        <img src={qrCodeUrl} alt="QR Code" className="w-48 h-48" />
-                      </div>
-                      <div className="space-y-4 flex-1">
-                        <div className="space-y-1">
-                          <p className="font-semibold text-lg">Langkah 1: Scan QR Code</p>
-                          <p className="text-sm text-muted-foreground">
-                            Buka aplikasi Google Authenticator (atau aplikasi TOTP lainnya),
-                            lalu scan kode QR di samping.
-                          </p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="font-semibold text-lg">Langkah 2: Masukkan Kode</p>
-                          <p className="text-sm text-muted-foreground">
-                            Masukkan 6 digit kode dari aplikasi untuk memverifikasi.
-                          </p>
-                          <div className="flex gap-2 pt-2">
-                            <Input
-                              placeholder="000 000"
-                              className="max-w-[150px] text-center text-lg font-mono"
-                              value={verificationCode}
-                              onChange={(e) => setVerificationCode(e.target.value)}
-                              maxLength={6}
-                            />
-                            <Button onClick={handleVerify2FA} disabled={verificationCode.length !== 6}>
-                              Verifikasi & Aktifkan
-                            </Button>
-                          </div>
-                        </div>
-                        <Button variant="ghost" className="text-xs p-0 h-auto" onClick={() => setTwoFactorStep("IDLE")}>
-                          Batalkan Setup
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {isPersonal2FAEnabled && (
-                  <div className="mt-2 p-3 bg-green-100 text-green-700 rounded-md flex items-center gap-2 text-sm">
-                    <Shield className="w-4 h-4" />
-                    Google Authenticator telah aktif untuk akun Anda.
-                  </div>
-                )}
-              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">

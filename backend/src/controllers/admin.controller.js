@@ -676,8 +676,8 @@ export const createUser = async (req, res, next) => {
         }
 
         // Check if role is valid for enum (backward compatibility)
-        const validEnumRoles = ['PATIENT', 'ADMIN', 'SUPER_ADMIN', 'DOCTOR', 'STAFF', 'PKRS'];
-        const enumRole = validEnumRoles.includes(role) ? role : 'STAFF';
+        const validEnumRoles = ['PATIENT', 'ADMIN', 'SUPER_ADMIN', 'DOCTOR', 'STAFF'];
+        const enumRole = validEnumRoles.includes(role) ? role : 'STAFF'; // Default to STAFF for custom roles (e.g. PKRS, DIKLAT)
 
         const user = await prisma.user.create({
             data: {

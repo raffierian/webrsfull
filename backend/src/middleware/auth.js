@@ -36,7 +36,12 @@ export const verifyToken = async (req, res, next) => {
                 roleId: true,
                 userRole: {
                     select: {
-                        name: true
+                        name: true,
+                        roleMenu: {
+                            select: {
+                                menus: true
+                            }
+                        }
                     }
                 },
                 isActive: true,
@@ -50,6 +55,10 @@ export const verifyToken = async (req, res, next) => {
         // Map dynamic role name to req.user.role for compatibility
         if (user.userRole) {
             user.role = user.userRole.name;
+            // Attach allowed menus to user object
+            user.allowedMenus = user.userRole.roleMenu ? user.userRole.roleMenu.menus : [];
+        } else {
+            user.allowedMenus = [];
         }
 
         req.user = user;
@@ -77,6 +86,38 @@ export const requireRole = (...roles) => {
         }
 
         next();
+    };
+};
+
+/**
+ * Check if user has access to a specific menu
+ */
+export const requireMenuAccess = (menuKey) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return errorResponse(res, 'Unauthorized', 401);
+        }
+
+        // SUPER_ADMIN has access to everything
+        if (req.user.role === 'SUPER_ADMIN') {
+            return next();
+        }
+
+        // Specific Roles Bypass (Optional, if you trust ADMIN to have all access)
+        if (req.user.role === 'ADMIN') {
+            return next();
+        }
+
+        const allowedMenus = req.user.allowedMenus || [];
+
+        // Debugging
+        // console.log(`Checking Menu Access: User=${req.user.username}, Required=${menuKey}, Allowed=${JSON.stringify(allowedMenus)}`);
+
+        if (allowedMenus.includes(menuKey)) {
+            return next();
+        }
+
+        return errorResponse(res, 'Forbidden - Insufficient permissions', 403);
     };
 };
 

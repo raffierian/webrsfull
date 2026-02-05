@@ -49,6 +49,7 @@ import AdminTariffs from "./pages/admin/AdminTariffs";
 import AdminInpatientRooms from "./pages/admin/AdminInpatientRooms";
 import AdminRoleMenus from "./pages/admin/AdminRoleMenus";
 import AdminRoles from "./pages/admin/AdminRoles";
+import AdminProfile from "./pages/admin/AdminProfile";
 import HealthPromoPage from "./pages/HealthPromoPage";
 import HealthToolsPage from "./pages/HealthToolsPage";
 import BMICalculatorPage from "./pages/tools/BMICalculatorPage";
@@ -143,6 +144,7 @@ const App = () => (
                 <Route path="inpatient-rooms" element={<AdminInpatientRooms />} />
                 <Route path="role-menus" element={<AdminRoleMenus />} />
                 <Route path="roles" element={<AdminRoles />} />
+                <Route path="profile" element={<AdminProfile />} />
               </Route>
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
