@@ -58,7 +58,28 @@ const NewsCarousel: React.FC = () => {
   });
 
   const articles = Array.isArray(articlesData) ? articlesData : (articlesData?.data || []);
-  const displayArticles = articles.length > 0 ? articles : dummyNews;
+
+  const processedArticles = articles.map((article: any) => ({
+    id: article.id,
+    title: article.title,
+    slug: article.slug,
+    // Use createdAt as publishedAt
+    publishedAt: article.createdAt || new Date().toISOString(),
+    // Handle Image URL (add API base if relative)
+    imageUrl: article.thumbnailUrl
+      ? (article.thumbnailUrl.startsWith('http')
+        ? article.thumbnailUrl
+        : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${article.thumbnailUrl}`)
+      : null,
+    // Handle Category (take first tag or default)
+    category: article.tags && article.tags.length > 0 ? article.tags[0] : 'Berita',
+    // Create excerpt from content (strip HTML)
+    excerpt: article.content
+      ? article.content.replace(/<[^>]*>?/gm, '').substring(0, 100) + '...'
+      : ''
+  }));
+
+  const displayArticles = processedArticles.length > 0 ? processedArticles : dummyNews;
 
   if (isLoading) {
     return (
