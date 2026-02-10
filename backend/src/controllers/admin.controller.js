@@ -551,11 +551,14 @@ export const toggleArticlePublish = async (req, res, next) => {
             where: { id },
         });
 
+        const isPublishing = !article.isPublished;
+
         const updated = await prisma.article.update({
             where: { id },
             data: {
-                isPublished: !article.isPublished,
-                publishedAt: !article.isPublished ? new Date() : null,
+                isPublished: isPublishing,
+                // Update implementation plan to match user request: Refresh createdAt on publish
+                createdAt: isPublishing ? new Date() : undefined,
             },
         });
 

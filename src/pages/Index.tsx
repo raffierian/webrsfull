@@ -504,10 +504,10 @@ const Index: React.FC = () => {
                   Buat Janji Temu
                 </Button>
               </Link>
-              <a href="tel:02112345678">
+              <a href={`tel:${(settings?.phone || '0313717141').replace(/[^0-9]/g, '')}`}>
                 <Button variant="heroOutline" size="xl" className="gap-2">
                   <Phone className="w-5 h-5" />
-                  Hubungi (021) 1234-5678
+                  Hubungi {settings?.phone || '(031) 3717141'}
                 </Button>
               </a>
             </div>

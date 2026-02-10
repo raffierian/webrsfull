@@ -127,7 +127,7 @@ const Footer: React.FC = () => {
                   <Phone className="w-5 h-5 text-red-400 mt-0.5" />
                   <div className="flex flex-col gap-1">
                     <span className="text-white/90 text-sm font-semibold">Gawat Darurat 24 Jam:</span>
-                    <span className="text-white/70 text-sm">IGD RS: {settings?.emergencyPhone || "(031) 372XXXX"}</span>
+                    <span className="text-white/70 text-sm">IGD RS: {settings?.emergencyPhone || "(031) 3717141"}</span>
                     <span className="text-white/70 text-sm">Command Center: 112</span>
                   </div>
                 </div>

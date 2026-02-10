@@ -63,20 +63,20 @@ const NewsCarousel: React.FC = () => {
     id: article.id,
     title: article.title,
     slug: article.slug,
-    // Use createdAt as publishedAt
-    publishedAt: article.createdAt || new Date().toISOString(),
-    // Handle Image URL (add API base if relative)
+    // Use publishedAt if available, otherwise createdAt, fallback to now
+    publishedAt: article.publishedAt || article.createdAt || new Date().toISOString(),
+    // Handle Image URL: If full http URL, use it. If relative, prepend API URL.
     imageUrl: article.thumbnailUrl
       ? (article.thumbnailUrl.startsWith('http')
         ? article.thumbnailUrl
-        : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '')}${article.thumbnailUrl}`)
+        : `${(import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/api$/, '')}${article.thumbnailUrl}`)
       : null,
     // Handle Category (take first tag or default)
-    category: article.tags && article.tags.length > 0 ? article.tags[0] : 'Berita',
+    category: article.tags && article.tags.length > 0 ? article.tags[0] : (article.category || 'Berita'),
     // Create excerpt from content (strip HTML)
     excerpt: article.content
       ? article.content.replace(/<[^>]*>?/gm, '').substring(0, 100) + '...'
-      : ''
+      : (article.excerpt || '')
   }));
 
   const displayArticles = processedArticles.length > 0 ? processedArticles : dummyNews;
@@ -138,7 +138,7 @@ const NewsCarousel: React.FC = () => {
                     <div className="group bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all border h-full flex flex-col">
                       <div className="relative h-48 overflow-hidden shrink-0">
                         <img
-                          src={item.imageUrl || 'https://via.placeholder.com/600x400'}
+                          src={item.imageUrl || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=600&h=400&fit=crop'}
                           alt={item.title}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />

@@ -22,7 +22,11 @@ import {
   Link as LinkIcon,
   Image as ImageIcon,
   QrCode,
-  Smartphone
+  Smartphone,
+  Briefcase,
+  Plus,
+  Trash2,
+  ListPlus
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -86,12 +90,28 @@ const AdminSettings = () => {
     secondaryColor: "#64748b",
   };
 
+  const defaultServiceStandards = {
+    description: "Kami berkomitmen untuk memberikan pelayanan kesehatan sesuai dengan standar kualitas nasional dan internasional.",
+    maklumat: "Menyanggupi Pelayanan Medis yang Cepat, Tepat, dan Akurat.",
+    promise: "Melayani dengan Sepenuh Hati (S - Senyum, S - Salam, S - Sapa).",
+  };
+
+  const defaultInnovations = [
+    { title: "E-Medical Record", description: "Rekam medis elektronik terintegrasi untuk kecepatan layanan.", icon: "TrendingUp" },
+    { title: "Telemedicine", description: "Layanan konsultasi online dari rumah Anda.", icon: "Shield" },
+  ];
+
   const [hospitalSettings, setHospitalSettings] = useState(defaultHospitalSettings);
   const [profileSettings, setProfileSettings] = useState(defaultProfileSettings);
   const [externalLinks, setExternalLinks] = useState(defaultExternalLinks);
   const [notificationSettings, setNotificationSettings] = useState(defaultNotificationSettings);
   const [securitySettings, setSecuritySettings] = useState(defaultSecuritySettings);
   const [appearanceSettings, setAppearanceSettings] = useState(defaultAppearanceSettings);
+  const [serviceStandards, setServiceStandards] = useState(defaultServiceStandards);
+  const [innovations, setInnovations] = useState(defaultInnovations);
+
+  // New Innovation State
+  const [newInnovation, setNewInnovation] = useState({ title: "", description: "" });
 
 
 
@@ -110,6 +130,8 @@ const AdminSettings = () => {
       if (settingsData.notification_settings) setNotificationSettings({ ...defaultNotificationSettings, ...settingsData.notification_settings });
       if (settingsData.security_settings) setSecuritySettings({ ...defaultSecuritySettings, ...settingsData.security_settings });
       if (settingsData.appearance_settings) setAppearanceSettings({ ...defaultAppearanceSettings, ...settingsData.appearance_settings });
+      if (settingsData.service_standards) setServiceStandards({ ...defaultServiceStandards, ...settingsData.service_standards });
+      if (settingsData.innovations) setInnovations(settingsData.innovations.length ? settingsData.innovations : defaultInnovations);
     }
   }, [settingsData]);
 
@@ -131,6 +153,22 @@ const AdminSettings = () => {
   const handleSaveNotifications = () => updateSettingsMutation.mutate({ notification_settings: notificationSettings });
   const handleSaveSecurity = () => updateSettingsMutation.mutate({ security_settings: securitySettings });
   const handleSaveAppearance = () => updateSettingsMutation.mutate({ appearance_settings: appearanceSettings });
+  const handleSaveServices = () => updateSettingsMutation.mutate({
+    service_standards: serviceStandards,
+    innovations: innovations
+  });
+
+  const handleAddInnovation = () => {
+    if (!newInnovation.title || !newInnovation.description) return;
+    setInnovations([...innovations, { ...newInnovation, icon: "TrendingUp" }]);
+    setNewInnovation({ title: "", description: "" });
+  };
+
+  const handleDeleteInnovation = (idx: number) => {
+    const newInnovations = [...innovations];
+    newInnovations.splice(idx, 1);
+    setInnovations(newInnovations);
+  };
 
 
 
@@ -168,6 +206,10 @@ const AdminSettings = () => {
           <TabsTrigger value="appearance" className="flex items-center gap-2 min-w-[100px]">
             <Palette className="w-4 h-4" />
             <span className="hidden xl:inline">Tampilan</span>
+          </TabsTrigger>
+          <TabsTrigger value="services" className="flex items-center gap-2 min-w-[100px]">
+            <Briefcase className="w-4 h-4" />
+            <span className="hidden xl:inline">Layanan</span>
           </TabsTrigger>
         </TabsList>
 
@@ -672,6 +714,112 @@ const AdminSettings = () => {
               </Button>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Services Settings */}
+        <TabsContent value="services">
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Standar Pelayanan</CardTitle>
+                <CardDescription>Atur konten halaman standar pelayanan</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Deskripsi Umum</Label>
+                  <Textarea
+                    value={serviceStandards.description}
+                    onChange={(e) => setServiceStandards({ ...serviceStandards, description: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Maklumat Pelayanan</Label>
+                  <Textarea
+                    value={serviceStandards.maklumat}
+                    onChange={(e) => setServiceStandards({ ...serviceStandards, maklumat: e.target.value })}
+                    rows={2}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Janji Layanan</Label>
+                  <Textarea
+                    value={serviceStandards.promise}
+                    onChange={(e) => setServiceStandards({ ...serviceStandards, promise: e.target.value })}
+                    rows={2}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Inovasi Layanan</CardTitle>
+                <CardDescription>Tambah daftar inovasi layanan RS</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+
+                {/* Add New Innovation Form */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border p-4 rounded-lg bg-muted/20">
+                  <div className="space-y-2">
+                    <Label>Judul Inovasi</Label>
+                    <Input
+                      value={newInnovation.title}
+                      onChange={(e) => setNewInnovation({ ...newInnovation, title: e.target.value })}
+                      placeholder="Contoh: E-Medical Record"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Deskripsi Singkat</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newInnovation.description}
+                        onChange={(e) => setNewInnovation({ ...newInnovation, description: e.target.value })}
+                        placeholder="Jelaskan secara singkat inovasi ini..."
+                      />
+                      <Button onClick={handleAddInnovation} variant="secondary">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* List of Innovations */}
+                {innovations.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
+                    Belum ada inovasi yang ditambahkan.
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {innovations.map((item, idx) => (
+                      <div key={idx} className="flex items-start justify-between p-4 border rounded-lg bg-card hover:shadow-sm transition-shadow">
+                        <div className="space-y-1">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <ListPlus className="w-4 h-4 text-primary" />
+                            {item.title}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">{item.description}</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => handleDeleteInnovation(idx)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <Button onClick={handleSaveServices} disabled={updateSettingsMutation.isPending} className="w-full">
+                  <Save className="w-4 h-4 mr-2" />
+                  {updateSettingsMutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

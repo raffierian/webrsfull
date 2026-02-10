@@ -4,12 +4,15 @@ import { useTranslation } from 'react-i18next';
 import Layout from '@/components/layout/Layout';
 import { motion } from 'framer-motion';
 import { FileText, Award, TrendingUp, Shield, Loader2 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
+import { useSettings } from '@/hooks/useSettings';
 
 const InformationPage: React.FC = () => {
     const { section } = useParams<{ section: string }>();
     const { t } = useTranslation();
+    const { settings } = useSettings();
 
     const { data: tariffsData, isLoading: isTariffsLoading } = useQuery({
         queryKey: ['public-tariffs'],
@@ -23,24 +26,28 @@ const InformationPage: React.FC = () => {
         return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
     };
 
+    const renderIcon = (iconName: string) => {
+        const IconComponent = (LucideIcons as any)[iconName] || LucideIcons.TrendingUp;
+        return <IconComponent className="w-10 h-10 text-primary mb-4" />;
+    };
+
     const renderContent = () => {
         switch (section) {
             case 'standards':
                 return (
                     <div className="space-y-6">
                         <h2 className="text-3xl font-bold">Standar Pelayanan</h2>
-                        <p className="text-muted-foreground">
-                            Kami berkomitmen untuk memberikan pelayanan kesehatan sesuai dengan standar kualitas nasional dan internasional.
+                        <p className="text-muted-foreground whitespace-pre-line">
+                            {settings?.service_standards?.description || "Kami berkomitmen untuk memberikan pelayanan kesehatan sesuai dengan standar kualitas nasional dan internasional."}
                         </p>
-                        {/* Add more static content or fetch from backend if needed */}
                         <div className="grid gap-4">
-                            <div className="p-4 border rounded-lg">
-                                <h3 className="font-semibold mb-2">Maklumat Pelayanan</h3>
-                                <p>Menyanggupi Pelayanan Medis yang Cepat, Tepat, dan Akurat.</p>
+                            <div className="p-4 border rounded-lg hover:shadow-sm transition-shadow bg-card">
+                                <h3 className="font-semibold mb-2 text-primary">Maklumat Pelayanan</h3>
+                                <p className="whitespace-pre-line leading-relaxed">{settings?.service_standards?.maklumat || "Menyanggupi Pelayanan Medis yang Cepat, Tepat, dan Akurat."}</p>
                             </div>
-                            <div className="p-4 border rounded-lg">
-                                <h3 className="font-semibold mb-2">Janji Layanan</h3>
-                                <p>Melayani dengan Sepenuh Hati (S - Senyum, S - Salam, S - Sapa).</p>
+                            <div className="p-4 border rounded-lg hover:shadow-sm transition-shadow bg-card">
+                                <h3 className="font-semibold mb-2 text-primary">Janji Layanan</h3>
+                                <p className="whitespace-pre-line leading-relaxed">{settings?.service_standards?.promise || "Melayani dengan Sepenuh Hati (S - Senyum, S - Salam, S - Sapa)."}</p>
                             </div>
                         </div>
                     </div>
@@ -119,6 +126,13 @@ const InformationPage: React.FC = () => {
                     </div>
                 );
             case 'innovation':
+                const innovations = settings?.innovations && settings.innovations.length > 0
+                    ? settings.innovations
+                    : [
+                        { title: "E-Medical Record", description: "Rekam medis elektronik terintegrasi untuk kecepatan layanan.", icon: "TrendingUp" },
+                        { title: "Telemedicine", description: "Layanan konsultasi online dari rumah Anda.", icon: "Shield" },
+                    ];
+
                 return (
                     <div className="space-y-6">
                         <h2 className="text-3xl font-bold">Inovasi Layanan</h2>
@@ -126,16 +140,13 @@ const InformationPage: React.FC = () => {
                             Terus berinovasi demi kenyamanan dan keselamatan pasien.
                         </p>
                         <div className="grid md:grid-cols-2 gap-6">
-                            <div className="card-medical p-6">
-                                <TrendingUp className="w-10 h-10 text-primary mb-4" />
-                                <h3 className="text-xl font-bold mb-2">E-Medical Record</h3>
-                                <p className="text-sm text-muted-foreground">Rekam medis elektronik terintegrasi untuk kecepatan layanan.</p>
-                            </div>
-                            <div className="card-medical p-6">
-                                <Shield className="w-10 h-10 text-primary mb-4" />
-                                <h3 className="text-xl font-bold mb-2">Telemedicine</h3>
-                                <p className="text-sm text-muted-foreground">Layanan konsultasi online dari rumah Anda.</p>
-                            </div>
+                            {innovations.map((item, idx) => (
+                                <div key={idx} className="card-medical p-6 hover:border-primary/50 transition-colors">
+                                    {renderIcon(item.icon || 'TrendingUp')}
+                                    <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+                                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 );
