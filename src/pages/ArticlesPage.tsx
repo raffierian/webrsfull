@@ -16,13 +16,16 @@ import {
   ChevronRight,
   Heart,
   Brain,
-  Baby,
   Eye,
-  Bone
+  Bone,
+  Award,
+  Baby
 } from "lucide-react";
 
 const categories = [
   { id: "all", label: "Semua", icon: null },
+  { id: "Kesehatan", label: "Kesehatan", icon: Heart },
+  { id: "Prestasi", label: "Prestasi", icon: Award },
   { id: "jantung", label: "Jantung", icon: Heart },
   { id: "saraf", label: "Saraf", icon: Brain },
   { id: "anak", label: "Anak", icon: Baby },

@@ -133,7 +133,10 @@ const AdminArticles: React.FC = () => {
       content: formData.get('content') as string,
       // excerpt removed
       imageUrl: formData.get('imageUrl') as string || 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800',
-      tags: [formData.get('category') as string], // Send as tags array
+      tags: [
+        formData.get('category') as string,
+        ...(formData.get('tags') as string).split(',').map(t => t.trim()).filter(t => t)
+      ], // Send as tags array
     };
 
     if (editingArticle) {
@@ -185,6 +188,15 @@ const AdminArticles: React.FC = () => {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div>
+                  <Label htmlFor="tags">Tags / Topik Tambahan (Pisahkan dengan koma)</Label>
+                  <Input
+                    id="tags"
+                    name="tags"
+                    defaultValue={editingArticle?.tags?.slice(1).join(', ')}
+                    placeholder="Contoh: Jantung, Operasi, Tips"
+                  />
                 </div>
                 <div>
                   <Label htmlFor="imageUrl">URL Gambar (Opsional)</Label>
@@ -318,7 +330,17 @@ const AdminArticles: React.FC = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{article.tags && article.tags.length > 0 ? article.tags[0] : 'Umum'}</Badge>
+                    <div className="flex flex-wrap gap-1">
+                      {article.tags && article.tags.length > 0 ? (
+                        article.tags.map((tag: string, idx: number) => (
+                          <Badge key={idx} variant={idx === 0 ? "default" : "outline"} className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))
+                      ) : (
+                        <Badge variant="outline">Umum</Badge>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

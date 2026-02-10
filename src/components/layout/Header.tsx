@@ -18,7 +18,9 @@ import {
   User,
   Calendar,
   MessageCircle,
-  Shield
+  Shield,
+  Award,
+  GraduationCap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -92,8 +94,8 @@ const Header: React.FC = () => {
       label: t('nav.articles'),
       dropdown: [
         { path: '/articles?category=Kesehatan', label: t('nav.health'), icon: Heart },
-        { path: '/articles?category=Prestasi', label: t('nav.achievements'), icon: Heart },
-        { path: '/articles?category=Edukasi', label: t('nav.training'), icon: Heart },
+        { path: '/articles?category=Prestasi', label: t('nav.achievements'), icon: Award },
+        { path: '/training', label: 'Diklat & Pelatihan', icon: GraduationCap },
       ]
     },
     {

@@ -3,11 +3,11 @@ import { successResponse, errorResponse, paginatedResponse } from '../utils/resp
 
 export const getAllArticles = async (req, res, next) => {
     try {
-        const { page = 1, limit = 10 } = req.query; // Removed category filter as it doesn't exist in schema
+        const { page = 1, limit = 10, category } = req.query; // Added category filter
         const skip = (page - 1) * limit;
 
         const where = { isPublished: true };
-        // if (category) where.tags = { has: category }; // Optional: Filter by tags if needed
+        if (category && category !== 'all') where.tags = { has: category }; // Filter by tags if category is provided
 
         const [articles, total] = await Promise.all([
             prisma.article.findMany({
