@@ -24,7 +24,8 @@ import {
   Briefcase,
   Globe,
   Megaphone,
-  Shield
+  Shield,
+  Brain
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/services/api";
@@ -50,6 +51,7 @@ const menuItems = [
   { path: "/admin/content", label: "Konten", icon: Globe },
   { path: "/admin/appointments", label: "Janji Temu", icon: Calendar },
   { path: "/admin/articles", label: "Artikel", icon: FileText },
+  { path: "/admin/knowledge", label: "Pengetahuan AI", icon: Brain },
   { path: "/admin/services", label: "Layanan", icon: Building2 },
   { path: "/admin/doctors", label: "Dokter", icon: Users },
   { path: "/admin/tariffs", label: "Tarif", icon: DollarSign },

@@ -1,5 +1,6 @@
 import express from 'express';
 import * as adminController from '../controllers/admin.controller.js';
+import * as knowledgeController from '../controllers/knowledge.controller.js';
 import { verifyToken, requireAdmin, requireRole, requireMenuAccess } from '../middleware/auth.js';
 import { excelUpload } from '../middleware/upload.js';
 
@@ -78,5 +79,14 @@ router.post('/tariffs', requireTariffs, adminController.createTariff);
 router.post('/tariffs/import', excelUpload.single('file'), requireTariffs, adminController.importTariffs);
 router.put('/tariffs/:id', requireTariffs, adminController.updateTariff);
 router.delete('/tariffs/:id', requireTariffs, adminController.deleteTariff);
+
+// Knowledge Base (Chatbot)
+const requireKnowledge = requireMenuAccess('/admin/knowledge');
+router.get('/knowledge', requireKnowledge, knowledgeController.getAllKnowledge);
+router.get('/knowledge/:id', requireKnowledge, knowledgeController.getKnowledgeById);
+router.post('/knowledge', requireKnowledge, knowledgeController.createKnowledge);
+router.put('/knowledge/:id', requireKnowledge, knowledgeController.updateKnowledge);
+router.delete('/knowledge/:id', requireKnowledge, knowledgeController.deleteKnowledge);
+router.put('/knowledge/:id/toggle', requireKnowledge, knowledgeController.toggleKnowledgeStatus);
 
 export default router;

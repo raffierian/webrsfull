@@ -188,8 +188,8 @@ export const api = {
 
     // Health Promotion (PKRS)
     healthPromos: {
-        getAllPublic: (params?: string) => fetcher<any>(`/health-promos${params ? `?${params}` : ''}`, { requireAuth: false }),
-        getAllAdmin: (params?: string) => fetcher<any>(`/health-promos${params ? `?${params}` : ''}`),
+        getAllPublic: (query: string = '') => fetcher<any>(`/health-promos?${query}`, { requireAuth: false }),
+        getAllAdmin: (query: string = '') => fetcher<any>(`/health-promos?${query}`),
         create: (data: any) => fetcher<any>('/health-promos', { method: 'POST', body: JSON.stringify(data) }),
         update: (id: string, data: any) => fetcher<any>(`/health-promos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
         delete: (id: string) => fetcher<any>(`/health-promos/${id}`, { method: 'DELETE' }),
@@ -242,15 +242,10 @@ export const api = {
     },
 
     // Upload
-    upload: (file: File) => {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        const token = localStorage.getItem('adminToken');
+    upload: (formData: FormData) => {
+        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
         const headers: HeadersInit = {};
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
-        }
+        if (token) headers['Authorization'] = `Bearer ${token}`;
 
         return fetch(`${API_URL}/upload`, {
             method: 'POST',
@@ -258,7 +253,7 @@ export const api = {
             headers
         }).then(res => res.json()).then(data => {
             if (!data.success) throw new Error(data.message);
-            return data.data; // { url: ... }
+            return data.data;
         });
     },
 
@@ -304,14 +299,7 @@ export const api = {
         delete: (id: string) => fetcher<any>(`/roles/${id}`, { method: 'DELETE' }),
     },
 
-    // Health Promos (PKRS)
-    healthPromos: {
-        getAllPublic: (query: string = '') => fetcher<any>(`/health-promos?${query}`, { requireAuth: false }),
-        getAllAdmin: (query: string = '') => fetcher<any>(`/health-promos?${query}`),
-        create: (data: any) => fetcher<any>('/health-promos', { method: 'POST', body: JSON.stringify(data) }),
-        update: (id: string, data: any) => fetcher<any>(`/health-promos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-        delete: (id: string) => fetcher<any>(`/health-promos/${id}`, { method: 'DELETE' }),
-    },
+
 
     // Role Menus
     roleMenus: {
@@ -332,23 +320,7 @@ export const api = {
         }),
     },
 
-    // Upload
-    upload: (formData: FormData) => {
-        const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-        const headers: HeadersInit = {};
-        if (token) headers['Authorization'] = `Bearer ${token}`;
 
-        // Note: fetcher automatically sets Content-Type: application/json, which breaks FormData
-        // So we use raw fetch here or modify fetcher. Let's use raw fetch for safety.
-        return fetch(`${API_URL}/upload`, {
-            method: 'POST',
-            body: formData,
-            headers
-        }).then(res => res.json()).then(data => {
-            if (!data.success) throw new Error(data.message);
-            return data.data;
-        });
-    },
 
     // PPID
     ppid: {
@@ -362,5 +334,14 @@ export const api = {
         create: (data: any) => fetcher<any>('/ppid', { method: 'POST', body: JSON.stringify(data) }),
         update: (id: string, data: any) => fetcher<any>(`/ppid/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
         delete: (id: string) => fetcher<any>(`/ppid/${id}`, { method: 'DELETE' }),
+    },
+    // Knowledge Base (Bot)
+    knowledge: {
+        getAll: (params?: string) => fetcher<any[]>(`/admin/knowledge${params ? `?${params}` : ''}`),
+        getById: (id: string) => fetcher<any>(`/admin/knowledge/${id}`),
+        create: (data: any) => fetcher<any>('/admin/knowledge', { method: 'POST', body: JSON.stringify(data) }),
+        update: (id: string, data: any) => fetcher<any>(`/admin/knowledge/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+        delete: (id: string) => fetcher<any>(`/admin/knowledge/${id}`, { method: 'DELETE' }),
+        toggle: (id: string) => fetcher<any>(`/admin/knowledge/${id}/toggle`, { method: 'PUT' }),
     }
 };

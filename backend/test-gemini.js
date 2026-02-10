@@ -1,50 +1,27 @@
-// Test script untuk verify Gemini API
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
-const apiKey = process.env.GEMINI_API_KEY;
-
-console.log('🔍 Testing Gemini API...');
-console.log('API Key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'NOT FOUND');
-
-if (!apiKey) {
-    console.error('❌ GEMINI_API_KEY not found in .env');
-    process.exit(1);
-}
-
-const genAI = new GoogleGenerativeAI(apiKey);
-
-async function testGemini() {
+async function check() {
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
     try {
-        console.log('\n📡 Testing model: gemini-1.5-flash with systemInstruction');
-        const model = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
-            systemInstruction: "You are a helpful assistant for RS Soewandhie hospital."
-        });
+        console.log('--- Testing gemini-flash-latest ---');
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        const result = await model.generateContent("hello");
+        const response = await result.response;
+        console.log("✅ Success with gemini-flash-latest:", response.text());
+    } catch (e) {
+        console.log("❌ Failed with gemini-flash-latest:", e.message);
 
-        const result = await model.generateContent("Say hello in Indonesian");
-        const response = result.response;
-        const text = response.text();
-
-        console.log('✅ SUCCESS!');
-        console.log('Response:', text);
-        console.log('\n🎉 Gemini API is working correctly with gemini-1.5-flash!');
-        console.log('💡 Chatbot will use Gemini by default if OPENAI_API_KEY is not set.');
-
-    } catch (error) {
-        console.error('❌ ERROR:', error.message);
-        console.error('\nFull error:', error);
-
-        if (error.message.includes('API key not valid')) {
-            console.log('\n💡 Solution: Get a new API key from https://aistudio.google.com/app/apikey');
-        } else if (error.message.includes('not found')) {
-            console.log('\n💡 Solution: Model not available. Try OpenAI instead.');
+        try {
+            console.log('--- Testing gemini-2.0-flash ---');
+            const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+            const result = await model.generateContent("hello");
+            const response = await result.response;
+            console.log("✅ Success with gemini-2.0-flash:", response.text());
+        } catch (e2) {
+            console.log("❌ Failed with gemini-2.0-flash:", e2.message);
         }
-
-        process.exit(1);
     }
 }
-
-testGemini();
+check();
