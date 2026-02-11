@@ -81,11 +81,11 @@ const Header: React.FC = () => {
       path: '/services',
       label: t('nav.services'),
       dropdown: [
-        { path: '/services/outpatient', label: t('nav.outpatient'), icon: Stethoscope },
-        { path: '/services/inpatient', label: t('nav.inpatient'), icon: Building2 },
-        { path: '/services/emergency', label: t('nav.emergency'), icon: AlertCircle },
-        { path: '/services/intensive', label: t('nav.intensive'), icon: Activity },
-        { path: '/services/supporting', label: t('nav.supporting'), icon: FlaskConical },
+        { path: '/services/rawat-jalan', label: t('nav.outpatient'), icon: Stethoscope },
+        { path: '/services/rawat-inap', label: t('nav.inpatient'), icon: Building2 },
+        { path: '/services/gawat-darurat', label: t('nav.emergency'), icon: AlertCircle },
+        { path: '/services/perawatan-intensif', label: t('nav.intensive'), icon: Activity },
+        { path: '/services/penunjang-medis', label: t('nav.supporting'), icon: FlaskConical },
       ]
     },
     {

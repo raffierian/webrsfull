@@ -66,6 +66,8 @@ const categories = [
   { value: "pengadaan", label: "Pengadaan" },
   { value: "regulasi", label: "Regulasi" },
   { value: "standar", label: "Standar Pelayanan" },
+  { value: "sakip", label: "Dokumen SAKIP" },
+  { value: "zona_integritas", label: "Zona Integritas" },
   { value: "lainnya", label: "Lainnya" },
 ];
 

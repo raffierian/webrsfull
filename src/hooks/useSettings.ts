@@ -5,6 +5,8 @@ export interface HospitalSettings {
     name: string;
     tagline: string;
     email: string;
+    admissionEmail?: string;
+    careerEmail?: string;
     phone: string;
     whatsapp: string;
     address: string;
@@ -12,6 +14,7 @@ export interface HospitalSettings {
     description: string;
     emergencyPhone?: string;
     operatingHours?: string;
+    mapUrl?: string;
     logoUrl?: string;
     faviconUrl?: string;
     external_links?: {
@@ -22,6 +25,10 @@ export interface HospitalSettings {
         enableWhatsapp?: boolean;
         consultationEnabled?: boolean;
         enablePatientPortal?: boolean;
+        googleReviews?: {
+            enabled: boolean;
+            placeId?: string;
+        };
     };
     profile_settings?: {
         vision?: string;
@@ -31,6 +38,14 @@ export interface HospitalSettings {
         about?: string;
         history?: string;
         values?: string;
+        aboutImages?: string[];
+        aboutFeatures?: string[];
+        stats?: {
+            patients: string;
+            doctors: string;
+            experience: string;
+            satisfaction: string;
+        };
     };
     service_standards?: {
         description?: string;
@@ -49,6 +64,34 @@ export interface HospitalSettings {
         intensive?: ServicePageContent;
         supporting?: ServicePageContent;
         specialist?: ServicePageContent;
+    };
+    zi_settings?: {
+        achievements?: Array<{
+            year: number;
+            title: string;
+            description: string;
+        }>;
+        scores?: {
+            spak: string;
+            spkp: string;
+            sakip: string;
+        };
+        status: {
+            wbk_text: string;
+            wbk_year: number;
+            wbbm_target_text: string;
+            wbbm_target_year: number;
+        };
+        programs: Array<{
+            title: string;
+            description: string;
+            icon: string;
+        }>;
+        indikators: {
+            wbk_process: string;
+            wbk_result: string;
+            wbbm_syarat: string;
+        };
     };
 }
 
@@ -180,6 +223,7 @@ export const useSettings = () => {
             const profileSettings = result?.profile_settings || {};
             const serviceStandards = result?.service_standards || {};
             const innovations = result?.innovations || [];
+            const ziSettings = result?.zi_settings || {};
 
             return {
                 ...hospitalSettings,
@@ -189,6 +233,7 @@ export const useSettings = () => {
                 profile_settings: profileSettings,
                 service_standards: serviceStandards,
                 innovations: innovations,
+                zi_settings: ziSettings,
                 service_pages: {
                     outpatient: result?.service_page_outpatient || DEFAULT_SERVICE_PAGES.outpatient,
                     inpatient: result?.service_page_inpatient || DEFAULT_SERVICE_PAGES.inpatient,

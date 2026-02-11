@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import Layout from '@/components/layout/Layout';
 import { motion } from 'framer-motion';
-import { FileText, Award, TrendingUp, Shield, Loader2 } from 'lucide-react';
+import { FileText, Award, TrendingUp, Shield, Loader2, Download } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
@@ -151,23 +151,41 @@ const InformationPage: React.FC = () => {
                     </div>
                 );
             case 'sakip':
+                const { data: sakipDocs, isLoading: isSakipLoading } = useQuery({
+                    queryKey: ['ppid-sakip'],
+                    queryFn: () => api.ppid.getAll({ category: 'sakip', isPublic: true }),
+                });
+
                 return (
                     <div className="space-y-6">
                         <h2 className="text-3xl font-bold">Dokumen SAKIP</h2>
                         <p className="text-muted-foreground">
                             Sistem Akuntabilitas Kinerja Instansi Pemerintah.
                         </p>
-                        <ul className="space-y-2">
-                            <li className="flex items-center gap-2 text-primary p-2 bg-primary/5 rounded">
-                                <FileText className="w-4 h-4" /> Laporan Kinerja 2024 (PDF)
-                            </li>
-                            <li className="flex items-center gap-2 text-primary p-2 bg-primary/5 rounded">
-                                <FileText className="w-4 h-4" /> Perjanjian Kinerja 2025 (PDF)
-                            </li>
-                            <li className="flex items-center gap-2 text-primary p-2 bg-primary/5 rounded">
-                                <FileText className="w-4 h-4" /> Rencana Strategis (Renstra) (PDF)
-                            </li>
-                        </ul>
+                        {isSakipLoading ? (
+                            <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin" /></div>
+                        ) : !sakipDocs || sakipDocs.length === 0 ? (
+                            <div className="text-center p-8 border rounded-lg bg-muted/30">
+                                <p className="text-muted-foreground">Belum ada dokumen SAKIP yang tersedia.</p>
+                            </div>
+                        ) : (
+                            <ul className="space-y-2">
+                                {sakipDocs.map((doc: any) => (
+                                    <li key={doc.id}>
+                                        <a
+                                            href={doc.fileUrl}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center gap-2 text-primary p-3 bg-primary/5 rounded hover:bg-primary/10 transition-colors"
+                                        >
+                                            <FileText className="w-5 h-5 flex-shrink-0" />
+                                            <span className="flex-1">{doc.title}</span>
+                                            <Download className="w-4 h-4 opacity-50" />
+                                        </a>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 );
             case 'skm':

@@ -4,8 +4,8 @@ import { api } from '@/services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -26,7 +26,8 @@ import {
   Briefcase,
   Plus,
   Trash2,
-  ListPlus
+  ListPlus,
+  Award
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,6 +40,8 @@ const AdminSettings = () => {
     name: "RS Soewandhie",
     tagline: "Melayani dengan Sepenuh Hati",
     email: "info@rs-soewandhie.com",
+    admissionEmail: "pendaftaran@rs-soewandhie.com",
+    careerEmail: "hrd@rs-soewandhie.com",
     phone: "(031) 3717141",
     whatsapp: "6281234567890",
     address: "Jl. Tambak Rejo No.45-47, Simokerto, Surabaya",
@@ -46,6 +49,7 @@ const AdminSettings = () => {
     description: "Rumah Sakit Umum Daerah dr. Mohamad Soewandhie adalah rumah sakit milik Pemerintah Kota Surabaya.",
     emergencyPhone: "",
     operatingHours: "",
+    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3957.886369062334!2d112.75338331477484!3d-7.253776994763435!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd7f975765c3fd3%3A0xc6657685970c64c7!2sRSUD%20Dr.%20Mohamad%20Soewandhie!5e0!3m2!1sen!2sid!4v1645498263123!5m2!1sen!2sid",
   };
 
   const defaultProfileSettings = {
@@ -56,6 +60,26 @@ const AdminSettings = () => {
     about: "Selama lebih dari 25 tahun, RS Harapan Sehat telah menjadi pilihan utama masyarakat dalam mendapatkan pelayanan kesehatan berkualitas. Dengan tenaga medis profesional dan fasilitas modern, kami berkomitmen untuk memberikan pelayanan terbaik.",
     history: "RS Harapan Sehat didirikan pada tahun 1999 dengan visi untuk memberikan pelayanan kesehatan yang terjangkau dan berkualitas bagi masyarakat Surabaya.",
     values: "Profesionalisme, Integritas, Empati, dan Inovasi.",
+    aboutImages: [
+      "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=300&fit=crop",
+      "https://images.unsplash.com/photo-1551076805-e1869033e561?w=400&h=300&fit=crop",
+      "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop",
+      "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop"
+    ],
+    aboutFeatures: [
+      "Tenaga medis profesional dan bersertifikasi",
+      "Peralatan medis modern dan terkini",
+      "Pelayanan 24 jam untuk gawat darurat",
+      "Sistem rekam medis terintegrasi",
+      "Fasilitas rawat inap yang nyaman",
+      "Program kesehatan preventif"
+    ],
+    stats: {
+      patients: "50,000+",
+      doctors: "120+",
+      experience: "25+",
+      satisfaction: "98%"
+    }
   };
 
   const defaultExternalLinks = {
@@ -66,6 +90,10 @@ const AdminSettings = () => {
     enableWhatsapp: true,
     consultationEnabled: true,
     enablePatientPortal: true,
+    googleReviews: {
+      enabled: false,
+      placeId: ""
+    }
   };
 
   const defaultNotificationSettings = {
@@ -101,6 +129,35 @@ const AdminSettings = () => {
     { title: "Telemedicine", description: "Layanan konsultasi online dari rumah Anda.", icon: "Shield" },
   ];
 
+  const defaultZISettings = {
+    achievements: [
+      { year: 2023, title: "Predikat WBK", description: "Wilayah Bebas dari Korupsi" },
+      { year: 2022, title: "Nilai SAKIP A", description: "Akuntabilitas Kinerja Sangat Baik" },
+    ],
+    scores: {
+      spak: "3.72",
+      spkp: "3.85",
+      sakip: "A"
+    },
+    status: {
+      wbk_text: "Predikat WBK",
+      wbk_year: 2023,
+      wbbm_target_text: "WBBM",
+      wbbm_target_year: 2024
+    },
+    programs: [
+      { title: "Pelayanan Prima", description: "Komitmen memberikan pelayanan terbaik kepada masyarakat", icon: "Star" },
+      { title: "Transparansi Anggaran", description: "Keterbukaan informasi penggunaan anggaran", icon: "FileCheck" },
+      { title: "Integritas Pegawai", description: "Penguatan nilai-nilai integritas aparatur", icon: "Users" },
+      { title: "Pencegahan Korupsi", description: "Sistem pengendalian gratifikasi dan pelaporan", icon: "Shield" },
+    ],
+    indikators: {
+      wbk_process: "Manajemen Perubahan\nPenataan Tata Laksana\nPenataan Sistem Manajemen SDM\nPenguatan Akuntabilitas\nPenguatan Pengawasan\nPeningkatan Kualitas Pelayanan Publik",
+      wbk_result: "Terwujudnya pemerintahan yang bersih dan bebas KKN\nTerwujudnya peningkatan kualitas pelayanan publik",
+      wbbm_syarat: "Survei Persepsi Anti Korupsi (SPAK) ≥ 3.60\nSurvei Persepsi Kualitas Pelayanan (SPKP) ≥ 3.60\nTidak ada pegawai yang terjerat kasus korupsi\nNilai SAKIP minimal B"
+    }
+  };
+
   const [hospitalSettings, setHospitalSettings] = useState(defaultHospitalSettings);
   const [profileSettings, setProfileSettings] = useState(defaultProfileSettings);
   const [externalLinks, setExternalLinks] = useState(defaultExternalLinks);
@@ -109,6 +166,8 @@ const AdminSettings = () => {
   const [appearanceSettings, setAppearanceSettings] = useState(defaultAppearanceSettings);
   const [serviceStandards, setServiceStandards] = useState(defaultServiceStandards);
   const [innovations, setInnovations] = useState(defaultInnovations);
+  const [ziSettings, setZISettings] = useState(defaultZISettings);
+  const [newAchievement, setNewAchievement] = useState({ year: new Date().getFullYear(), title: "", description: "" });
 
   // New Innovation State
   const [newInnovation, setNewInnovation] = useState({ title: "", description: "" });
@@ -132,6 +191,7 @@ const AdminSettings = () => {
       if (settingsData.appearance_settings) setAppearanceSettings({ ...defaultAppearanceSettings, ...settingsData.appearance_settings });
       if (settingsData.service_standards) setServiceStandards({ ...defaultServiceStandards, ...settingsData.service_standards });
       if (settingsData.innovations) setInnovations(settingsData.innovations.length ? settingsData.innovations : defaultInnovations);
+      if (settingsData.zi_settings) setZISettings({ ...defaultZISettings, ...settingsData.zi_settings });
     }
   }, [settingsData]);
 
@@ -157,6 +217,7 @@ const AdminSettings = () => {
     service_standards: serviceStandards,
     innovations: innovations
   });
+  const handleSaveZI = () => updateSettingsMutation.mutate({ zi_settings: ziSettings });
 
   const handleAddInnovation = () => {
     if (!newInnovation.title || !newInnovation.description) return;
@@ -168,6 +229,27 @@ const AdminSettings = () => {
     const newInnovations = [...innovations];
     newInnovations.splice(idx, 1);
     setInnovations(newInnovations);
+  };
+
+  const handleAddAchievement = () => {
+    if (!newAchievement.title || !newAchievement.description) return;
+    setZISettings({
+      ...ziSettings,
+      achievements: [newAchievement, ...ziSettings.achievements]
+    });
+    setNewAchievement({ year: new Date().getFullYear(), title: "", description: "" });
+  };
+
+  const handleDeleteAchievement = (idx: number) => {
+    const newAchievements = [...ziSettings.achievements];
+    newAchievements.splice(idx, 1);
+    setZISettings({ ...ziSettings, achievements: newAchievements });
+  };
+
+  const handleProgramChange = (idx: number, field: string, value: string) => {
+    const newPrograms = [...ziSettings.programs];
+    newPrograms[idx] = { ...newPrograms[idx], [field]: value };
+    setZISettings({ ...ziSettings, programs: newPrograms });
   };
 
 
@@ -211,6 +293,10 @@ const AdminSettings = () => {
             <Briefcase className="w-4 h-4" />
             <span className="hidden xl:inline">Layanan</span>
           </TabsTrigger>
+          <TabsTrigger value="zi" className="flex items-center gap-2 min-w-[100px]">
+            <Award className="w-4 h-4" />
+            <span className="hidden xl:inline">Zona Integritas</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* Hospital Settings */}
@@ -241,7 +327,7 @@ const AdminSettings = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Email</Label>
+                  <Label>Email Informasi (Utama)</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
@@ -249,6 +335,32 @@ const AdminSettings = () => {
                       className="pl-10"
                       value={hospitalSettings.email}
                       onChange={(e) => setHospitalSettings({ ...hospitalSettings, email: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Email Pendaftaran</Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      className="pl-10"
+                      type="email"
+                      value={hospitalSettings.admissionEmail || ''}
+                      onChange={(e) => setHospitalSettings({ ...hospitalSettings, admissionEmail: e.target.value })}
+                      placeholder="pendaftaran@rs-soewandhie.com"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Email Karir (HRD)</Label>
+                  <div className="relative">
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Input
+                      className="pl-10"
+                      type="email"
+                      value={hospitalSettings.careerEmail || ''}
+                      onChange={(e) => setHospitalSettings({ ...hospitalSettings, careerEmail: e.target.value })}
+                      placeholder="hrd@rs-soewandhie.com"
                     />
                   </div>
                 </div>
@@ -283,7 +395,7 @@ const AdminSettings = () => {
                       className="pl-10 border-red-200 focus-visible:ring-red-500"
                       value={hospitalSettings.emergencyPhone || ''}
                       onChange={(e) => setHospitalSettings({ ...hospitalSettings, emergencyPhone: e.target.value })}
-                      placeholder="(031) 372XXXX"
+                      placeholder="(031) 37309595"
                     />
                   </div>
                 </div>
@@ -310,6 +422,17 @@ const AdminSettings = () => {
                       onChange={(e) => setHospitalSettings({ ...hospitalSettings, address: e.target.value })}
                     />
                   </div>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label>Google Maps Embed URL</Label>
+                  <Input
+                    value={hospitalSettings.mapUrl || ''}
+                    onChange={(e) => setHospitalSettings({ ...hospitalSettings, mapUrl: e.target.value })}
+                    placeholder="https://www.google.com/maps/embed?pb=..."
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Copy link dari Google Maps: Share &gt; Embed a map &gt; Copy HTML (ambil bagian src="...")
+                  </p>
                 </div>
               </div>
               <Button onClick={handleSaveHospital} disabled={updateSettingsMutation.isPending}>
@@ -393,6 +516,83 @@ const AdminSettings = () => {
                   />
                 </div>
               </div>
+
+              <div className="space-y-4 border-t pt-4">
+                <h3 className="font-semibold text-lg">Tampilan Homepage (Tentang Kami)</h3>
+
+                <div className="space-y-2">
+                  <Label>Poin Keunggulan (Satu per baris)</Label>
+                  <Textarea
+                    value={Array.isArray(profileSettings.aboutFeatures) ? profileSettings.aboutFeatures.join('\n') : (profileSettings.aboutFeatures || [])}
+                    onChange={(e) => setProfileSettings({ ...profileSettings, aboutFeatures: e.target.value.split('\n') })}
+                    rows={6}
+                    placeholder="Masukkan poin keunggulan, pisahkan dengan Enter"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Galeri Foto (4 Foto Utama)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[0, 1, 2, 3].map((idx) => (
+                      <div key={idx} className="space-y-1">
+                        <Label className="text-xs text-muted-foreground">URL Foto {idx + 1}</Label>
+                        <Input
+                          value={profileSettings.aboutImages?.[idx] || ''}
+                          onChange={(e) => {
+                            const newImages = [...(profileSettings.aboutImages || [])];
+                            if (!profileSettings.aboutImages) {
+                              // Fill with existing or empty if undef
+                              for (let i = 0; i < 4; i++) newImages[i] = newImages[i] || "";
+                            }
+                            newImages[idx] = e.target.value;
+                            setProfileSettings({ ...profileSettings, aboutImages: newImages });
+                          }}
+                          placeholder={`https://example.com/image-${idx + 1}.jpg`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                <div className="col-span-2">
+                  <h3 className="text-lg font-semibold mb-2">Statistik Utama</h3>
+                </div>
+                <div className="space-y-2">
+                  <Label>Pasien Dilayani</Label>
+                  <Input
+                    value={profileSettings.stats?.patients || "50,000+"}
+                    onChange={(e) => setProfileSettings({ ...profileSettings, stats: { ...profileSettings.stats, patients: e.target.value } })}
+                    placeholder="contoh: 50,000+"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Dokter Spesialis</Label>
+                  <Input
+                    value={profileSettings.stats?.doctors || "120+"}
+                    onChange={(e) => setProfileSettings({ ...profileSettings, stats: { ...profileSettings.stats, doctors: e.target.value } })}
+                    placeholder="contoh: 120+"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tahun Pengalaman</Label>
+                  <Input
+                    value={profileSettings.stats?.experience || "25+"}
+                    onChange={(e) => setProfileSettings({ ...profileSettings, stats: { ...profileSettings.stats, experience: e.target.value } })}
+                    placeholder="contoh: 25+"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Kepuasan Pasien</Label>
+                  <Input
+                    value={profileSettings.stats?.satisfaction || "98%"}
+                    onChange={(e) => setProfileSettings({ ...profileSettings, stats: { ...profileSettings.stats, satisfaction: e.target.value } })}
+                    placeholder="contoh: 98%"
+                  />
+                </div>
+              </div>
+
               <Button onClick={handleSaveProfile} disabled={updateSettingsMutation.isPending}>
                 <Save className="w-4 h-4 mr-2" />
                 {updateSettingsMutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
@@ -469,6 +669,39 @@ const AdminSettings = () => {
                       onCheckedChange={(checked) => setExternalLinks({ ...externalLinks, enablePatientPortal: checked })}
                     />
                   </div>
+
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-slate-50/50">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Google Reviews</Label>
+                      <p className="text-sm text-muted-foreground">Tampilkan ulasan Google Maps di halaman utama</p>
+                    </div>
+                    <Switch
+                      checked={externalLinks.googleReviews?.enabled || false}
+                      onCheckedChange={(checked: boolean) => setExternalLinks({
+                        ...externalLinks,
+                        googleReviews: { ...externalLinks.googleReviews, enabled: checked }
+                      })}
+                    />
+                  </div>
+
+                  {(externalLinks.googleReviews?.enabled) && (
+                    <div className="mt-4 p-4 border rounded-lg bg-slate-50">
+                      <div className="space-y-2">
+                        <Label>Google Place ID / Embed URL</Label>
+                        <Input
+                          value={externalLinks.googleReviews?.placeId || ''}
+                          onChange={(e) => setExternalLinks({
+                            ...externalLinks,
+                            googleReviews: { ...externalLinks.googleReviews, enabled: true, placeId: e.target.value }
+                          })}
+                          placeholder="Masukkan Place ID atau URL Embed jika ada"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Jika kosong, sistem akan menampilkan ulasan contoh/default.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <Button onClick={handleSaveLinks} disabled={updateSettingsMutation.isPending}>
@@ -821,8 +1054,251 @@ const AdminSettings = () => {
             </Card>
           </div>
         </TabsContent>
+
+        {/* Zona Integritas Settings */}
+        <TabsContent value="zi">
+          <div className="grid gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Capaian Zona Integritas</CardTitle>
+                <CardDescription>Atur nilai capaian SPAK, SPKP, dan SAKIP</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Nilai SPAK (Indeks Persepsi Anti Korupsi)</Label>
+                    <Input
+                      value={ziSettings.scores.spak}
+                      onChange={(e) => setZISettings({
+                        ...ziSettings,
+                        scores: { ...ziSettings.scores, spak: e.target.value }
+                      })}
+                      placeholder="3.72"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Nilai SPKP (Indeks Persepsi Kualitas Pelayanan)</Label>
+                    <Input
+                      value={ziSettings.scores.spkp}
+                      onChange={(e) => setZISettings({
+                        ...ziSettings,
+                        scores: { ...ziSettings.scores, spkp: e.target.value }
+                      })}
+                      placeholder="3.85"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Nilai SAKIP</Label>
+                    <Input
+                      value={ziSettings.scores.sakip}
+                      onChange={(e) => setZISettings({
+                        ...ziSettings,
+                        scores: { ...ziSettings.scores, sakip: e.target.value }
+                      })}
+                      placeholder="A"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Status & Indikator</CardTitle>
+                <CardDescription>Atur status badge dan daftar indikator</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Teks Status WBK (Saat Ini)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={ziSettings.status?.wbk_text || ""}
+                        onChange={(e) => setZISettings({ ...ziSettings, status: { ...ziSettings.status, wbk_text: e.target.value } })}
+                        placeholder="Predikat WBK"
+                      />
+                      <Input
+                        type="number"
+                        className="w-24"
+                        value={ziSettings.status?.wbk_year || ""}
+                        onChange={(e) => setZISettings({ ...ziSettings, status: { ...ziSettings.status, wbk_year: parseInt(e.target.value) } })}
+                        placeholder="2023"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Target Selanjutnya (WBBM)</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={ziSettings.status?.wbbm_target_text || ""}
+                        onChange={(e) => setZISettings({ ...ziSettings, status: { ...ziSettings.status, wbbm_target_text: e.target.value } })}
+                        placeholder="WBBM"
+                      />
+                      <Input
+                        type="number"
+                        className="w-24"
+                        value={ziSettings.status?.wbbm_target_year || ""}
+                        onChange={(e) => setZISettings({ ...ziSettings, status: { ...ziSettings.status, wbbm_target_year: parseInt(e.target.value) } })}
+                        placeholder="2024"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label>Indikator Proses (WBK)</Label>
+                    <Textarea
+                      rows={6}
+                      value={ziSettings.indikators?.wbk_process || ""}
+                      onChange={(e) => setZISettings({ ...ziSettings, indikators: { ...ziSettings.indikators, wbk_process: e.target.value } })}
+                      placeholder="Pisahkan dengan enter..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Indikator Hasil (WBK)</Label>
+                    <Textarea
+                      rows={6}
+                      value={ziSettings.indikators?.wbk_result || ""}
+                      onChange={(e) => setZISettings({ ...ziSettings, indikators: { ...ziSettings.indikators, wbk_result: e.target.value } })}
+                      placeholder="Pisahkan dengan enter..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Syarat WBBM</Label>
+                    <Textarea
+                      rows={6}
+                      value={ziSettings.indikators?.wbbm_syarat || ""}
+                      onChange={(e) => setZISettings({ ...ziSettings, indikators: { ...ziSettings.indikators, wbbm_syarat: e.target.value } })}
+                      placeholder="Pisahkan dengan enter..."
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Program Unggulan</CardTitle>
+                <CardDescription>Edit konten 4 program unggulan Zona Integritas</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {ziSettings.programs?.map((program: any, idx: number) => (
+                  <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-4 border p-4 rounded-lg items-center">
+                    <div className="md:col-span-1 flex justify-center">
+                      <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">
+                        {idx + 1}
+                      </div>
+                    </div>
+                    <div className="md:col-span-3 space-y-2">
+                      <Label>Judul</Label>
+                      <Input
+                        value={program.title}
+                        onChange={(e) => handleProgramChange(idx, 'title', e.target.value)}
+                      />
+                    </div>
+                    <div className="md:col-span-6 space-y-2">
+                      <Label>Deskripsi</Label>
+                      <Input
+                        value={program.description}
+                        onChange={(e) => handleProgramChange(idx, 'description', e.target.value)}
+                      />
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <Label>Icon (Lucide)</Label>
+                      <Input
+                        value={program.icon}
+                        onChange={(e) => handleProgramChange(idx, 'icon', e.target.value)}
+                        placeholder="Star, Shield..."
+                      />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Daftar Penghargaan / Prestasi</CardTitle>
+                <CardDescription>Tambah daftar prestasi WBK/WBBM</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+
+                {/* Form Add Achievement */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border p-4 rounded-lg bg-muted/20">
+                  <div className="space-y-2">
+                    <Label>Tahun</Label>
+                    <Input
+                      type="number"
+                      value={newAchievement.year}
+                      onChange={(e) => setNewAchievement({ ...newAchievement, year: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Judul Prestasi</Label>
+                    <Input
+                      value={newAchievement.title}
+                      onChange={(e) => setNewAchievement({ ...newAchievement, title: e.target.value })}
+                      placeholder="Contoh: Predikat WBK"
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Deskripsi</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newAchievement.description}
+                        onChange={(e) => setNewAchievement({ ...newAchievement, description: e.target.value })}
+                        placeholder="Keterangan singkat..."
+                      />
+                      <Button onClick={handleAddAchievement} variant="secondary">
+                        <Plus className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* List Achievements */}
+                {ziSettings.achievements.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
+                    Belum ada prestasi yang ditambahkan.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {ziSettings.achievements.map((item: any, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between p-4 border rounded-lg bg-card hover:shadow-sm transition-shadow">
+                        <div className="flex items-center gap-4">
+                          <div className="h-10 w-10 bg-primary/10 rounded-full flex items-center justify-center font-bold text-primary">
+                            {item.year}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">{item.title}</h4>
+                            <p className="text-sm text-muted-foreground">{item.description}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-destructive h-8 w-8"
+                          onClick={() => handleDeleteAchievement(idx)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              </CardContent>
+            </Card>
+
+            <Button onClick={handleSaveZI} disabled={updateSettingsMutation.isPending}>
+              <Save className="w-4 h-4 mr-2" />
+              {updateSettingsMutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </Button>
+          </div>
+        </TabsContent>
       </Tabs>
-    </div>
+    </div >
   );
 };
 

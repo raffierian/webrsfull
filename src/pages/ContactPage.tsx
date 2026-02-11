@@ -127,9 +127,8 @@ const ContactPage: React.FC = () => {
       title: 'Telepon',
       details: [
         { label: 'Pendaftaran', value: settings?.phone || '(031) 3717141' },
-        { label: 'IGD', value: settings?.emergencyPhone || '(031) 372XXXX' },
-        { label: 'Command Center', value: '112' },
-        { label: 'Ambulans', value: '118 / 119' },
+        { label: 'IGD', value: settings?.emergencyPhone || '(031) 37309595' },
+        { label: 'Ambulans & Command Center', value: '112' },
       ],
       color: 'bg-primary/10 text-primary'
     },
@@ -138,8 +137,8 @@ const ContactPage: React.FC = () => {
       title: 'Email',
       details: [
         { label: 'Informasi', value: settings?.email || 'info@rs-soewandhie.com' },
-        { label: 'Pendaftaran', value: 'pendaftaran@rs-soewandhie.com' },
-        { label: 'Karir', value: 'hrd@rs-soewandhie.com' },
+        { label: 'Pendaftaran', value: settings?.admissionEmail || 'pendaftaran@rs-soewandhie.com' },
+        { label: 'Karir', value: settings?.careerEmail || 'hrd@rs-soewandhie.com' },
       ],
       color: 'bg-secondary/10 text-secondary'
     },
@@ -380,7 +379,7 @@ const ContactPage: React.FC = () => {
             >
               <div className="card-medical p-4 h-80">
                 <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3966.521260322283!2d106.8195613!3d-6.194741!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zNsKwMTEnNDEuMSJTIDEwNsKwNDknMTAuNCJF!5e0!3m2!1sen!2sid!4v1234567890"
+                  src={settings?.mapUrl || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3957.886369062334!2d112.75338331477484!3d-7.253776994763435!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd7f975765c3fd3%3A0xc6657685970c64c7!2sRSUD%20Dr.%20Mohamad%20Soewandhie!5e0!3m2!1sen!2sid!4v1645498263123!5m2!1sen!2sid"}
                   width="100%"
                   height="100%"
                   style={{ border: 0, borderRadius: '0.75rem' }}

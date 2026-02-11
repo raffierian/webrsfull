@@ -38,7 +38,26 @@ const ServiceDetailPage: React.FC = () => {
 
   const service = useMemo(() => {
     if (!settings?.service_pages || !type) return null;
-    return settings.service_pages[type as keyof typeof settings.service_pages];
+
+    // Map Indonesian slugs to internal keys
+    const slugMap: Record<string, string> = {
+      'rawat-jalan': 'outpatient',
+      'rawat-inap': 'inpatient',
+      'gawat-darurat': 'emergency',
+      'perawatan-intensif': 'intensive',
+      'penunjang-medis': 'supporting',
+      'klinik-spesialis': 'specialist',
+      // Keep English slugs for compatibility
+      'outpatient': 'outpatient',
+      'inpatient': 'inpatient',
+      'emergency': 'emergency',
+      'intensive': 'intensive',
+      'supporting': 'supporting',
+      'specialist': 'specialist'
+    };
+
+    const key = slugMap[type] || type;
+    return settings.service_pages[key as keyof typeof settings.service_pages];
   }, [settings, type]);
 
   if (isLoading) {
@@ -240,7 +259,7 @@ const ServiceDetailPage: React.FC = () => {
                     </div>
                   ))}
                 </div>
-                <Link to="/doctors">
+                <Link to="/profile/doctors">
                   <Button variant="outline" className="w-full mt-6">
                     Lihat Semua Jadwal
                   </Button>

@@ -2,12 +2,12 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { 
-  Stethoscope, 
-  Building2, 
-  AlertCircle, 
-  Activity, 
-  FlaskConical, 
+import {
+  Stethoscope,
+  Building2,
+  AlertCircle,
+  Activity,
+  FlaskConical,
   Heart,
   Clock,
   Users,
@@ -21,11 +21,11 @@ const ServicesPage: React.FC = () => {
   const { t } = useTranslation();
 
   const services = [
-    { 
-      icon: Stethoscope, 
-      title: t('services.outpatient.title'), 
+    {
+      icon: Stethoscope,
+      title: t('services.outpatient.title'),
       description: t('services.outpatient.description'),
-      path: '/services/outpatient',
+      path: '/services/rawat-jalan',
       color: 'from-primary to-primary-light',
       features: [
         'Konsultasi dengan dokter spesialis',
@@ -34,11 +34,11 @@ const ServicesPage: React.FC = () => {
         'Sistem antrian online'
       ]
     },
-    { 
-      icon: Building2, 
-      title: t('services.inpatient.title'), 
+    {
+      icon: Building2,
+      title: t('services.inpatient.title'),
       description: t('services.inpatient.description'),
-      path: '/services/inpatient',
+      path: '/services/rawat-inap',
       color: 'from-secondary to-secondary-light',
       features: [
         'Kamar VIP, Kelas 1, 2, dan 3',
@@ -47,11 +47,11 @@ const ServicesPage: React.FC = () => {
         'Fasilitas keluarga pasien'
       ]
     },
-    { 
-      icon: AlertCircle, 
-      title: t('services.emergency.title'), 
+    {
+      icon: AlertCircle,
+      title: t('services.emergency.title'),
       description: t('services.emergency.description'),
-      path: '/services/emergency',
+      path: '/services/gawat-darurat',
       color: 'from-destructive to-destructive/80',
       features: [
         'Layanan 24 jam non-stop',
@@ -60,11 +60,11 @@ const ServicesPage: React.FC = () => {
         'Triase cepat dan tepat'
       ]
     },
-    { 
-      icon: Activity, 
-      title: t('services.intensive.title'), 
+    {
+      icon: Activity,
+      title: t('services.intensive.title'),
       description: t('services.intensive.description'),
-      path: '/services/intensive',
+      path: '/services/perawatan-intensif',
       color: 'from-primary-dark to-primary',
       features: [
         'ICU (Intensive Care Unit)',
@@ -73,11 +73,11 @@ const ServicesPage: React.FC = () => {
         'PICU (Pediatric)'
       ]
     },
-    { 
-      icon: FlaskConical, 
-      title: t('services.supporting.title'), 
+    {
+      icon: FlaskConical,
+      title: t('services.supporting.title'),
       description: t('services.supporting.description'),
-      path: '/services/supporting',
+      path: '/services/penunjang-medis',
       color: 'from-secondary to-primary',
       features: [
         'Laboratorium lengkap',
@@ -86,11 +86,11 @@ const ServicesPage: React.FC = () => {
         'Rehabilitasi medik'
       ]
     },
-    { 
-      icon: Heart, 
-      title: t('services.specialist.title'), 
+    {
+      icon: Heart,
+      title: t('services.specialist.title'),
       description: t('services.specialist.description'),
-      path: '/services/specialist',
+      path: '/services/klinik-spesialis',
       color: 'from-accent to-accent/80',
       features: [
         '20+ klinik spesialis',
@@ -169,7 +169,7 @@ const ServicesPage: React.FC = () => {
                     <p className="text-muted-foreground mb-6">
                       {service.description}
                     </p>
-                    
+
                     <ul className="space-y-2 mb-6">
                       {service.features.map((feature, fIdx) => (
                         <li key={fIdx} className="flex items-center gap-2 text-sm">

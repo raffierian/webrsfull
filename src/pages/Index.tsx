@@ -29,6 +29,7 @@ import { Button } from '@/components/ui/button';
 import Layout from '@/components/layout/Layout';
 import HeroCarousel from '@/components/home/HeroCarousel';
 import NewsCarousel from '@/components/home/NewsCarousel';
+import GoogleReviews from '@/components/home/GoogleReviews';
 
 // Icon mapping helper
 const iconMap: Record<string, LucideIcon> = {
@@ -94,7 +95,7 @@ const Index: React.FC = () => {
       icon: Stethoscope,
       title: t('services.outpatient.title'),
       description: t('services.outpatient.description'),
-      path: '/services/outpatient',
+      path: '/services/rawat-jalan',
       color: 'from-primary to-primary-light'
     },
     // ... could add others but let's trust the seed
@@ -110,13 +111,13 @@ const Index: React.FC = () => {
   ];
 
   const stats = [
-    { value: '50,000+', label: t('stats.patients'), icon: Users },
-    { value: '120+', label: t('stats.doctors'), icon: Stethoscope },
-    { value: '25+', label: t('stats.experience'), icon: Award },
-    { value: '98%', label: t('stats.satisfaction'), icon: Star },
+    { value: settings?.profile_settings?.stats?.patients || '50,000+', label: t('stats.patients'), icon: Users },
+    { value: settings?.profile_settings?.stats?.doctors || '120+', label: t('stats.doctors'), icon: Stethoscope },
+    { value: settings?.profile_settings?.stats?.experience || '25+', label: t('stats.experience'), icon: Award },
+    { value: settings?.profile_settings?.stats?.satisfaction || '98%', label: t('stats.satisfaction'), icon: Star },
   ];
 
-  const features = [
+  const features = settings?.profile_settings?.aboutFeatures?.length ? settings.profile_settings.aboutFeatures : [
     'Tenaga medis profesional dan bersertifikasi',
     'Peralatan medis modern dan terkini',
     'Pelayanan 24 jam untuk gawat darurat',
@@ -208,7 +209,7 @@ const Index: React.FC = () => {
           </Link>
 
           {/* Emergency */}
-          <Link to="/services/emergency" className="group flex items-center gap-4 p-4 rounded-xl hover:bg-destructive/5 transition-colors border border-transparent hover:border-destructive/10">
+          <Link to="/services/gawat-darurat" className="group flex items-center gap-4 p-4 rounded-xl hover:bg-destructive/5 transition-colors border border-transparent hover:border-destructive/10">
             <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center group-hover:bg-destructive group-hover:text-white transition-colors shrink-0">
               <AlertCircle className="w-6 h-6 text-destructive group-hover:text-white" />
             </div>
@@ -252,8 +253,7 @@ const Index: React.FC = () => {
         </div>
       </section>
 
-      {/* Services Section */}
-      <section className="py-12 md:py-24 bg-muted/30">
+      <section className="py-16 md:py-24 bg-gradient-to-b from-muted/30 to-white">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -264,8 +264,12 @@ const Index: React.FC = () => {
             <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
               Layanan Kami
             </span>
-            <h2 className="section-heading mb-4">{t('services.title')}</h2>
-            <p className="section-subheading mx-auto">{t('services.subtitle')}</p>
+            <h2 className="text-3xl md:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary-dark mb-4">
+              {t('services.title')}
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              {t('services.subtitle')}
+            </p>
           </motion.div>
 
           <motion.div
@@ -273,27 +277,39 @@ const Index: React.FC = () => {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid md:grid-cols-3 gap-8"
           >
             {services.map((service, idx) => {
               const Icon = service.icon;
               return (
-                <motion.div key={idx} variants={itemVariants}>
-                  <Link to={service.path}>
-                    <div className="service-card group h-full">
-                      <div className={`service-card-icon bg-gradient-to-br ${service.color} mb-5`}>
-                        <Icon className="w-7 h-7 text-white" />
+                <motion.div key={idx} variants={itemVariants} className="h-full">
+                  <Link to={service.path} className="block h-full">
+                    <div className="relative group h-full bg-white rounded-3xl p-8 shadow-sm hover:shadow-2xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                      {/* Background Decoration */}
+                      <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${service.color} opacity-5 group-hover:opacity-10 rounded-bl-full transition-opacity`} />
+
+                      <div className="relative z-10">
+                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.color} flex items-center justify-center mb-6 shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
+                          <Icon className="w-8 h-8 text-white" />
+                        </div>
+
+                        <h3 className="text-2xl font-bold mb-3 text-gray-900 group-hover:text-primary transition-colors">
+                          {service.title}
+                        </h3>
+
+                        <p className="text-gray-500 mb-6 leading-relaxed line-clamp-3">
+                          {service.description}
+                        </p>
+
+                        <div className="flex items-center text-primary font-semibold group/btn">
+                          <span className="mr-2 border-b-2 border-transparent group-hover/btn:border-primary transition-all">
+                            {t('common.learnMore')}
+                          </span>
+                          <div className="bg-primary/10 rounded-full p-1 group-hover/btn:bg-primary group-hover/btn:text-white transition-colors">
+                            <ArrowRight className="w-4 h-4" />
+                          </div>
+                        </div>
                       </div>
-                      <h3 className="text-xl font-bold mb-3 text-foreground group-hover:text-primary transition-colors">
-                        {service.title}
-                      </h3>
-                      <p className="text-muted-foreground mb-4">
-                        {service.description}
-                      </p>
-                      <span className="inline-flex items-center gap-2 text-primary font-medium text-sm">
-                        {t('common.learnMore')}
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </span>
                     </div>
                   </Link>
                 </motion.div>
@@ -360,14 +376,14 @@ const Index: React.FC = () => {
                 <div className="space-y-4">
                   <div className="rounded-2xl overflow-hidden shadow-lg">
                     <img
-                      src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=300&fit=crop"
+                      src={settings?.profile_settings?.aboutImages?.[0] || "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=300&fit=crop"}
                       alt="Hospital Building"
                       className="w-full h-48 object-cover"
                     />
                   </div>
                   <div className="rounded-2xl overflow-hidden shadow-lg">
                     <img
-                      src="https://images.unsplash.com/photo-1551076805-e1869033e561?w=400&h=300&fit=crop"
+                      src={settings?.profile_settings?.aboutImages?.[1] || "https://images.unsplash.com/photo-1551076805-e1869033e561?w=400&h=300&fit=crop"}
                       alt="Medical Equipment"
                       className="w-full h-48 object-cover"
                     />
@@ -376,14 +392,14 @@ const Index: React.FC = () => {
                 <div className="space-y-4 pt-8">
                   <div className="rounded-2xl overflow-hidden shadow-lg">
                     <img
-                      src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop"
+                      src={settings?.profile_settings?.aboutImages?.[2] || "https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=400&h=300&fit=crop"}
                       alt="Medical Team"
                       className="w-full h-48 object-cover"
                     />
                   </div>
                   <div className="rounded-2xl overflow-hidden shadow-lg">
                     <img
-                      src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop"
+                      src={settings?.profile_settings?.aboutImages?.[3] || "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=400&h=300&fit=crop"}
                       alt="Patient Care"
                       className="w-full h-48 object-cover"
                     />
@@ -477,6 +493,13 @@ const Index: React.FC = () => {
         </div>
       </section>
 
+      {/* Google Reviews */}
+      {
+        settings?.external_links?.googleReviews?.enabled && (
+          <GoogleReviews placeId={settings?.external_links?.googleReviews?.placeId} />
+        )
+      }
+
       {/* News Carousel */}
       <NewsCarousel />
 
@@ -514,7 +537,7 @@ const Index: React.FC = () => {
           </motion.div>
         </div>
       </section>
-    </Layout>
+    </Layout >
   );
 };
 
