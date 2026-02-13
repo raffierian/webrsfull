@@ -455,3 +455,74 @@ export const changePassword = async (req, res, next) => {
 export const logout = async (req, res) => {
     return successResponse(res, null, 'Logout successful');
 };
+
+/**
+ * Forgot Password
+ * POST /api/auth/forgot-password
+ */
+export const forgotPassword = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if (!user) {
+            // For security, don't reveal if email exists or not
+            return successResponse(res, null, 'Jika email terdaftar, kode verifikasi akan dikirimkan.');
+        }
+
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { otpCode, otpExpires }
+        });
+
+        // Send OTP via email
+        await sendOTP(user.email, otpCode);
+
+        return successResponse(res, { email }, 'Kode verifikasi telah dikirim ke email Anda.');
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Reset Password
+ * POST /api/auth/reset-password
+ */
+export const resetPassword = async (req, res, next) => {
+    try {
+        const { email, code, newPassword } = req.body;
+
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
+
+        if (!user || user.otpCode !== code) {
+            return errorResponse(res, 'Kode verifikasi tidak valid.', 400);
+        }
+
+        if (new Date() > user.otpExpires) {
+            return errorResponse(res, 'Kode verifikasi telah kadaluarsa.', 400);
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                password: hashedPassword,
+                otpCode: null,
+                otpExpires: null
+            }
+        });
+
+        return successResponse(res, null, 'Password berhasil direset. Silakan login kembali.');
+    } catch (error) {
+        next(error);
+    }
+};

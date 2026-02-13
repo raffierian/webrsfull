@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
@@ -12,7 +13,6 @@ import {
   CheckCircle,
   ArrowRight,
   User,
-  Calendar,
   AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Layout from '@/components/layout/Layout';
 import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const consultationTypes = [
   {
@@ -54,20 +64,14 @@ const consultationTypes = [
   },
 ];
 
-const specialists = [
-  { id: 'general', name: 'Dokter Umum' },
-  { id: 'internist', name: 'Spesialis Penyakit Dalam' },
-  { id: 'cardiology', name: 'Spesialis Jantung' },
-  { id: 'pediatric', name: 'Spesialis Anak' },
-  { id: 'obgyn', name: 'Spesialis Kebidanan' },
-  { id: 'dermatology', name: 'Spesialis Kulit' },
-  { id: 'neurology', name: 'Spesialis Saraf' },
-  { id: 'psychiatry', name: 'Spesialis Jiwa' },
-];
-
 const ConsultationPage: React.FC = () => {
   const [selectedType, setSelectedType] = useState<string>('');
   const [step, setStep] = useState(1);
+
+  // Resume Session State
+  const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
+  const [resumeSessionId, setResumeSessionId] = useState<string | null>(null);
+  const [resumeDoctorName, setResumeDoctorName] = useState<string>('');
 
   // Fetch settings to check if consultation is enabled
   const { data: settings } = useQuery({
@@ -77,8 +81,130 @@ const ConsultationPage: React.FC = () => {
 
   const isConsultationEnabled = settings?.consultationEnabled ?? settings?.external_links?.consultationEnabled ?? true;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const navigate = useNavigate();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
+
+  // Fetch available doctors for chat consultation
+  const { data: doctors } = useQuery({
+    queryKey: ['doctors-for-chat'],
+    queryFn: () => api.doctors.getAllPublic('?limit=100'),
+    enabled: selectedType === 'chat' && step === 2
+  });
+
+  // Check for unpaid sessions
+  const { data: unpaidSessions } = useQuery({
+    queryKey: ['my-unpaid-sessions'],
+    queryFn: () => api.consultationChat.getMySessions('status=OPEN&isPaid=false'),
+    enabled: !!localStorage.getItem('token'), // Only run if logged in
+    retry: false
+  });
+
+  useEffect(() => {
+    if (unpaidSessions && unpaidSessions.length > 0) {
+      // Take the most recent one
+      const session = unpaidSessions[0];
+      setResumeSessionId(session.id);
+      setResumeDoctorName(session.doctor?.name || 'Dokter');
+      setResumeDialogOpen(true);
+    }
+  }, [unpaidSessions]);
+
+  const handleResume = () => {
+    if (resumeSessionId) {
+      navigate(`/patient/consultation/payment/${resumeSessionId}`);
+    }
+    setResumeDialogOpen(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // For Chat Consultation
+    if (selectedType === 'chat') {
+      try {
+        setIsProcessing(true);
+
+        // Use selected doctor from dropdown or first available doctor
+        const doctorId = selectedDoctorId || doctors?.[0]?.id;
+
+        if (!doctorId) {
+          toast.error('Tidak ada dokter yang tersedia saat ini.');
+          return;
+        }
+
+        // Create session (and account if guest)
+        const response = await api.consultationChat.createSession(doctorId, {
+          name: (document.getElementById('name') as HTMLInputElement)?.value,
+          email: (document.getElementById('email') as HTMLInputElement)?.value,
+          phone: (document.getElementById('phone') as HTMLInputElement)?.value,
+          nik: (document.getElementById('nik') as HTMLInputElement)?.value,
+          dateOfBirth: (document.getElementById('dateOfBirth') as HTMLInputElement)?.value,
+          gender: (document.getElementById('gender') as HTMLInputElement)?.value,
+          complaint: (document.getElementById('complaint') as HTMLTextAreaElement)?.value
+        });
+
+        // Auto-login if token returned
+        if (response.authToken && response.user) {
+          localStorage.setItem('token', response.authToken);
+          localStorage.setItem('user', JSON.stringify(response.user));
+
+          // Show credentials if new account created
+          if (response.user.tempPassword) {
+            toast.success('Akun berhasil dibuat!', {
+              duration: 10000,
+              description: (
+                <div className="mt-2 text-sm">
+                  <p>Simpan detail login Anda:</p>
+                  <div className="bg-slate-100 p-2 rounded mt-1 font-mono text-xs">
+                    <p>Username: <strong>{response.user.username}</strong></p>
+                    <p>Password: <strong>{response.user.tempPassword}</strong></p>
+                    <p className="text-muted-foreground mt-1 italic">Password sementara, harap segera diganti.</p>
+                  </div>
+                </div>
+              )
+            });
+          } else {
+            toast.success('Akun berhasil dibuat!');
+          }
+        }
+
+        const sessionId = response.id;
+
+        toast.success('Sesi konsultasi dibuat!');
+        // Delay navigation slightly so user sees the modal/toast
+        setTimeout(() => {
+          navigate(`/patient/consultation/payment/${sessionId}`);
+        }, 3000);
+      } catch (error: any) {
+        if (error.response?.status === 409) {
+          toast.error('Email sudah terdaftar!', {
+            description: (
+              <div className="mt-2 text-sm flex flex-col gap-2">
+                <p>Silakan masuk menggunakan akun yang sudah ada.</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => navigate('/patient/login')}
+                  className="bg-white text-primary border-primary hover:bg-primary/10 w-fit"
+                >
+                  Masuk Sekarang
+                </Button>
+              </div>
+            ),
+            duration: 8000
+          });
+        } else {
+          toast.error(error.response?.data?.message || 'Gagal memulai sesi chat. Silakan coba lagi.');
+        }
+        console.error(error);
+      } finally {
+        setIsProcessing(false);
+      }
+      return;
+    }
+
     toast.success('Permintaan konsultasi berhasil dikirim!', {
       description: 'Dokter akan menghubungi Anda dalam 5 menit.',
     });
@@ -179,8 +305,8 @@ const ConsultationPage: React.FC = () => {
                         setStep(2);
                       }}
                       className={`relative cursor-pointer card-medical p-6 border-2 transition-all ${selectedType === type.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-transparent hover:border-primary/50'
+                        ? 'border-primary bg-primary/5'
+                        : 'border-transparent hover:border-primary/50'
                         }`}
                     >
                       {type.popular && (
@@ -240,28 +366,90 @@ const ConsultationPage: React.FC = () => {
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="name">Nama Lengkap *</Label>
-                      <Input id="name" placeholder="Nama Anda" className="mt-1" required />
+                {localStorage.getItem('token') ? (
+                  // Logged In View
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+                    <div className="mt-1 bg-green-100 p-1.5 rounded-full">
+                      <User className="w-4 h-4 text-green-600" />
                     </div>
                     <div>
-                      <Label htmlFor="phone">Nomor Telepon *</Label>
-                      <Input id="phone" type="tel" placeholder="08xxxxxxxxxx" className="mt-1" required />
+                      <h4 className="font-medium text-green-900">Masuk sebagai {JSON.parse(localStorage.getItem('user') || '{}').name}</h4>
+                      <p className="text-sm text-green-700">Data diri Anda akan diambil dari profil akun.</p>
                     </div>
                   </div>
+                ) : (
+                  // Guest View - Login Prompt
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1 bg-blue-100 p-1.5 rounded-full">
+                        <User className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-blue-900">Sudah punya akun Pasien?</h4>
+                        <p className="text-sm text-blue-700">Silakan masuk untuk menggunakan data yang tersimpan.</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="whitespace-nowrap bg-white hover:bg-blue-50 text-blue-700 border-blue-200"
+                      onClick={() => navigate('/patient/login')}
+                    >
+                      Masuk Sekarang
+                    </Button>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {!localStorage.getItem('token') && (
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="name">Nama Lengkap *</Label>
+                        <Input id="name" placeholder="Nama Anda" className="mt-1" required />
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email *</Label>
+                        <Input id="email" type="email" placeholder="email@contoh.com" className="mt-1" required />
+                      </div>
+                      <div>
+                        <Label htmlFor="phone">Nomor Telepon *</Label>
+                        <Input id="phone" type="tel" placeholder="08xxxxxxxxxx" className="mt-1" required />
+                      </div>
+                      <div>
+                        <Label htmlFor="nik">NIK (16 Digit) *</Label>
+                        <Input id="nik" type="text" placeholder="16 digit NIK sesuai KTP" className="mt-1" required minLength={16} maxLength={16} />
+                      </div>
+                      <div>
+                        <Label htmlFor="dateOfBirth">Tanggal Lahir *</Label>
+                        <Input id="dateOfBirth" type="date" className="mt-1" required />
+                      </div>
+                      <div>
+                        <Label htmlFor="gender">Jenis Kelamin *</Label>
+                        <Select required onValueChange={(val) => (document.getElementById('gender') as HTMLInputElement).value = val}>
+                          <SelectTrigger id="gender-trigger" className="mt-1">
+                            <SelectValue placeholder="Pilih Jenis Kelamin" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="MALE">Laki-laki</SelectItem>
+                            <SelectItem value="FEMALE">Perempuan</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {/* Hidden input to capture value for handleSubmit */}
+                        <input type="hidden" id="gender" />
+                      </div>
+                    </div>
+                  )}
 
                   <div>
-                    <Label htmlFor="specialist">Pilih Spesialis *</Label>
-                    <Select required>
+                    <Label htmlFor="doctor">Pilih Dokter *</Label>
+                    <Select required value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Pilih dokter spesialis" />
+                        <SelectValue placeholder="Pilih dokter untuk konsultasi" />
                       </SelectTrigger>
                       <SelectContent>
-                        {specialists.map((spec) => (
-                          <SelectItem key={spec.id} value={spec.id}>
-                            {spec.name}
+                        {doctors?.map((doctor: any) => (
+                          <SelectItem key={doctor.id} value={doctor.id}>
+                            {doctor.name} - {doctor.specialization}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -323,6 +511,25 @@ const ConsultationPage: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* Resume Session Dialog */}
+      <AlertDialog open={resumeDialogOpen} onOpenChange={setResumeDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Lanjutkan Sesi Konsultasi?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Anda memiliki sesi konsultasi dengan <strong>{resumeDoctorName}</strong> yang belum dibayar.
+              Apakah Anda ingin melanjutkan pembayaran?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Nanti Saja</AlertDialogCancel>
+            <AlertDialogAction onClick={handleResume} className="bg-teal-600 hover:bg-teal-700">
+              Lanjutkan Pembayaran
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   );
 };

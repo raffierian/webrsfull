@@ -162,3 +162,8 @@ export const optionalAuth = async (req, res, next) => {
         next();
     }
 };
+
+/**
+ * Alias for verifyToken (for consistency across routes)
+ */
+export const requireAuth = verifyToken;

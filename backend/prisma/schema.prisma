@@ -37,8 +37,33 @@ model User {
   doctor                Doctor?
   surveys               Survey[]
   trainingRegistrations TrainingRegistration[]
+  reviews               Review[]
+  chatSessions          ChatSession[]
+  payments              Payment[]
+  patientProfile        Patient?
+  chatMessages          ChatMessage[] // Added for message sender relation
+  prescriptions         Prescription[] @relation("PatientPrescriptions")
 
   @@map("users")
+}
+
+model Patient {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  name      String
+  phone     String?
+  email     String?
+  nik       String?  @unique
+  address   String?
+  city      String?
+  province  String?
+  zipCode   String?  @map("zip_code")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("patients")
 }
 
 model Role {
@@ -73,6 +98,9 @@ model Doctor {
   appointments    Appointment[]
   consultations   Consultation[]
   schedules       DoctorSchedule[]
+  reviews         Review[]
+  chatSessions    ChatSession[]
+  prescriptions   Prescription[]
   user            User?            @relation(fields: [userId], references: [id])
 
   @@map("doctors")
@@ -161,6 +189,7 @@ model Article {
   thumbnailUrl String?  @map("thumbnail_url")
   authorId     String   @map("author_id")
   tags         String[]
+  views        Int      @default(0)
   isPublished  Boolean  @default(false) @map("is_published")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
@@ -451,6 +480,8 @@ enum RegistrationStatus {
 enum PaymentStatus {
   PENDING
   PAID
+  FAILED
+  EXPIRED
   REFUNDED
 }
 
@@ -525,6 +556,7 @@ model DailyStat {
   date      DateTime @unique @db.Date // Ensure only one entry per date
   bor       Float    @default(0)
   igdCount  Int      @default(0) @map("igd_count")
+  visitorCount Int      @default(0) @map("visitor_count")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -542,3 +574,155 @@ model Knowledge {
 
   @@map("knowledge")
 }
+
+model Review {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  doctorId  String   @map("doctor_id")
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id])
+  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+
+  @@map("reviews")
+}
+
+model ChatSession {
+  id          String        @id @default(uuid())
+  patientId   String        @map("patient_id")
+  doctorId    String        @map("doctor_id")
+  status      ChatStatus    @default(OPEN)
+  isPaid      Boolean       @default(false) @map("is_paid")
+  closedAt    DateTime?     @map("closed_at")
+  closingNotes String?       @db.Text @map("closing_notes")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  
+  // SOAP Notes
+  subjective   String?       @db.Text
+  objective    String?       @db.Text
+  assessment   String?       @db.Text
+  plan         String?       @db.Text
+  
+  patient     User          @relation(fields: [patientId], references: [id])
+  doctor      Doctor        @relation(fields: [doctorId], references: [id])
+  messages    ChatMessage[]
+  payment     Payment?
+  prescription Prescription?
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id          String      @id @default(uuid())
+  sessionId   String      @map("session_id")
+  senderId    String      @map("sender_id") // User ID (patient or doctor's user id)
+  content     String      @db.Text
+  type        MessageType @default(TEXT)
+  fileUrl     String?     @map("file_url")
+  fileName    String?     @map("file_name")
+  fileSize    Int?        @map("file_size")
+  isRead      Boolean     @default(false) @map("is_read")
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sender      User        @relation(fields: [senderId], references: [id]) // Added sender relation
+
+  @@map("chat_messages")
+}
+
+enum ChatStatus {
+  OPEN
+  PENDING
+  ACTIVE
+  CLOSED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  DOCUMENT
+}
+
+model Prescription {
+  id           String             @id @default(uuid())
+  sessionId    String             @unique @map("session_id")
+  patientId    String             @map("patient_id")
+  doctorId     String             @map("doctor_id")
+  status       PrescriptionStatus @default(DRAFT)
+  notes        String?            @db.Text
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  session      ChatSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  patient      User               @relation("PatientPrescriptions", fields: [patientId], references: [id])
+  doctor       Doctor             @relation(fields: [doctorId], references: [id])
+  items        PrescriptionItem[]
+
+  @@map("prescriptions")
+}
+
+model PrescriptionItem {
+  id             String       @id @default(uuid())
+  prescriptionId String       @map("prescription_id")
+  medicineName   String       @map("medicine_name")
+  dosage         String       // e.g., "500 mg"
+  instruction    String       // e.g., "3x1 sehari sesudah makan"
+  quantity       Int
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+
+  @@map("prescription_items")
+}
+
+enum PrescriptionStatus {
+  DRAFT
+  ISSUED
+  CANCELLED
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  userId          String        @map("user_id")
+  chatSessionId   String?       @unique @map("chat_session_id")
+  amount          Decimal       @db.Decimal(10, 2)
+  status          PaymentStatus @default(PENDING)
+  paymentMethod   String?       @map("payment_method")
+  paymentProof    String?       @map("payment_proof")
+  externalId      String?       @unique @map("external_id")
+  snapToken       String?       @map("snap_token")
+  paidAt          DateTime?     @map("paid_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+
+  user            User          @relation(fields: [userId], references: [id])
+  chatSession     ChatSession?  @relation(fields: [chatSessionId], references: [id])
+
+  @@map("payments")
+}
+
+model HospitalSettings {
+  id                      String   @id @default(uuid())
+  
+  // Payment Configuration
+  defaultConsultationFee  Decimal  @default(50000) @db.Decimal(10, 2) @map("default_consultation_fee")
+  
+  // Bank Account for Manual Transfer
+  bankName                String   @default("BCA") @map("bank_name")
+  bankAccountNumber       String   @default("1234567890") @map("bank_account_number")
+  bankAccountName         String   @default("RS Soewandhie") @map("bank_account_name")
+  
+  // Midtrans Configuration (optional)
+  midtransServerKey       String?  @map("midtrans_server_key")
+  midtransClientKey       String?  @map("midtrans_client_key")
+  midtransIsProduction    Boolean  @default(false) @map("midtrans_is_production")
+  
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  @@map("hospital_settings")
+}
+

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -214,6 +214,14 @@ const AdminLogin = () => {
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
+                  </div>
+                  <div className="flex justify-end mt-1">
+                    <Link
+                      to="/forgot-password"
+                      className="text-xs font-medium text-primary hover:underline"
+                    >
+                      Lupa Password?
+                    </Link>
                   </div>
                 </div>
                 <Button type="submit" className="w-full" disabled={isLoading}>

@@ -38,7 +38,8 @@ import {
   Shield,
   User,
   Mail,
-  Phone
+  Phone,
+  RefreshCw
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -74,6 +75,10 @@ const AdminUsers = () => {
     role: "ADMIN",
     isActive: true,
   });
+
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
 
   // Fetch Users
   const { data: usersResponse, isLoading } = useQuery({
@@ -131,6 +136,17 @@ const AdminUsers = () => {
       toast({ title: "Berhasil", description: "Pengguna telah dihapus" });
       setIsDeleteOpen(false);
       setSelectedUser(null);
+    },
+    onError: (error: any) => toast({ title: "Error", description: error.message, variant: "destructive" }),
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: (id: string) => api.adminUsers.resetPassword(id),
+    onSuccess: (data: any) => {
+      setNewPassword(data.newPassword);
+      setResetConfirmOpen(false);
+      setResetDialogOpen(true);
+      toast({ title: "Berhasil", description: "Password telah direset" });
     },
     onError: (error: any) => toast({ title: "Error", description: error.message, variant: "destructive" }),
   });
@@ -330,6 +346,17 @@ const AdminUsers = () => {
                         <Button
                           variant="ghost"
                           size="icon"
+                          title="Reset Password"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setResetConfirmOpen(true);
+                          }}
+                        >
+                          <RefreshCw className="w-4 h-4 text-orange-500" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           className="text-destructive hover:text-destructive"
                           onClick={() => {
                             setSelectedUser(user);
@@ -473,6 +500,46 @@ const AdminUsers = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reset Confirmation */}
+      <AlertDialog open={resetConfirmOpen} onOpenChange={setResetConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Password?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tindakan ini akan mereset password untuk "{selectedUser?.name}". Password baru akan digenerate secara otomatis.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => selectedUser && resetPasswordMutation.mutate(selectedUser.id)}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+              disabled={resetPasswordMutation.isPending}
+            >
+              {resetPasswordMutation.isPending ? "Mereset..." : "Reset Password"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Show New Password */}
+      <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Password Baru Berhasil Dibuat</DialogTitle>
+            <DialogDescription>
+              Silakan salin dan berikan password berikut kepada pengguna. Password ini hanya muncul sekali.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4 bg-muted rounded-lg text-center">
+            <p className="text-2xl font-mono font-bold tracking-widest">{newPassword}</p>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setResetDialogOpen(false)}>Gunakan Password Ini</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

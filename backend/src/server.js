@@ -5,6 +5,7 @@
  */
 
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -14,6 +15,7 @@ import { config } from './config/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import routes from './routes/index.js';
 import { validateLicense } from './utils/licenseValidator.js';
+import { initSocket } from './socket/index.js';
 
 // --- LICENSE CHECK START ---
 const licenseKey = process.env.LICENSE_KEY;
@@ -35,6 +37,10 @@ if (licenseStatus.data.expiry !== 'PERMANENT') {
 // --- LICENSE CHECK END ---
 
 const app = express();
+const httpServer = createServer(app);
+
+// Initialize Socket.io
+initSocket(httpServer);
 
 // Security middleware
 app.use(helmet({
@@ -99,9 +105,16 @@ app.use(notFoundHandler);
 // Error handler
 app.use(errorHandler);
 
+import { startCronJobs } from './services/cron.service.js';
+
+// ... other imports
+
 // Start server
 const PORT = config.port;
-app.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
+    // Start Cron Jobs
+    startCronJobs();
+
     console.log(`
 ╔═══════════════════════════════════════════════════════════╗
 ║                                                           ║

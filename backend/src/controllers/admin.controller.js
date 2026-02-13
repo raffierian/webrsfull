@@ -20,7 +20,9 @@ export const getDashboardStats = async (req, res, next) => {
             scheduledAppointments,
             totalPatients,
             activeComplaints,
-            dailyStat
+            dailyStat,
+            totalArticleViews,
+            totalVisitorResult
         ] = await Promise.all([
             prisma.appointment.count({
                 where: {
@@ -45,6 +47,12 @@ export const getDashboardStats = async (req, res, next) => {
                 where: {
                     date: today
                 }
+            }),
+            prisma.article.aggregate({
+                _sum: { views: true }
+            }),
+            prisma.dailyStat.aggregate({
+                _sum: { visitorCount: true }
             })
         ]);
 
@@ -55,6 +63,9 @@ export const getDashboardStats = async (req, res, next) => {
             activeComplaints,
             bedOccupancyRate: dailyStat?.bor || 0,
             emergencyPatients: dailyStat?.igdCount || 0,
+            totalArticleViews: totalArticleViews._sum.views || 0,
+            totalVisitors: totalVisitorResult._sum.visitorCount || 0,
+            todayVisitors: dailyStat?.visitorCount || 0
         });
     } catch (error) {
         next(error);
@@ -767,11 +778,86 @@ export const deleteUser = async (req, res, next) => {
             return errorResponse(res, 'You cannot delete yourself', 400);
         }
 
-        await prisma.user.delete({
-            where: { id },
+        // Check user existence
+        const user = await prisma.user.findUnique({
+            where: { id }
         });
 
-        return successResponse(res, null, 'User deleted successfully');
+        if (!user) {
+            return errorResponse(res, 'User not found', 404);
+        }
+
+        // Cascade Hard Delete (As requested: Admins have full control to delete test data)
+        await prisma.$transaction(async (tx) => {
+            // 1. Delete Chat Messages & Sessions
+            // Find sessions where user is patient
+            const chatSessions = await tx.chatSession.findMany({ where: { patientId: id }, select: { id: true } });
+            const chatSessionIds = chatSessions.map(c => c.id);
+
+            if (chatSessionIds.length > 0) {
+                // Delete messages in those sessions
+                await tx.chatMessage.deleteMany({ where: { sessionId: { in: chatSessionIds } } });
+                // Delete payments linked to sessions
+                await tx.payment.deleteMany({ where: { chatSessionId: { in: chatSessionIds } } });
+                // Delete sessions
+                await tx.chatSession.deleteMany({ where: { patientId: id } });
+            }
+
+            // 2. Delete Appointments & Consultations
+            const appointments = await tx.appointment.findMany({ where: { patientId: id }, select: { id: true } });
+            const appointmentIds = appointments.map(a => a.id);
+            if (appointmentIds.length > 0) {
+                await tx.consultation.deleteMany({ where: { appointmentId: { in: appointmentIds } } });
+                await tx.appointment.deleteMany({ where: { patientId: id } });
+            }
+
+            // 3. Delete Remaining Consultations (if any not linked to appointment, though schema says required)
+            await tx.consultation.deleteMany({ where: { patientId: id } });
+
+            // 4. Delete Reviews
+            await tx.review.deleteMany({ where: { userId: id } });
+
+            // 5. Delete Payments (Direct payments not linked to chat if any)
+            await tx.payment.deleteMany({ where: { userId: id } });
+
+            // 6. Delete Patient Profile
+            await tx.patient.deleteMany({ where: { userId: id } }); // Should be one, but deleteMany is safer
+
+            // 7. Delete User
+            await tx.user.delete({ where: { id } });
+        });
+
+        return successResponse(res, null, 'User and all associated data deleted successfully');
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Admin Reset Password for any user
+ * POST /api/admin/users/:id/reset-password
+ */
+export const adminResetPassword = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { newPassword } = req.body;
+
+        if (!newPassword || newPassword.length < 6) {
+            return errorResponse(res, 'Password must be at least 6 characters long', 400);
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await prisma.user.update({
+            where: { id },
+            data: {
+                password: hashedPassword,
+                otpCode: null,
+                otpExpires: null
+            }
+        });
+
+        return successResponse(res, null, 'User password has been reset successfully');
     } catch (error) {
         next(error);
     }

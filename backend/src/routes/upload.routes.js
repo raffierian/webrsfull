@@ -6,7 +6,7 @@ import { verifyToken, requireAdmin, requirePpidAccess } from '../middleware/auth
 const router = express.Router();
 
 // Upload single file
-// Protected: Allow Admin, PKRS, Staff
-router.post('/', verifyToken, requirePpidAccess, upload.single('file'), uploadFile);
+// Protected: Allow any authenticated user (Patient, Doctor, Staff)
+router.post('/', verifyToken, upload.single('file'), uploadFile);
 
 export default router;

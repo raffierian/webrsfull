@@ -25,7 +25,9 @@ import {
   Globe,
   Megaphone,
   Shield,
-  Brain
+  Brain,
+  CreditCard,
+  UserCog,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/services/api";
@@ -50,10 +52,12 @@ const menuItems = [
   { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { path: "/admin/content", label: "Konten", icon: Globe },
   { path: "/admin/appointments", label: "Janji Temu", icon: Calendar },
+  { path: "/admin/payments", label: "Pembayaran", icon: CreditCard },
   { path: "/admin/articles", label: "Artikel", icon: FileText },
   { path: "/admin/knowledge", label: "Pengetahuan AI", icon: Brain },
   { path: "/admin/services", label: "Layanan", icon: Building2 },
   { path: "/admin/doctors", label: "Dokter", icon: Users },
+  { path: "/admin/doctor-accounts", label: "Akun Dokter", icon: UserCog },
   { path: "/admin/tariffs", label: "Tarif", icon: DollarSign },
   { path: "/admin/inpatient-rooms", label: "Rawat Inap", icon: Building2 },
   { path: "/admin/complaints", label: "Pengaduan", icon: MessageSquare },
@@ -65,6 +69,7 @@ const menuItems = [
   { path: "/admin/users", label: "Pengguna", icon: Users },
   { path: "/admin/roles", label: "Manajemen Role", icon: Shield },
   { path: "/admin/role-menus", label: "Akses Menu", icon: Shield },
+  { path: "/admin/payment-settings", label: "Pengaturan Pembayaran", icon: DollarSign },
   { path: "/admin/settings", label: "Pengaturan", icon: Settings },
 ];
 

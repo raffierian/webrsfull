@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
@@ -46,10 +46,23 @@ const iconMap: Record<string, LucideIcon> = {
 };
 
 import { useSettings } from '@/hooks/useSettings';
+import { useToast } from "@/hooks/use-toast";
 
 const Index: React.FC = () => {
   const { t } = useTranslation();
   const { settings } = useSettings();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleAppointmentClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    if (token) {
+      navigate('/patient/dashboard');
+    } else {
+      navigate('/appointment');
+    }
+  };
 
   // Fetch Services (Public)
   const { data: servicesData } = useQuery({
@@ -102,9 +115,12 @@ const Index: React.FC = () => {
   ];
 
   const doctors = backendDoctors.length > 0 ? backendDoctors.map((doc: any) => ({
+    id: doc.id, // Ensure ID is passed
     name: doc.name,
     specialty: doc.specialization,
-    image: doc.photoUrl || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300'
+    image: doc.photoUrl || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300',
+    experienceYears: doc.experienceYears,
+    rating: doc.rating,
   })) : [
     // Fallback
     { name: 'Dr. Ahmad Wijaya, Sp.JP', specialty: 'Spesialis Jantung', image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300' },
@@ -187,7 +203,7 @@ const Index: React.FC = () => {
           </a>
 
           {/* Internal Appointment */}
-          <Link to="/appointment" className="group flex items-center gap-4 p-4 rounded-xl hover:bg-primary/5 transition-colors border border-transparent hover:border-primary/10">
+          <div onClick={handleAppointmentClick} className="cursor-pointer group flex items-center gap-4 p-4 rounded-xl hover:bg-primary/5 transition-colors border border-transparent hover:border-primary/10">
             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
               <Calendar className="w-6 h-6 text-primary group-hover:text-white" />
             </div>
@@ -195,7 +211,7 @@ const Index: React.FC = () => {
               <h3 className="font-semibold text-foreground truncate">Janji Temu</h3>
               <p className="text-xs text-muted-foreground truncate">Umum / Asuransi</p>
             </div>
-          </Link>
+          </div>
 
           {/* Consultation */}
           <Link to="/consultation" className="group flex items-center gap-4 p-4 rounded-xl hover:bg-secondary/5 transition-colors border border-transparent hover:border-secondary/10">
@@ -446,31 +462,56 @@ const Index: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: idx * 0.1 }}
-                className="group"
+                className="group h-full"
               >
-                <div className="bg-card rounded-2xl overflow-hidden shadow-sm border hover:shadow-lg transition-all">
-                  <div className="relative h-64 overflow-hidden">
+                <div className="bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 h-full flex flex-col">
+                  {/* Image Section */}
+                  <div className="relative h-72 overflow-hidden bg-slate-100">
                     <img
                       src={doctor.image}
                       alt={doctor.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <h3 className="font-bold">{doctor.name}</h3>
-                      <p className="text-sm text-white/80">{doctor.specialty}</p>
-                    </div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    {/* Rating Badge */}
+                    {doctor.rating > 0 && (
+                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+                        <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                        <span className="text-sm font-bold text-slate-700">{Number(doctor.rating).toFixed(1)}</span>
+                      </div>
+                    )}
                   </div>
-                  <div className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span className="text-sm font-medium">4.9</span>
+
+                  {/* Content Section */}
+                  <div className="p-6 flex flex-col flex-grow">
+                    <div className="mb-4">
+                      <h3 className="text-xl font-bold text-slate-900 mb-1 group-hover:text-primary transition-colors">
+                        {doctor.name}
+                      </h3>
+                      <p className="text-primary font-medium text-sm bg-primary/5 inline-block px-3 py-1 rounded-lg">
+                        {doctor.specialty}
+                      </p>
                     </div>
-                    <Link to="/appointment">
-                      <Button variant="outline" size="sm">
+
+                    <div className="mb-6 py-4 border-y border-slate-50">
+                      <div className="text-center">
+                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Pengalaman</p>
+                        <p className="font-semibold text-slate-700">
+                          {doctor.experienceYears ? `${doctor.experienceYears} Tahun` : '-'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-auto">
+                      <Button
+                        onClick={handleAppointmentClick}
+                        className="w-full rounded-xl h-12 text-sm font-semibold shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
+                        variant="default"
+                      >
                         Buat Janji
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -521,12 +562,12 @@ const Index: React.FC = () => {
               Hubungi kami atau buat janji temu sekarang.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/appointment">
+              <div onClick={handleAppointmentClick} className="cursor-pointer">
                 <Button variant="hero" size="xl" className="gap-2">
                   <Calendar className="w-5 h-5" />
                   Buat Janji Temu
                 </Button>
-              </Link>
+              </div>
               <a href={`tel:${(settings?.phone || '0313717141').replace(/[^0-9]/g, '')}`}>
                 <Button variant="heroOutline" size="xl" className="gap-2">
                   <Phone className="w-5 h-5" />

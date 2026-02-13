@@ -52,7 +52,11 @@ export const getArticleBySlug = async (req, res, next) => {
             return errorResponse(res, 'Article not found', 404);
         }
 
-        // Removed views increment as 'views' column does not exist
+        // Increment views
+        await prisma.article.update({
+            where: { id: article.id },
+            data: { views: { increment: 1 } },
+        });
 
         return successResponse(res, article);
     } catch (error) {

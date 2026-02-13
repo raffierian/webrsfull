@@ -1,6 +1,7 @@
 import express from 'express';
 import * as adminController from '../controllers/admin.controller.js';
 import * as knowledgeController from '../controllers/knowledge.controller.js';
+import * as doctorManagementController from '../controllers/doctor-management.controller.js';
 import { verifyToken, requireAdmin, requireRole, requireMenuAccess } from '../middleware/auth.js';
 import { excelUpload } from '../middleware/upload.js';
 
@@ -58,6 +59,7 @@ router.post('/users', requireUsers, adminController.createUser);
 router.put('/users/:id', requireUsers, adminController.updateUser);
 router.delete('/users/:id', requireUsers, adminController.deleteUser);
 router.put('/users/:id/role', requireUsers, adminController.updateUserRole);
+router.put('/users/:id/reset-password', requireUsers, adminController.adminResetPassword);
 
 // Complaints
 const requireComplaints = requireMenuAccess('/admin/complaints');
@@ -88,5 +90,14 @@ router.post('/knowledge', requireKnowledge, knowledgeController.createKnowledge)
 router.put('/knowledge/:id', requireKnowledge, knowledgeController.updateKnowledge);
 router.delete('/knowledge/:id', requireKnowledge, knowledgeController.deleteKnowledge);
 router.put('/knowledge/:id/toggle', requireKnowledge, knowledgeController.toggleKnowledgeStatus);
+
+// Doctor Management
+const requireDoctorManagement = requireMenuAccess('/admin/doctors');
+router.get('/doctor-accounts', requireDoctorManagement, doctorManagementController.getAllDoctors);
+router.post('/doctor-accounts', requireDoctorManagement, doctorManagementController.createDoctor);
+router.get('/doctor-accounts/:id', requireDoctorManagement, doctorManagementController.getDoctorById);
+router.put('/doctor-accounts/:id', requireDoctorManagement, doctorManagementController.updateDoctor);
+router.put('/doctor-accounts/:id/toggle-status', requireDoctorManagement, doctorManagementController.toggleDoctorStatus);
+router.delete('/doctor-accounts/:id', requireDoctorManagement, doctorManagementController.deleteDoctor);
 
 export default router;

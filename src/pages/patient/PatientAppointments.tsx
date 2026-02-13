@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,12 +14,22 @@ import { Input } from '@/components/ui/input';
 import { useSettings } from '@/hooks/useSettings';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import AppointmentTicket from '@/components/appointment/AppointmentTicket';
-import { QrCode } from 'lucide-react';
+import { QrCode, Star } from 'lucide-react';
+import { ReviewModal } from "@/components/reviews/ReviewModal";
 
 const PatientAppointments = () => {
     const [activeTab, setActiveTab] = useState('upcoming');
     const { settings } = useSettings();
     const [selectedTicket, setSelectedTicket] = useState<any>(null);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [selectedDoctor, setSelectedDoctor] = useState<{ id: string, name: string } | null>(null);
+
+    const handleReviewClick = (appointment: any) => {
+        if (appointment.doctor) {
+            setSelectedDoctor({ id: appointment.doctor.id, name: appointment.doctor.name });
+            setIsReviewModalOpen(true);
+        }
+    };
 
     const { data: appointments, isLoading } = useQuery({
         queryKey: ['my-appointments', activeTab],
@@ -104,6 +115,17 @@ const PatientAppointments = () => {
                                 <QrCode className="w-4 h-4 mr-2" />
                                 Lihat E-Tiket
                             </Button>
+                            {appointment.status === 'COMPLETED' && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleReviewClick(appointment)}
+                                    className="w-full md:w-auto border-yellow-500 text-yellow-600 hover:bg-yellow-50 ml-0 md:ml-2 mt-2 md:mt-0"
+                                >
+                                    <Star className="w-4 h-4 mr-2" />
+                                    Beri Ulasan
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -135,6 +157,19 @@ const PatientAppointments = () => {
                     )}
                 </DialogContent>
             </Dialog>
+
+            {/* Review Modal */}
+            {selectedDoctor && (
+                <ReviewModal
+                    isOpen={isReviewModalOpen}
+                    onClose={() => setIsReviewModalOpen(false)}
+                    doctorId={selectedDoctor.id}
+                    doctorName={selectedDoctor.name}
+                    onSuccess={() => {
+                        // Optionally refresh list or just close
+                    }}
+                />
+            )}
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
 
@@ -172,7 +207,9 @@ const PatientAppointments = () => {
                             <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
                             <h3 className="font-semibold text-gray-900 mb-2">Tidak ada jadwal mendatang</h3>
                             <p className="text-muted-foreground mb-6">Anda belum memiliki jadwal konsultasi yang akan datang.</p>
-                            <Button>Buat Janji Baru</Button>
+                            <Link to="/patient/appointment/new">
+                                <Button>Buat Janji Baru</Button>
+                            </Link>
                         </div>
                     )}
                 </TabsContent>

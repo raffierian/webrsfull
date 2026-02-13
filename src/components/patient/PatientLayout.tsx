@@ -8,7 +8,9 @@ import {
     User,
     LogOut,
     Menu,
-    X
+    X,
+    History,
+    MessageSquare
 } from 'lucide-react';
 import { useState } from 'react';
 import { useSettings } from "@/hooks/useSettings";
@@ -51,7 +53,9 @@ const PatientLayout = () => {
 
     const menuItems = [
         { path: '/patient/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-        { path: '/patient/appointments', label: 'Janji Temu Saya', icon: Calendar },
+        { path: '/patient/appointment/new', label: 'Buat Janji', icon: Calendar },
+        { path: '/patient/consultation', label: 'Konsultasi Online', icon: MessageSquare },
+        { path: '/patient/appointments', label: 'Riwayat Janji Temu', icon: History },
         { path: '/patient/profile', label: 'Profil Saya', icon: User },
     ];
 

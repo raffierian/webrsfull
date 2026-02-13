@@ -12,7 +12,9 @@ import {
     Key,
     Save,
     Smartphone,
-    Loader2
+    Loader2,
+    Eye,
+    EyeOff
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -66,6 +68,16 @@ const AdminProfile = () => {
             // Update local storage user if needed
             const adminUser = JSON.parse(localStorage.getItem("adminUser") || "{}");
             localStorage.setItem("adminUser", JSON.stringify({ ...adminUser, name: formData.name }));
+        },
+        onError: (error: any) => toast({ title: "Error", description: error.message, variant: "destructive" })
+    });
+
+    // Change Password Mutation
+    const changePasswordMutation = useMutation({
+        mutationFn: (data: any) => api.auth.changePassword(data),
+        onSuccess: () => {
+            toast({ title: "Berhasil", description: "Password berhasil diperbarui" });
+            setFormData(prev => ({ ...prev, currentPassword: "", newPassword: "", confirmPassword: "" }));
         },
         onError: (error: any) => toast({ title: "Error", description: error.message, variant: "destructive" })
     });
@@ -154,6 +166,10 @@ const AdminProfile = () => {
                     <TabsTrigger value="security" className="flex items-center gap-2">
                         <Shield className="w-4 h-4" />
                         Keamanan (2FA)
+                    </TabsTrigger>
+                    <TabsTrigger value="password" className="flex items-center gap-2">
+                        <Key className="w-4 h-4" />
+                        Ganti Password
                     </TabsTrigger>
                 </TabsList>
 
@@ -282,6 +298,62 @@ const AdminProfile = () => {
                                     </div>
                                 )}
                             </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Password Settings */}
+                <TabsContent value="password">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Ganti Password</CardTitle>
+                            <CardDescription>Demi keamanan, jangan berikan password Anda kepada orang lain.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4 max-w-md">
+                            <div className="space-y-2">
+                                <Label>Password Saat Ini</Label>
+                                <Input
+                                    type="password"
+                                    value={formData.currentPassword}
+                                    onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Password Baru</Label>
+                                <Input
+                                    type="password"
+                                    value={formData.newPassword}
+                                    onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Konfirmasi Password Baru</Label>
+                                <Input
+                                    type="password"
+                                    value={formData.confirmPassword}
+                                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                />
+                            </div>
+                            <Button
+                                onClick={() => {
+                                    if (!formData.currentPassword || !formData.newPassword) {
+                                        toast({ title: "Error", description: "Password harus diisi", variant: "destructive" });
+                                        return;
+                                    }
+                                    if (formData.newPassword !== formData.confirmPassword) {
+                                        toast({ title: "Error", description: "Konfirmasi password tidak cocok", variant: "destructive" });
+                                        return;
+                                    }
+                                    changePasswordMutation.mutate({
+                                        currentPassword: formData.currentPassword,
+                                        newPassword: formData.newPassword
+                                    });
+                                }}
+                                disabled={changePasswordMutation.isPending}
+                            >
+                                <Key className="w-4 h-4 mr-2" />
+                                {changePasswordMutation.isPending ? 'Memproses...' : 'Perbarui Password'}
+                            </Button>
                         </CardContent>
                     </Card>
                 </TabsContent>

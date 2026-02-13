@@ -3,7 +3,7 @@ import { api } from '@/services/api';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar, User, Clock, MapPin, Plus, History, Activity, AlertCircle } from 'lucide-react';
+import { Calendar, User, Clock, MapPin, Plus, History, Activity, AlertCircle, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
@@ -40,7 +40,7 @@ const PatientDashboard = () => {
                         Selamat datang di Portal Pasien. Semoga harimu menyenangkan!
                     </p>
                 </div>
-                <Link to="/appointment">
+                <Link to="/patient/appointment/new">
                     <Button className="shadow-lg hover:shadow-xl transition-all gap-2">
                         <Plus className="w-4 h-4" />
                         Buat Janji Baru
@@ -106,7 +106,7 @@ const PatientDashboard = () => {
                                     <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-3" />
                                     <h3 className="font-semibold text-gray-900">Tidak ada jadwal</h3>
                                     <p className="text-muted-foreground mb-4">Anda belum memiliki jadwal janji temu mendatang.</p>
-                                    <Link to="/appointment">
+                                    <Link to="/patient/appointment/new">
                                         <Button variant="outline">Buat Janji Sekarang</Button>
                                     </Link>
                                 </CardContent>
@@ -114,7 +114,8 @@ const PatientDashboard = () => {
                         )}
                     </div>
 
-                    {/* Quick Stats Grid can go here if we have API for it, currently omitted to keep it clean */}
+                    {/* Active Consultations (Chat Sessions) */}
+                    <ActiveConsultations />
                 </div>
 
                 {/* Right Column: Quick Actions & Profile Preview */}
@@ -125,7 +126,7 @@ const PatientDashboard = () => {
                             <CardTitle className="text-lg">Aksi Cepat</CardTitle>
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 gap-4">
-                            <Link to="/appointment" className="contents">
+                            <Link to="/patient/appointment/new" className="contents">
                                 <div className="p-4 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer text-center group">
                                     <Plus className="w-6 h-6 text-blue-600 mx-auto mb-2 group-hover:scale-110 transition-transform" />
                                     <span className="text-sm font-medium text-blue-900">Daftar Poli</span>
@@ -170,6 +171,61 @@ const PatientDashboard = () => {
                         </CardContent>
                     </Card>
                 </div>
+            </div>
+        </div >
+    );
+};
+
+const ActiveConsultations = () => {
+    const { data: sessions, isLoading } = useQuery({
+        queryKey: ['my-active-sessions'],
+        queryFn: () => api.consultationChat.getMySessions('status=OPEN'),
+    });
+
+    if (isLoading) return <Card className="border-0 shadow-sm bg-gray-50 animate-pulse h-32" />;
+    if (!sessions || sessions.length === 0) return null;
+
+    return (
+        <div className="space-y-4">
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-primary" />
+                Konsultasi Aktif
+            </h2>
+            <div className="grid gap-4">
+                {sessions.map((session: any) => (
+                    <Card key={session.id} className="shadow-sm hover:shadow-md transition-shadow">
+                        <CardContent className="p-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                                    <MessageSquare className="w-6 h-6 text-primary" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold">{session.doctor?.name || 'Dokter'}</h3>
+                                    <p className="text-sm text-muted-foreground">{session.doctor?.specialization}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        {session.payment?.paymentProof && session.payment?.status === 'PENDING' ? (
+                                            <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 text-[10px] py-0">
+                                                Menunggu Konfirmasi
+                                            </Badge>
+                                        ) : (
+                                            <Badge variant={session.isPaid ? 'default' : 'secondary'} className="text-[10px] py-0">
+                                                {session.isPaid ? 'Sudah Bayar' : 'Menunggu Bayar'}
+                                            </Badge>
+                                        )}
+                                        <span className="text-[10px] text-muted-foreground italic">
+                                            {format(new Date(session.updatedAt), 'd MMM HH:mm', { locale: idLocale })}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <Link to={session.isPaid ? `/patient/consultation/chat/${session.id}` : `/patient/consultation/payment/${session.id}`}>
+                                <Button size="sm" variant={session.isPaid ? "default" : "outline"}>
+                                    {session.isPaid ? 'Masuk Chat' : 'Bayar Sekarang'}
+                                </Button>
+                            </Link>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
         </div>
     );

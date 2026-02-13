@@ -25,7 +25,9 @@ import {
   Clock,
   UserCheck,
   Loader2,
-  Edit
+  Edit,
+  Eye,
+  MousePointerClick
 } from "lucide-react";
 import {
   LineChart,
@@ -164,6 +166,30 @@ const AdminDashboard = () => {
       trend: "up",
       icon: Activity,
       color: "bg-destructive",
+    },
+    {
+      title: "View Artikel (Total)",
+      value: statsLoading ? "..." : stats?.totalArticleViews || 0,
+      change: "",
+      trend: "up",
+      icon: Eye,
+      color: "bg-blue-500",
+    },
+    {
+      title: "Pengunjung Hari Ini",
+      value: statsLoading ? "..." : stats?.todayVisitors || 0,
+      change: "",
+      trend: "up",
+      icon: MousePointerClick,
+      color: "bg-purple-500",
+    },
+    {
+      title: "Total Pengunjung",
+      value: statsLoading ? "..." : stats?.totalVisitors || 0,
+      change: "",
+      trend: "up",
+      icon: Users,
+      color: "bg-indigo-500",
     },
   ];
 

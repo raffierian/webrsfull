@@ -21,6 +21,11 @@ import inpatientRoomsRoutes from './inpatientRooms.routes.js';
 import searchRoutes from './search.routes.js';
 import roleMenuRoutes from './roleMenu.routes.js';
 import roleRoutes from './role.routes.js';
+import consultationChatRoutes from './consultation-chat.routes.js';
+import paymentRoutes from './payment.routes.js';
+import hospitalSettingsRoutes from './hospital-settings.routes.js';
+import doctorRoutes from './doctor.routes.js';
+import statsRoutes from './stats.routes.js';
 
 const router = express.Router();
 
@@ -45,6 +50,7 @@ router.get('/', (req, res) => {
             admin: '/api/admin',
             chat: '/api/chat',
             inpatientRooms: '/api/inpatient-rooms',
+            consultationChat: '/api/consultation-chat',
         },
     });
 });
@@ -71,6 +77,10 @@ router.use('/chat', chatRoutes);
 router.use('/inpatient-rooms', inpatientRoomsRoutes);
 router.use('/search', searchRoutes);
 router.use('/role-menus', roleMenuRoutes);
+router.use('/consultation-chat', consultationChatRoutes); // Realtime Chat
+router.use('/', paymentRoutes); // Payment routes (includes /payments and /admin/payments)
+router.use('/hospital-settings', hospitalSettingsRoutes);
+router.use('/doctor', doctorRoutes);
 router.use('/roles', roleRoutes);
-
+router.use('/stats', statsRoutes);
 export default router;

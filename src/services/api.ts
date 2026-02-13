@@ -44,7 +44,9 @@ async function fetcher<T>(endpoint: string, options: FetchOptions = {}): Promise
             throw new Error(data.message || 'An error occurred');
         }
 
-        return data.data; // Assuming backend returns { success: true, data: ... }
+        // Backend returns { success: true, message: '...', data: {...} }
+        // Return data property which contains the actual payload
+        return data.data;
     } catch (error) {
         console.error('API Error:', error);
         throw error;
@@ -75,6 +77,20 @@ export const api = {
             body: JSON.stringify({ code })
         }),
         disable2FA: () => fetcher<any>('/auth/2fa/disable', { method: 'POST' }),
+        forgotPassword: (email: string) => fetcher<any>('/auth/forgot-password', {
+            method: 'POST',
+            body: JSON.stringify({ email }),
+            requireAuth: false
+        }),
+        resetPassword: (data: any) => fetcher<any>('/auth/reset-password', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            requireAuth: false
+        }),
+        changePassword: (data: any) => fetcher<any>('/auth/password', {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        }),
     },
 
     // Admin Dashboard
@@ -87,12 +103,13 @@ export const api = {
 
     // Doctors
     doctors: {
-        getAllPublic: (params?: string) => fetcher<any>(`/doctors${params ? `?${params}` : ''}`, { requireAuth: false }),
+        getAllPublic: (params?: string) => fetcher<any>(`/doctors${params ? `?${params.replace(/^\?/, '')}` : ''}`, { requireAuth: false }),
         getByService: (serviceId: string) => fetcher<any>(`/doctors?serviceId=${serviceId}`, { requireAuth: false }),
         getAllAdmin: () => fetcher<any>('/doctors?limit=100'), // Use public endpoint for list, admin routes for CRUD are separate or use public? Admin routes don't have GET.
         create: (data: any) => fetcher<any>('/admin/doctors', { method: 'POST', body: JSON.stringify(data) }),
         update: (id: string, data: any) => fetcher<any>(`/admin/doctors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
         delete: (id: string) => fetcher<any>(`/admin/doctors/${id}`, { method: 'DELETE' }),
+        createReview: (id: string, data: { rating: number, comment: string }) => fetcher<any>(`/doctors/${id}/reviews`, { method: 'POST', body: JSON.stringify(data) }),
         import: (file: File) => {
             const formData = new FormData();
             formData.append('file', file);
@@ -172,6 +189,12 @@ export const api = {
         update: (data: any) => fetcher<any>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
     },
 
+    // Hospital Settings (Payment & Bank Config)
+    hospitalSettings: {
+        get: () => fetcher<any>('/hospital-settings', { requireAuth: false }),
+        update: (data: any) => fetcher<any>('/hospital-settings', { method: 'PUT', body: JSON.stringify(data) })
+    },
+
     // Surveys (Real Data)
     surveys: {
         getStats: (period: string = 'month') => fetcher<any>(`/surveys/stats?period=${period}`),
@@ -184,7 +207,21 @@ export const api = {
         create: (data: any) => fetcher<any>('/admin/users', { method: 'POST', body: JSON.stringify(data) }),
         update: (id: string, data: any) => fetcher<any>(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
         delete: (id: string) => fetcher<any>(`/admin/users/${id}`, { method: 'DELETE' }),
+        resetPassword: (id: string) => fetcher<any>(`/admin/users/${id}/reset-password`, {
+            method: 'PUT'
+        }),
     },
+
+    // Doctor Management
+    adminDoctors: {
+        getAll: () => fetcher<any>('/admin/doctor-accounts'),
+        create: (data: any) => fetcher<any>('/admin/doctor-accounts', { method: 'POST', body: JSON.stringify(data) }),
+        getById: (id: string) => fetcher<any>(`/admin/doctor-accounts/${id}`),
+        update: (id: string, data: any) => fetcher<any>(`/admin/doctor-accounts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+        toggleStatus: (id: string) => fetcher<any>(`/admin/doctor-accounts/${id}/toggle-status`, { method: 'PUT' }),
+        delete: (id: string) => fetcher<any>(`/admin/doctor-accounts/${id}`, { method: 'DELETE' }),
+    },
+
 
     // Health Promotion (PKRS)
     healthPromos: {
@@ -343,5 +380,49 @@ export const api = {
         update: (id: string, data: any) => fetcher<any>(`/admin/knowledge/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
         delete: (id: string) => fetcher<any>(`/admin/knowledge/${id}`, { method: 'DELETE' }),
         toggle: (id: string) => fetcher<any>(`/admin/knowledge/${id}/toggle`, { method: 'PUT' }),
+    },
+    consultationChat: {
+        createSession: (data: any) => fetcher<any>('/consultation-chat/sessions', { method: 'POST', body: data }),
+        getMySessions: (params?: string) => fetcher<any>(`/consultation-chat/sessions${params || ''}`),
+        getSession: (sessionId: string) => fetcher<any>(`/consultation-chat/sessions/${sessionId}`),
+        getMessages: (sessionId: string) => fetcher<any>(`/consultation-chat/sessions/${sessionId}/messages`),
+        updateSOAP: (sessionId: string, data: any) => fetcher<any>(`/consultation-chat/sessions/${sessionId}/soap`, { method: 'PATCH', body: data }),
+        closeSession: (sessionId: string, data: any) => fetcher<any>(`/consultation-chat/sessions/${sessionId}/close`, { method: 'POST', body: data }),
+    },
+
+    // Doctor Consultation Management
+    doctor: {
+        getConsultations: (status?: string) => fetcher<any>(`/doctor/consultations${status ? `?status=${status}` : ''}`),
+        getConsultationDetails: (id: string) => fetcher<any>(`/doctor/consultations/${id}`),
+        closeConsultation: (id: string, notes?: string) => fetcher<any>(`/doctor/consultations/${id}/close`, {
+            method: 'PUT',
+            body: JSON.stringify({ notes })
+        }),
+        getStats: () => fetcher<any>('/doctor/stats')
+    },
+
+    payment: {
+        create: (data: { chatSessionId: string; paymentMethod: 'midtrans' | 'manual' }) =>
+            fetcher<any>('/payments', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            }),
+        uploadProof: (paymentId: string, proofUrl: string) =>
+            fetcher<any>(`/payments/${paymentId}/proof`, {
+                method: 'POST',
+                body: JSON.stringify({ proofUrl })
+            }),
+        getStatus: (paymentId: string) => fetcher<any>(`/payments/${paymentId}/status`),
+        getAll: (params?: string) => fetcher<any>(`/admin/payments${params || ''}`),
+        confirm: (paymentId: string) => fetcher<any>(`/admin/payments/${paymentId}/confirm`, { method: 'PUT' })
+    },
+    // Stats & Tracking
+    stats: {
+        trackVisitor: () => fetcher<any>('/stats/visitor', { method: 'POST', requireAuth: false })
+    },
+    prescription: {
+        getBySession: (sessionId: string) => fetcher<any>(`/prescriptions/session/${sessionId}`),
+        upsert: (sessionId: string, data: any) => fetcher<any>(`/prescriptions/session/${sessionId}`, { method: 'POST', body: data }),
+        issue: (sessionId: string) => fetcher<any>(`/prescriptions/session/${sessionId}/issue`, { method: 'POST' })
     }
 };
