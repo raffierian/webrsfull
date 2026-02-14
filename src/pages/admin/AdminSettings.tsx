@@ -694,11 +694,16 @@ const AdminSettings = () => {
                             ...externalLinks,
                             googleReviews: { ...externalLinks.googleReviews, enabled: true, placeId: e.target.value }
                           })}
-                          placeholder="Masukkan Place ID atau URL Embed jika ada"
+                          placeholder="Place ID (ChIJ...) atau URL Widget (https://...)"
                         />
-                        <p className="text-xs text-muted-foreground">
-                          Jika kosong, sistem akan menampilkan ulasan contoh/default.
-                        </p>
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Opsi 1 (Link):</strong> Masukkan <strong>Place ID</strong> (misal: <code>ChIJZ20ntT5ly0Rhb1FrcqMoig</code>) untuk mengarahkan link ke Google Maps asli RS.
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Opsi 2 (Ulasan Asli):</strong> Untuk menampilkan daftar ulasan langsung, gunakan layanan widget seperti <strong>Trustindex</strong> atau <strong>Elfsight</strong>. Masukkan URL <code>src</code> dari kode iframe yang mereka berikan.
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}

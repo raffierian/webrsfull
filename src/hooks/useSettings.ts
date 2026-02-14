@@ -17,6 +17,7 @@ export interface HospitalSettings {
     mapUrl?: string;
     logoUrl?: string;
     faviconUrl?: string;
+    consultationEnabled?: boolean;
     external_links?: {
         zonaIntegritas?: string;
         wbs?: string;

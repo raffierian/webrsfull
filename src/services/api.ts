@@ -34,11 +34,15 @@ async function fetcher<T>(endpoint: string, options: FetchOptions = {}): Promise
                 localStorage.removeItem('adminToken');
                 localStorage.removeItem('token');
 
-                // Redirect based on current path
-                if (window.location.pathname.startsWith('/admin')) {
-                    window.location.href = '/admin/login';
-                } else {
-                    window.location.href = '/patient/login';
+                const isLoginPage = window.location.pathname.includes('/login');
+
+                if (requireAuth && !isLoginPage) {
+                    // Redirect based on current path
+                    if (window.location.pathname.startsWith('/admin')) {
+                        window.location.href = '/admin/login';
+                    } else {
+                        window.location.href = '/patient/login';
+                    }
                 }
             }
             throw new Error(data.message || 'An error occurred');
@@ -185,7 +189,7 @@ export const api = {
 
     // Settings
     settings: {
-        getAll: () => fetcher<any>('/settings'),
+        getAll: () => fetcher<any>('/settings', { requireAuth: false }),
         update: (data: any) => fetcher<any>('/settings', { method: 'PUT', body: JSON.stringify(data) }),
     },
 
@@ -383,7 +387,10 @@ export const api = {
     },
     consultationChat: {
         createSession: (data: any) => fetcher<any>('/consultation-chat/sessions', { method: 'POST', body: data }),
-        getMySessions: (params?: string) => fetcher<any>(`/consultation-chat/sessions${params || ''}`),
+        getMySessions: (params?: string) => {
+            const query = params ? (params.startsWith('?') ? params : `?${params}`) : '';
+            return fetcher<any>(`/consultation-chat/sessions${query}`);
+        },
         getSession: (sessionId: string) => fetcher<any>(`/consultation-chat/sessions/${sessionId}`),
         getMessages: (sessionId: string) => fetcher<any>(`/consultation-chat/sessions/${sessionId}/messages`),
         updateSOAP: (sessionId: string, data: any) => fetcher<any>(`/consultation-chat/sessions/${sessionId}/soap`, { method: 'PATCH', body: data }),

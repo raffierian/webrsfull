@@ -8,15 +8,19 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Video, Loader2 } from 'lucide-react';
+import { MessageSquare, Video, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSettings } from '@/hooks/useSettings';
 
 const PatientConsultationPage = () => {
+    const { settings } = useSettings();
     const navigate = useNavigate();
     const [selectedType, setSelectedType] = useState<'chat' | 'video'>('chat');
     const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
     const [complaint, setComplaint] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
+
+    const isConsultationEnabled = settings?.consultationEnabled !== false && settings?.external_links?.consultationEnabled !== false;
 
     // Fetch available doctors
     const { data: doctors, isLoading } = useQuery({
@@ -81,125 +85,149 @@ const PatientConsultationPage = () => {
                 <p className="text-slate-600 mt-2">Konsultasi dengan dokter secara online melalui chat atau video call</p>
             </div>
 
-            <form onSubmit={handleSubmit}>
-                <Card className="mb-6">
+            {!isConsultationEnabled ? (
+                <Card className="text-center py-12 px-6 border-dashed border-2">
                     <CardHeader>
-                        <CardTitle>Pilih Jenis Konsultasi</CardTitle>
-                        <CardDescription>Pilih metode konsultasi yang Anda inginkan</CardDescription>
+                        <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
+                            <AlertCircle className="w-10 h-10 text-orange-600" />
+                        </div>
+                        <CardTitle className="text-2xl">Layanan Tidak Tersedia</CardTitle>
+                        <CardDescription className="max-w-md mx-auto text-base">
+                            Mohon maaf, layanan konsultasi online sedang tidak tersedia saat ini.
+                            Silakan coba lagi nanti atau hubungi customer service kami.
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="grid grid-cols-2 gap-4">
-                            <button
-                                type="button"
-                                onClick={() => setSelectedType('chat')}
-                                className={`p-6 rounded-xl border-2 transition-all ${selectedType === 'chat'
-                                    ? 'border-teal-600 bg-teal-50'
-                                    : 'border-slate-200 hover:border-slate-300'
-                                    }`}
-                            >
-                                <MessageSquare className={`w-8 h-8 mx-auto mb-3 ${selectedType === 'chat' ? 'text-teal-600' : 'text-slate-400'
-                                    }`} />
-                                <h3 className="font-semibold text-slate-800">Chat Dokter</h3>
-                                <p className="text-sm text-slate-600 mt-1">Konsultasi via chat real-time</p>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setSelectedType('video')}
-                                className={`p-6 rounded-xl border-2 transition-all ${selectedType === 'video'
-                                    ? 'border-teal-600 bg-teal-50'
-                                    : 'border-slate-200 hover:border-slate-300'
-                                    }`}
-                                disabled
-                            >
-                                <Video className={`w-8 h-8 mx-auto mb-3 ${selectedType === 'video' ? 'text-teal-600' : 'text-slate-400'
-                                    }`} />
-                                <h3 className="font-semibold text-slate-800">Video Call</h3>
-                                <p className="text-sm text-slate-600 mt-1">Segera hadir</p>
-                            </button>
-                        </div>
+                        <Button
+                            variant="outline"
+                            onClick={() => navigate('/patient/dashboard')}
+                            className="mt-4"
+                        >
+                            Kembali ke Dashboard
+                        </Button>
                     </CardContent>
                 </Card>
-
-                {selectedType === 'chat' && (
-                    <Card>
+            ) : (
+                <form onSubmit={handleSubmit}>
+                    <Card className="mb-6">
                         <CardHeader>
-                            <CardTitle>Informasi Konsultasi</CardTitle>
-                            <CardDescription>Lengkapi informasi untuk memulai konsultasi</CardDescription>
+                            <CardTitle>Pilih Jenis Konsultasi</CardTitle>
+                            <CardDescription>Pilih metode konsultasi yang Anda inginkan</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div>
-                                <Label htmlFor="doctor">Pilih Dokter *</Label>
-                                <Select required value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
-                                    <SelectTrigger className="mt-1">
-                                        <SelectValue placeholder="Pilih dokter untuk konsultasi" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {isLoading ? (
-                                            <div className="p-4 text-center text-sm text-slate-500">
-                                                <Loader2 className="w-4 h-4 animate-spin mx-auto mb-2" />
-                                                Memuat dokter...
-                                            </div>
-                                        ) : doctors && doctors.length > 0 ? (
-                                            doctors.map((doctor: any) => (
-                                                <SelectItem key={doctor.id} value={doctor.id}>
-                                                    {doctor.name} - {doctor.specialization}
-                                                    {doctor.consultationFee && (
-                                                        <span className="text-xs text-slate-500 ml-2">
-                                                            (Rp {Number(doctor.consultationFee).toLocaleString('id-ID')})
-                                                        </span>
-                                                    )}
-                                                </SelectItem>
-                                            ))
-                                        ) : (
-                                            <div className="p-4 text-center text-sm text-slate-500">
-                                                Tidak ada dokter tersedia
-                                            </div>
-                                        )}
-                                    </SelectContent>
-                                </Select>
+                        <CardContent>
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedType('chat')}
+                                    className={`p-6 rounded-xl border-2 transition-all ${selectedType === 'chat'
+                                        ? 'border-teal-600 bg-teal-50'
+                                        : 'border-slate-200 hover:border-slate-300'
+                                        }`}
+                                >
+                                    <MessageSquare className={`w-8 h-8 mx-auto mb-3 ${selectedType === 'chat' ? 'text-teal-600' : 'text-slate-400'
+                                        }`} />
+                                    <h3 className="font-semibold text-slate-800">Chat Dokter</h3>
+                                    <p className="text-sm text-slate-600 mt-1">Konsultasi via chat real-time</p>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedType('video')}
+                                    className={`p-6 rounded-xl border-2 transition-all ${selectedType === 'video'
+                                        ? 'border-teal-600 bg-teal-50'
+                                        : 'border-slate-200 hover:border-slate-300'
+                                        }`}
+                                    disabled
+                                >
+                                    <Video className={`w-8 h-8 mx-auto mb-3 ${selectedType === 'video' ? 'text-teal-600' : 'text-slate-400'
+                                        }`} />
+                                    <h3 className="font-semibold text-slate-800">Video Call</h3>
+                                    <p className="text-sm text-slate-600 mt-1">Segera hadir</p>
+                                </button>
                             </div>
-
-                            {selectedDoctor && (
-                                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                                    <h4 className="font-semibold text-blue-900 mb-2">Biaya Konsultasi</h4>
-                                    <p className="text-2xl font-bold text-blue-600">
-                                        Rp {Number(selectedDoctor.consultationFee || 50000).toLocaleString('id-ID')}
-                                    </p>
-                                    <p className="text-sm text-blue-700 mt-1">Pembayaran dilakukan sebelum chat dimulai</p>
-                                </div>
-                            )}
-
-                            <div>
-                                <Label htmlFor="complaint">Keluhan (Opsional)</Label>
-                                <Textarea
-                                    id="complaint"
-                                    value={complaint}
-                                    onChange={(e) => setComplaint(e.target.value)}
-                                    placeholder="Jelaskan keluhan Anda secara singkat..."
-                                    className="mt-1"
-                                    rows={4}
-                                />
-                            </div>
-
-                            <Button
-                                type="submit"
-                                className="w-full bg-teal-600 hover:bg-teal-700"
-                                disabled={isProcessing || !selectedDoctorId}
-                            >
-                                {isProcessing ? (
-                                    <>
-                                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                        Memproses...
-                                    </>
-                                ) : (
-                                    'Lanjut ke Pembayaran'
-                                )}
-                            </Button>
                         </CardContent>
                     </Card>
-                )}
-            </form>
+
+                    {selectedType === 'chat' && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Informasi Konsultasi</CardTitle>
+                                <CardDescription>Lengkapi informasi untuk memulai konsultasi</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div>
+                                    <Label htmlFor="doctor">Pilih Dokter *</Label>
+                                    <Select required value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
+                                        <SelectTrigger className="mt-1">
+                                            <SelectValue placeholder="Pilih dokter untuk konsultasi" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {isLoading ? (
+                                                <div className="p-4 text-center text-sm text-slate-500">
+                                                    <Loader2 className="w-4 h-4 animate-spin mx-auto mb-2" />
+                                                    Memuat dokter...
+                                                </div>
+                                            ) : doctors && doctors.length > 0 ? (
+                                                doctors.map((doctor: any) => (
+                                                    <SelectItem key={doctor.id} value={doctor.id}>
+                                                        {doctor.name} - {doctor.specialization}
+                                                        {doctor.consultationFee && (
+                                                            <span className="text-xs text-slate-500 ml-2">
+                                                                (Rp {Number(doctor.consultationFee).toLocaleString('id-ID')})
+                                                            </span>
+                                                        )}
+                                                    </SelectItem>
+                                                ))
+                                            ) : (
+                                                <div className="p-4 text-center text-sm text-slate-500">
+                                                    Tidak ada dokter tersedia
+                                                </div>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {selectedDoctor && (
+                                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                                        <h4 className="font-semibold text-blue-900 mb-2">Biaya Konsultasi</h4>
+                                        <p className="text-2xl font-bold text-blue-600">
+                                            Rp {Number(selectedDoctor.consultationFee || 50000).toLocaleString('id-ID')}
+                                        </p>
+                                        <p className="text-sm text-blue-700 mt-1">Pembayaran dilakukan sebelum chat dimulai</p>
+                                    </div>
+                                )}
+
+                                <div>
+                                    <Label htmlFor="complaint">Keluhan (Opsional)</Label>
+                                    <Textarea
+                                        id="complaint"
+                                        value={complaint}
+                                        onChange={(e) => setComplaint(e.target.value)}
+                                        placeholder="Jelaskan keluhan Anda secara singkat..."
+                                        className="mt-1"
+                                        rows={4}
+                                    />
+                                </div>
+
+                                <Button
+                                    type="submit"
+                                    className="w-full bg-teal-600 hover:bg-teal-700"
+                                    disabled={isProcessing || !selectedDoctorId}
+                                >
+                                    {isProcessing ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                            Memproses...
+                                        </>
+                                    ) : (
+                                        'Lanjut ke Pembayaran'
+                                    )}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    )}
+                </form>
+            )}
 
             {/* Recent Consultations List */}
             <RecentConsultations />

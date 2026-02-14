@@ -6,13 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Heart, Loader2, ArrowLeft, ShieldCheck, Clock, Activity, ArrowRight } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useSettings } from "@/hooks/useSettings";
 import { motion } from 'framer-motion';
 
 const PatientLogin = () => {
     const navigate = useNavigate();
-    const { toast } = useToast();
     const { settings } = useSettings();
     const [formData, setFormData] = useState({
         email: '',
@@ -29,19 +28,18 @@ const PatientLogin = () => {
             localStorage.setItem('user', JSON.stringify(data.user));
 
             if (data.user.role === 'PATIENT') {
-                toast({ title: "Login Berhasil", description: "Selamat datang kembali!" });
+                toast.success("Login Berhasil", { description: "Selamat datang kembali!" });
                 navigate('/patient/dashboard');
             } else {
-                toast({ title: "Akses Ditolak", description: "Akun ini bukan akun pasien.", variant: "destructive" });
+                toast.error("Akses Ditolak", { description: "Akun ini bukan akun pasien." });
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
             }
         },
         onError: (error: any) => {
-            toast({
-                title: "Login Gagal",
-                description: error.data?.message || error.message || "Email atau password salah", // Improved error handling
-                variant: "destructive"
+            const message = error.message || "Email atau password salah";
+            toast.error("Login Gagal", {
+                description: message,
             });
         },
     });

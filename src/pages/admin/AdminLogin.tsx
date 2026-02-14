@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Eye, EyeOff, Lock, User } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useSettings } from "@/hooks/useSettings";
 
 // Use environment variable for API URL
@@ -15,7 +15,6 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 const AdminLogin = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { settings } = useSettings();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -53,8 +52,7 @@ const AdminLogin = () => {
           setTwoFactorType(data.data.twoFactorType);
           setUserId(data.data.userId);
           setMaskedEmail(data.data.email || "");
-          toast({
-            title: "Verifikasi Diperlukan",
+          toast.success("Verifikasi Diperlukan", {
             description: data.data.twoFactorType === "TOTP"
               ? "Masukkan kode dari Google Authenticator Anda."
               : "Kode OTP telah dikirim ke email Anda.",
@@ -64,18 +62,14 @@ const AdminLogin = () => {
 
         handleLoginSuccess(data.data);
       } else {
-        toast({
-          title: "Login Gagal",
+        toast.error("Login Gagal", {
           description: data.message || "Username atau password salah",
-          variant: "destructive",
         });
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Tidak dapat terhubung ke server.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -100,17 +94,13 @@ const AdminLogin = () => {
       if (response.ok && data.success) {
         handleLoginSuccess(data.data);
       } else {
-        toast({
-          title: "Verifikasi Gagal",
+        toast.error("Verifikasi Gagal", {
           description: data.message || "Kode OTP tidak valid",
-          variant: "destructive",
         });
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Gagal memverifikasi kode.",
-        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -128,16 +118,13 @@ const AdminLogin = () => {
       });
 
       if (response.ok) {
-        toast({
-          title: "Kode Dikirim",
+        toast.success("Kode Dikirim", {
           description: "Kode OTP baru telah dikirim ke email Anda.",
         });
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "Gagal mengirim ulang kode.",
-        variant: "destructive",
       });
     }
   };
@@ -151,8 +138,7 @@ const AdminLogin = () => {
       role: data.user.role.toLowerCase(),
     }));
 
-    toast({
-      title: "Login Berhasil",
+    toast.success("Login Berhasil", {
       description: `Selamat datang, ${data.user.name}`,
     });
     navigate("/admin/dashboard");

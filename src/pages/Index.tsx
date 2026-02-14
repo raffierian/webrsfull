@@ -115,16 +115,14 @@ const Index: React.FC = () => {
   ];
 
   const doctors = backendDoctors.length > 0 ? backendDoctors.map((doc: any) => ({
-    id: doc.id, // Ensure ID is passed
+    id: doc.id,
     name: doc.name,
     specialty: doc.specialization,
     image: doc.photoUrl || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300',
     experienceYears: doc.experienceYears,
     rating: doc.rating,
-  })) : [
-    // Fallback
-    { name: 'Dr. Ahmad Wijaya, Sp.JP', specialty: 'Spesialis Jantung', image: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300' },
-  ];
+    isAvailable: doc.isAvailable,
+  })) : [];
 
   const stats = [
     { value: settings?.profile_settings?.stats?.patients || '50,000+', label: t('stats.patients'), icon: Users },
@@ -439,96 +437,136 @@ const Index: React.FC = () => {
       </section>
 
       {/* Doctors Section */}
-      <section className="py-12 md:py-24 bg-muted/30">
-        <div className="container mx-auto px-4">
+      <section className="py-24 md:py-40 bg-white relative overflow-hidden">
+        {/* Background Decorations */}
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/5 rounded-full blur-[100px] translate-y-1/2" />
+
+        <div className="container mx-auto px-4 relative z-10">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-24"
           >
-            <span className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-4">
-              Tim Dokter
-            </span>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4">{t('doctors.title')}</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">{t('doctors.subtitle')}</p>
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-slate-900 text-white text-xs font-bold tracking-[0.2em] uppercase mb-8 shadow-2xl"
+            >
+              <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
+              Expert Medical Team
+            </motion.div>
+            <h2 className="text-4xl md:text-6xl font-black text-slate-900 mb-8 tracking-tighter">
+              Tim Dokter <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Terbaik</span> Kami
+            </h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-xl font-medium leading-relaxed">
+              Dedikasi penuh untuk kesehatan Anda dengan standar layanan internasional dan sentuhan kemanusiaan.
+            </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {doctors.map((doctor, idx) => (
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: idx * 0.1 }}
-                className="group h-full"
-              >
-                <div className="bg-white rounded-[2rem] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 h-full flex flex-col">
-                  {/* Image Section */}
-                  <div className="relative h-72 overflow-hidden bg-slate-100">
-                    <img
-                      src={doctor.image}
-                      alt={doctor.name}
-                      className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {doctors.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
+              {doctors.map((doctor, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.15, duration: 0.8, ease: "circOut" }}
+                  className="group relative"
+                >
+                  {/* Glowing Orb Background */}
+                  <div className="absolute -inset-4 bg-gradient-to-tr from-primary/20 to-secondary/20 rounded-[3rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-                    {/* Rating Badge */}
-                    {doctor.rating > 0 && (
-                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
-                        <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                        <span className="text-sm font-bold text-slate-700">{Number(doctor.rating).toFixed(1)}</span>
-                      </div>
-                    )}
-                  </div>
+                  <div className="relative bg-white rounded-[2.8rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.08)] group-hover:shadow-[0_48px_80px_-24px_rgba(0,0,0,0.12)] transition-all duration-700 flex flex-col h-[560px] border border-slate-100/50">
+                    {/* Image Canvas */}
+                    <div className="relative h-[62%] overflow-hidden bg-slate-50">
+                      <img
+                        src={doctor.image}
+                        alt={doctor.name}
+                        className="w-full h-full object-cover object-top filter group-hover:brightness-110 transition-all duration-1000 ease-in-out"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-60" />
 
-                  {/* Content Section */}
-                  <div className="p-6 flex flex-col flex-grow">
-                    <div className="mb-4">
-                      <h3 className="text-xl font-bold text-slate-900 mb-1 group-hover:text-primary transition-colors">
-                        {doctor.name}
-                      </h3>
-                      <p className="text-primary font-medium text-sm bg-primary/5 inline-block px-3 py-1 rounded-lg">
-                        {doctor.specialty}
-                      </p>
+                      {/* Floating Rating Badge - Signature Style */}
+                      {doctor.rating > 0 && (
+                        <div className="absolute top-6 right-6 bg-black/40 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-2xl">
+                          <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                          <span className="text-sm font-black text-white">{Number(doctor.rating).toFixed(1)}</span>
+                        </div>
+                      )}
+
+                      {/* Available Status */}
+                      {doctor.isAvailable ? (
+                        <div className="absolute top-6 left-6 bg-green-500/90 backdrop-blur-md px-3 py-1 rounded-full border border-white/20 flex items-center gap-2 shadow-lg">
+                          <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                          <span className="text-[10px] font-black text-white uppercase tracking-wider">Online</span>
+                        </div>
+                      ) : (
+                        <div className="absolute top-6 left-6 bg-slate-500/80 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 flex items-center gap-2 shadow-lg">
+                          <div className="w-1.5 h-1.5 rounded-full bg-white/40" />
+                          <span className="text-[10px] font-black text-white/70 uppercase tracking-wider">Sibuk</span>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="mb-6 py-4 border-y border-slate-50">
-                      <div className="text-center">
-                        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Pengalaman</p>
-                        <p className="font-semibold text-slate-700">
-                          {doctor.experienceYears ? `${doctor.experienceYears} Tahun` : '-'}
-                        </p>
+                    {/* Sophisticated Content Area */}
+                    <div className="p-8 flex flex-col flex-grow bg-white relative">
+                      <div className="mb-auto">
+                        <div className="flex items-center gap-3 mb-3">
+                          <span className="h-[2px] w-8 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]" />
+                          <span className="text-primary font-black text-[10px] uppercase tracking-[0.2em]">{doctor.specialty}</span>
+                        </div>
+                        <h3 className="text-2xl font-black text-slate-900 mb-2 leading-tight group-hover:text-primary transition-colors duration-500 line-clamp-2">
+                          {doctor.name}
+                        </h3>
                       </div>
-                    </div>
 
-                    <div className="mt-auto">
+                      <div className="flex items-center gap-4 py-6 border-t border-slate-50 mt-4">
+                        <div className="p-3 rounded-2xl bg-slate-50 text-slate-400 group-hover:bg-primary/10 group-hover:text-primary transition-all duration-500">
+                          <Clock className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1.5">Pengalaman Medis</p>
+                          <p className="text-sm font-black text-slate-800">
+                            {doctor.experienceYears || '0'}+ Tahun Dedikasi
+                          </p>
+                        </div>
+                      </div>
+
                       <Button
                         onClick={handleAppointmentClick}
-                        className="w-full rounded-xl h-12 text-sm font-semibold shadow-primary/20 hover:shadow-primary/40 transition-all duration-300"
-                        variant="default"
+                        className="group/btn relative w-full rounded-2xl h-16 bg-slate-900 border-none overflow-hidden transition-all duration-500 shadow-xl shadow-slate-900/10"
                       >
-                        Buat Janji
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary to-secondary translate-y-full group-hover/btn:translate-y-0 transition-transform duration-500" />
+                        <span className="relative z-10 flex items-center justify-center gap-3 text-white text-base font-black tracking-wide">
+                          Buat Janji Temu
+                          <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-2 transition-transform duration-500" />
+                        </span>
                       </Button>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-20 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
+              <p className="text-slate-400 font-bold italic tracking-wider">Sedang memuat data tim ahli...</p>
+            </div>
+          )}
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            className="text-center mt-12"
+            className="text-center mt-20"
           >
             <Link to="/profile/doctors">
-              <Button variant="outline" size="lg" className="gap-2">
-                Lihat Semua Dokter
-                <ArrowRight className="w-5 h-5" />
-              </Button>
+              <button className="px-10 py-4 rounded-2xl bg-white border-2 border-slate-100 text-slate-900 font-black text-sm uppercase tracking-widest hover:border-primary hover:text-primary transition-all duration-500 shadow-xl hover:shadow-primary/20">
+                Lihat Seluruh Spesialis
+              </button>
             </Link>
           </motion.div>
         </div>
