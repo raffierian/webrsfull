@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { api } from '@/services/api';
 import { cn } from '@/lib/utils';
+import { useSettings } from '@/hooks/useSettings';
 
 interface Message {
     role: 'user' | 'model';
@@ -18,6 +19,8 @@ const ChatWidget = () => {
     const [history, setHistory] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const { settings } = useSettings();
+    const chatbotMascot = settings?.external_links?.chatbotMascot;
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -64,8 +67,12 @@ const ChatWidget = () => {
                         {/* Header */}
                         <div className="bg-primary p-4 text-white flex justify-between items-center">
                             <div className="flex items-center gap-3">
-                                <div className="rounded-full bg-white/20 p-2 text-white">
-                                    <Bot size={20} />
+                                <div className="rounded-full bg-white/20 p-2 text-white h-10 w-10 flex items-center justify-center overflow-hidden">
+                                    {chatbotMascot ? (
+                                        <img src={chatbotMascot} alt="Bot Mascot" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Bot size={20} />
+                                    )}
                                 </div>
                                 <div>
                                     <h3 className="font-semibold leading-none">Asisten RS Soewandhie</h3>
@@ -97,10 +104,16 @@ const ChatWidget = () => {
                                         )}
                                     >
                                         <div className={cn(
-                                            "flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full border shadow",
+                                            "flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full border shadow overflow-hidden",
                                             msg.role === 'user' ? "bg-primary text-primary-foreground" : "bg-muted"
                                         )}>
-                                            {msg.role === 'user' ? <User size={16} /> : <Bot size={16} />}
+                                            {msg.role === 'user' ? (
+                                                <User size={16} />
+                                            ) : chatbotMascot ? (
+                                                <img src={chatbotMascot} alt="Bot Avatar" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Bot size={16} />
+                                            )}
                                         </div>
                                         <div className={cn(
                                             "rounded-lg px-3 py-2 text-sm max-w-[80%]",
@@ -114,8 +127,12 @@ const ChatWidget = () => {
                                 ))}
                                 {isLoading && (
                                     <div className="flex gap-3">
-                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                                            <Bot size={16} />
+                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted overflow-hidden">
+                                            {chatbotMascot ? (
+                                                <img src={chatbotMascot} alt="Bot Typing" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <Bot size={16} />
+                                            )}
                                         </div>
                                         <div className="rounded-lg bg-muted px-3 py-2 text-sm flex items-center gap-2">
                                             <Loader2 size={14} className="animate-spin" />
@@ -145,9 +162,15 @@ const ChatWidget = () => {
             <Button
                 size="lg"
                 onClick={() => setIsOpen(!isOpen)}
-                className="h-14 w-14 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95"
+                className="h-14 w-14 rounded-full shadow-lg transition-transform hover:scale-105 active:scale-95 p-0 overflow-hidden"
             >
-                {isOpen ? <X size={26} /> : <MessageCircle size={26} />}
+                {isOpen ? <X size={26} /> : (
+                    chatbotMascot ? (
+                        <img src={chatbotMascot} alt="Chat Bot" className="w-full h-full object-cover" />
+                    ) : (
+                        <MessageCircle size={26} />
+                    )
+                )}
             </Button>
         </div>
     );

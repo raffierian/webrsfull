@@ -93,7 +93,8 @@ const AdminSettings = () => {
     googleReviews: {
       enabled: false,
       placeId: ""
-    }
+    },
+    chatbotMascot: ""
   };
 
   const defaultNotificationSettings = {
@@ -647,6 +648,34 @@ const AdminSettings = () => {
                       onCheckedChange={(checked) => setExternalLinks({ ...externalLinks, enableChatbot: checked })}
                     />
                   </div>
+
+                  {externalLinks.enableChatbot && (
+                    <div className="p-4 border rounded-lg bg-slate-50/50 space-y-4">
+                      <div className="space-y-2">
+                        <Label>URL Gambar Maskot Chatbot</Label>
+                        <div className="flex gap-4 items-start">
+                          <Input
+                            placeholder="https://example.com/mascot.png"
+                            value={externalLinks.chatbotMascot || ""}
+                            onChange={(e) => setExternalLinks({ ...externalLinks, chatbotMascot: e.target.value })}
+                          />
+                          {externalLinks.chatbotMascot && (
+                            <div className="h-10 w-10 rounded-lg border bg-white overflow-hidden shrink-0 flex items-center justify-center p-1">
+                              <img
+                                src={externalLinks.chatbotMascot}
+                                alt="Preview"
+                                className="max-h-full max-w-full object-contain"
+                                onError={(e) => (e.currentTarget.src = "https://via.placeholder.com/40?text=Error")}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Gunakan URL gambar (persegi direkomendasikan). Kosongkan untuk menggunakan icon robot default.
+                        </p>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between p-4 border rounded-lg bg-slate-50/50">
                     <div className="space-y-0.5">

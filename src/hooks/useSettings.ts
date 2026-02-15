@@ -30,6 +30,7 @@ export interface HospitalSettings {
             enabled: boolean;
             placeId?: string;
         };
+        chatbotMascot?: string;
     };
     profile_settings?: {
         vision?: string;
