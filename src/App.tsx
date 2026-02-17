@@ -30,6 +30,7 @@ import PPIDPage from "./pages/PPIDPage";
 import ZonaIntegritasPage from "./pages/ZonaIntegritasPage";
 import InformationPage from "./pages/InformationPage";
 import InpatientInfoPage from "./pages/InpatientInfoPage";
+import StructurePage from "./pages/profile/StructurePage";
 import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -118,6 +119,7 @@ const App = () => {
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/profile/doctors" element={<DoctorsPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/profile/structure" element={<StructurePage />} />
                 <Route path="/profile/:section" element={<ProfilePage />} />
                 <Route path="/consultation" element={<ConsultationPage />} />
                 <Route path="/complaint" element={<ComplaintPage />} />

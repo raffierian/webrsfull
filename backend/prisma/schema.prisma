@@ -638,6 +638,7 @@ enum ChatStatus {
   PENDING
   ACTIVE
   CLOSED
+  CANCELLED
 }
 
 enum MessageType {

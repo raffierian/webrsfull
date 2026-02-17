@@ -32,6 +32,10 @@ export interface HospitalSettings {
         };
         chatbotMascot?: string;
     };
+    org_structure?: {
+        leaders: any[];
+        divisions: any[];
+    };
     profile_settings?: {
         vision?: string;
         mission?: string;
@@ -94,6 +98,20 @@ export interface HospitalSettings {
             wbk_result: string;
             wbbm_syarat: string;
         };
+    };
+    announcement_bar?: {
+        enabled: boolean;
+        text: string;
+        type: 'info' | 'alert';
+        link?: string;
+    };
+    announcement_popup?: {
+        enabled: boolean;
+        title: string;
+        content: string;
+        image?: string;
+        cta_text?: string;
+        cta_link?: string;
     };
 }
 
@@ -209,15 +227,22 @@ const DEFAULT_SERVICE_PAGES: Record<string, ServicePageContent> = {
     }
 };
 
+const SETTINGS_CACHE_KEY = 'hospital_settings_cache';
+
+const getCachedSettings = (): HospitalSettings | null => {
+    try {
+        const cached = localStorage.getItem(SETTINGS_CACHE_KEY);
+        return cached ? JSON.parse(cached) : null;
+    } catch (e) {
+        return null;
+    }
+};
+
 export const useSettings = () => {
     const { data: settings, isLoading, error } = useQuery({
         queryKey: ['settings'],
         queryFn: async () => {
-            const result = await api.settings.getAll(); // Assuming api.settings.getAll() returns mapped object { key: value }
-
-            // Map backend settings to interface structure if needed, or if API already returns this structure:
-            // Based on settings.controller.js: getSettings returns { key: value }
-            // So we need to map keys like 'service_standards' -> service_standards object
+            const result = await api.settings.getAll();
 
             const hospitalSettings = result?.hospital_settings || {};
             const appearanceSettings = result?.appearance_settings || {};
@@ -227,7 +252,7 @@ export const useSettings = () => {
             const innovations = result?.innovations || [];
             const ziSettings = result?.zi_settings || {};
 
-            return {
+            const mapped = {
                 ...hospitalSettings,
                 logoUrl: appearanceSettings?.logoUrl,
                 faviconUrl: appearanceSettings?.faviconUrl,
@@ -236,6 +261,10 @@ export const useSettings = () => {
                 service_standards: serviceStandards,
                 innovations: innovations,
                 zi_settings: ziSettings,
+                org_structure: {
+                    leaders: result?.org_structure?.leaders || [],
+                    divisions: result?.org_structure?.divisions || []
+                },
                 service_pages: {
                     outpatient: result?.service_page_outpatient || DEFAULT_SERVICE_PAGES.outpatient,
                     inpatient: result?.service_page_inpatient || DEFAULT_SERVICE_PAGES.inpatient,
@@ -243,9 +272,25 @@ export const useSettings = () => {
                     intensive: result?.service_page_intensive || DEFAULT_SERVICE_PAGES.intensive,
                     supporting: result?.service_page_supporting || DEFAULT_SERVICE_PAGES.supporting,
                     specialist: result?.service_page_specialist || DEFAULT_SERVICE_PAGES.specialist,
+                },
+                announcement_bar: externalLinks?.announcement_bar || {
+                    enabled: false,
+                    text: "",
+                    type: "info"
+                },
+                announcement_popup: externalLinks?.announcement_popup || {
+                    enabled: false,
+                    title: "",
+                    content: ""
                 }
             } as HospitalSettings;
+
+            // Persist to cache
+            localStorage.setItem(SETTINGS_CACHE_KEY, JSON.stringify(mapped));
+
+            return mapped;
         },
+        placeholderData: getCachedSettings() || undefined,
         staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     });
 
@@ -263,7 +308,21 @@ export const useSettings = () => {
             wbs: "",
             lapor: ""
         },
-        service_pages: DEFAULT_SERVICE_PAGES
+        org_structure: {
+            leaders: [],
+            divisions: []
+        },
+        service_pages: DEFAULT_SERVICE_PAGES,
+        announcement_bar: {
+            enabled: false,
+            text: "",
+            type: "info"
+        },
+        announcement_popup: {
+            enabled: false,
+            title: "",
+            content: ""
+        }
     };
 
     return {

@@ -2,7 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useSettings } from './useSettings';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+const getSocketUrl = () => {
+    if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL.replace('/api', '');
+    const { protocol, hostname } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') return 'http://localhost:5000';
+    return `${protocol}//${hostname}:5000`;
+};
+
+const SOCKET_URL = getSocketUrl();
 
 export const useSocket = (sessionId?: string) => {
     const [socket, setSocket] = useState<Socket | null>(null);

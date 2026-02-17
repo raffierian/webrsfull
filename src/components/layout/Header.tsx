@@ -16,11 +16,13 @@ import {
   Activity,
   FlaskConical,
   User,
+  Users,
   Calendar,
   MessageCircle,
   Shield,
   Award,
-  GraduationCap
+  GraduationCap,
+  Network
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -31,7 +33,7 @@ import { useSettings } from '@/hooks/useSettings';
 const Header: React.FC = () => {
   const { t, i18n } = useTranslation();
   const location = useLocation();
-  const { settings } = useSettings();
+  const { settings, isLoading } = useSettings();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -74,6 +76,7 @@ const Header: React.FC = () => {
       dropdown: [
         { path: '/profile/history', label: t('nav.history'), icon: Building2 },
         { path: '/profile/vision-mission', label: 'Visi & Misi', icon: Heart },
+        { path: '/profile/structure', label: 'Struktur Organisasi', icon: Users },
       ]
     },
     {
@@ -95,7 +98,7 @@ const Header: React.FC = () => {
       dropdown: [
         { path: '/articles?category=Kesehatan', label: t('nav.health'), icon: Heart },
         { path: '/articles?category=Prestasi', label: t('nav.achievements'), icon: Award },
-        { path: '/training', label: 'Diklat & Pelatihan', icon: GraduationCap },
+        { path: '/training', label: 'Diklat & Pelatihan', icon: FlaskConical },
       ]
     },
     {
@@ -113,7 +116,7 @@ const Header: React.FC = () => {
         { path: '/rawat-inap', label: 'Rawat Inap', icon: Building2 },
         { path: '/information/innovation', label: t('nav.innovation'), icon: Heart },
         { path: '/information/sakip', label: t('nav.sakipDocuments'), icon: Heart },
-        { path: '/zona-integritas', label: 'Zona Integritas (WBK/WBBM)', icon: Shield },
+        { path: '/zona-integritas', label: 'Zona Integritas (WBK/WBBM)', icon: Network },
         { path: '/ppid', label: t('nav.ppid'), icon: Heart },
         { path: '/pkrs', label: 'Promosi Kesehatan', icon: Heart },
       ]
@@ -205,7 +208,7 @@ const Header: React.FC = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
                         className="absolute top-full left-0 mt-2 w-64 bg-card rounded-xl shadow-xl border border-border overflow-hidden"
                       >
                         {item.dropdown.map((subItem, idx) => {
@@ -315,14 +318,17 @@ const Header: React.FC = () => {
                       {item.dropdown && (
                         <div className="ml-4 mt-1 space-y-1">
                           {item.dropdown.map((subItem, idx) => (
-                            <Link
+                            <Button
                               key={idx}
-                              to={subItem.path}
-                              onClick={() => setIsMobileMenuOpen(false)}
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => {
+                                setIsMobileMenuOpen(false)
+                              }}
                               className="block px-4 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted"
                             >
                               {subItem.label}
-                            </Link>
+                            </Button>
                           ))}
                         </div>
                       )}

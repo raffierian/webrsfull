@@ -27,7 +27,10 @@ import {
   Plus,
   Trash2,
   ListPlus,
-  Award
+  Award,
+  Network,
+  X,
+  Megaphone
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -36,6 +39,13 @@ const AdminSettings = () => {
   const queryClient = useQueryClient();
 
   // Default states
+  const generateId = () => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return Math.random().toString(36).substring(2, 11);
+  };
+
   const defaultHospitalSettings = {
     name: "RS Soewandhie",
     tagline: "Melayani dengan Sepenuh Hati",
@@ -94,7 +104,21 @@ const AdminSettings = () => {
       enabled: false,
       placeId: ""
     },
-    chatbotMascot: ""
+    chatbotMascot: "",
+    announcement_bar: {
+      enabled: false,
+      text: "",
+      type: "info",
+      link: ""
+    },
+    announcement_popup: {
+      enabled: false,
+      title: "",
+      content: "",
+      image: "",
+      cta_text: "",
+      cta_link: ""
+    }
   };
 
   const defaultNotificationSettings = {
@@ -159,6 +183,11 @@ const AdminSettings = () => {
     }
   };
 
+  const defaultOrgStructure = {
+    leaders: [],
+    divisions: []
+  };
+
   const [hospitalSettings, setHospitalSettings] = useState(defaultHospitalSettings);
   const [profileSettings, setProfileSettings] = useState(defaultProfileSettings);
   const [externalLinks, setExternalLinks] = useState(defaultExternalLinks);
@@ -168,6 +197,7 @@ const AdminSettings = () => {
   const [serviceStandards, setServiceStandards] = useState(defaultServiceStandards);
   const [innovations, setInnovations] = useState(defaultInnovations);
   const [ziSettings, setZISettings] = useState(defaultZISettings);
+  const [orgStructure, setOrgStructure] = useState(defaultOrgStructure);
   const [newAchievement, setNewAchievement] = useState({ year: new Date().getFullYear(), title: "", description: "" });
 
   // New Innovation State
@@ -193,6 +223,7 @@ const AdminSettings = () => {
       if (settingsData.service_standards) setServiceStandards({ ...defaultServiceStandards, ...settingsData.service_standards });
       if (settingsData.innovations) setInnovations(settingsData.innovations.length ? settingsData.innovations : defaultInnovations);
       if (settingsData.zi_settings) setZISettings({ ...defaultZISettings, ...settingsData.zi_settings });
+      if (settingsData.org_structure) setOrgStructure({ ...defaultOrgStructure, ...settingsData.org_structure });
     }
   }, [settingsData]);
 
@@ -219,6 +250,7 @@ const AdminSettings = () => {
     innovations: innovations
   });
   const handleSaveZI = () => updateSettingsMutation.mutate({ zi_settings: ziSettings });
+  const handleSaveOrg = () => updateSettingsMutation.mutate({ org_structure: orgStructure });
 
   const handleAddInnovation = () => {
     if (!newInnovation.title || !newInnovation.description) return;
@@ -290,6 +322,10 @@ const AdminSettings = () => {
             <Palette className="w-4 h-4" />
             <span className="hidden xl:inline">Tampilan</span>
           </TabsTrigger>
+          <TabsTrigger value="announcements" className="flex items-center gap-2 min-w-[100px]">
+            <Bell className="w-4 h-4" />
+            <span className="hidden xl:inline">Pengumuman</span>
+          </TabsTrigger>
           <TabsTrigger value="services" className="flex items-center gap-2 min-w-[100px]">
             <Briefcase className="w-4 h-4" />
             <span className="hidden xl:inline">Layanan</span>
@@ -297,6 +333,10 @@ const AdminSettings = () => {
           <TabsTrigger value="zi" className="flex items-center gap-2 min-w-[100px]">
             <Award className="w-4 h-4" />
             <span className="hidden xl:inline">Zona Integritas</span>
+          </TabsTrigger>
+          <TabsTrigger value="structure" className="flex items-center gap-2 min-w-[100px]">
+            <Network className="w-4 h-4" />
+            <span className="hidden xl:inline">Struktur</span>
           </TabsTrigger>
         </TabsList>
 
@@ -1328,6 +1368,401 @@ const AdminSettings = () => {
             <Button onClick={handleSaveZI} disabled={updateSettingsMutation.isPending}>
               <Save className="w-4 h-4 mr-2" />
               {updateSettingsMutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
+            </Button>
+          </div>
+        </TabsContent>
+
+        {/* Organizational Structure Settings */}
+        <TabsContent value="structure">
+          <div className="grid gap-6">
+            {/* Leadership Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Jajaran Pimpinan</CardTitle>
+                    <CardDescription>Kelola Direktur dan Wakil Direktur</CardDescription>
+                  </div>
+                  <Button
+                    onClick={() => setOrgStructure({
+                      ...orgStructure,
+                      leaders: [...orgStructure.leaders, { id: generateId(), name: "", title: "", image: "", bio: "" }]
+                    })}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Tambah Pimpinan
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {orgStructure.leaders.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
+                    Belum ada data pimpinan.
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {orgStructure.leaders.map((leader: any, idx: number) => (
+                      <div key={leader.id} className="p-4 border rounded-lg bg-card space-y-4">
+                        <div className="flex justify-between items-start">
+                          <h4 className="font-bold text-primary">Pimpinan #{idx + 1}</h4>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive h-8 w-8"
+                            onClick={() => {
+                              const newLeaders = [...orgStructure.leaders];
+                              newLeaders.splice(idx, 1);
+                              setOrgStructure({ ...orgStructure, leaders: newLeaders });
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Nama Lengkap</Label>
+                            <Input
+                              value={leader.name}
+                              onChange={(e) => {
+                                const newLeaders = [...orgStructure.leaders];
+                                newLeaders[idx].name = e.target.value;
+                                setOrgStructure({ ...orgStructure, leaders: newLeaders });
+                              }}
+                              placeholder="Contoh: dr. Mohamad Soewandhie"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Jabatan</Label>
+                            <Input
+                              value={leader.title}
+                              onChange={(e) => {
+                                const newLeaders = [...orgStructure.leaders];
+                                newLeaders[idx].title = e.target.value;
+                                setOrgStructure({ ...orgStructure, leaders: newLeaders });
+                              }}
+                              placeholder="Contoh: Direktur Utama"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>URL Foto</Label>
+                          <div className="flex gap-4 items-center">
+                            <Input
+                              value={leader.image}
+                              onChange={(e) => {
+                                const newLeaders = [...orgStructure.leaders];
+                                newLeaders[idx].image = e.target.value;
+                                setOrgStructure({ ...orgStructure, leaders: newLeaders });
+                              }}
+                              placeholder="https://..."
+                            />
+                            {leader.image && (
+                              <div className="h-10 w-10 rounded-full border bg-white overflow-hidden shrink-0">
+                                <img src={leader.image} alt="Preview" className="w-full h-full object-cover" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Bio Singkat / Tupoksi</Label>
+                          <Textarea
+                            value={leader.bio}
+                            onChange={(e) => {
+                              const newLeaders = [...orgStructure.leaders];
+                              newLeaders[idx].bio = e.target.value;
+                              setOrgStructure({ ...orgStructure, leaders: newLeaders });
+                            }}
+                            placeholder="Jelaskan peran atau biografi singkat..."
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Divisions Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Divisi & Instalasi</CardTitle>
+                    <CardDescription>Kelola struktur departemen di bawah pimpinan</CardDescription>
+                  </div>
+                  <Button
+                    onClick={() => setOrgStructure({
+                      ...orgStructure,
+                      divisions: [...orgStructure.divisions, { id: generateId(), name: "", members: [] }]
+                    })}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Tambah Divisi
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {orgStructure.divisions.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
+                    Belum ada data divisi.
+                  </div>
+                ) : (
+                  <div className="space-y-8">
+                    {orgStructure.divisions.map((division: any, divIdx: number) => (
+                      <div key={division.id} className="p-6 border-2 border-slate-100 rounded-xl bg-card space-y-6">
+                        <div className="flex justify-between items-center pb-4 border-b">
+                          <div className="flex-1 max-w-sm">
+                            <Label className="mb-2 block">Nama Divisi</Label>
+                            <Input
+                              className="font-bold text-lg"
+                              value={division.name}
+                              onChange={(e) => {
+                                const newDivs = [...orgStructure.divisions];
+                                newDivs[divIdx].name = e.target.value;
+                                setOrgStructure({ ...orgStructure, divisions: newDivs });
+                              }}
+                              placeholder="Contoh: Bidang Pelayanan Medik"
+                            />
+                          </div>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => {
+                              const newDivs = [...orgStructure.divisions];
+                              newDivs.splice(divIdx, 1);
+                              setOrgStructure({ ...orgStructure, divisions: newDivs });
+                            }}
+                          >
+                            Hapus Divisi
+                          </Button>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Anggota Divisi</Label>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => {
+                                const newDivs = [...orgStructure.divisions];
+                                newDivs[divIdx].members.push({ name: "", title: "" });
+                                setOrgStructure({ ...orgStructure, divisions: newDivs });
+                              }}
+                            >
+                              <Plus className="w-3 h-3 mr-1" /> Tambah Anggota
+                            </Button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {division.members.map((member: any, memIdx: number) => (
+                              <div key={memIdx} className="flex gap-2 items-end p-3 bg-muted/40 rounded-lg">
+                                <div className="flex-1 space-y-2">
+                                  <Input
+                                    className="h-8 text-sm"
+                                    value={member.name}
+                                    onChange={(e) => {
+                                      const newDivs = [...orgStructure.divisions];
+                                      newDivs[divIdx].members[memIdx].name = e.target.value;
+                                      setOrgStructure({ ...orgStructure, divisions: newDivs });
+                                    }}
+                                    placeholder="Nama Anggota"
+                                  />
+                                  <Input
+                                    className="h-8 text-xs italic"
+                                    value={member.title}
+                                    onChange={(e) => {
+                                      const newDivs = [...orgStructure.divisions];
+                                      newDivs[divIdx].members[memIdx].title = e.target.value;
+                                      setOrgStructure({ ...orgStructure, divisions: newDivs });
+                                    }}
+                                    placeholder="Jabatan"
+                                  />
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-destructive"
+                                  onClick={() => {
+                                    const newDivs = [...orgStructure.divisions];
+                                    newDivs[divIdx].members.splice(memIdx, 1);
+                                    setOrgStructure({ ...orgStructure, divisions: newDivs });
+                                  }}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Button onClick={handleSaveOrg} disabled={updateSettingsMutation.isPending} className="w-full">
+              <Save className="w-4 h-4 mr-2" />
+              {updateSettingsMutation.isPending ? 'Menyimpan...' : 'Simpan Struktur Organisasi'}
+            </Button>
+          </div>
+        </TabsContent>
+
+        {/* Announcements Tab */}
+        <TabsContent value="announcements" className="space-y-6">
+          <div className="grid lg:grid-cols-2 gap-6">
+            {/* Announcement Bar Settings */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Megaphone className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle>Announcement Bar</CardTitle>
+                      <CardDescription>Bar informasi di atas navigasi utama</CardDescription>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={externalLinks.announcement_bar?.enabled}
+                    onCheckedChange={(checked) => setExternalLinks({
+                      ...externalLinks,
+                      announcement_bar: { ...externalLinks.announcement_bar, enabled: checked }
+                    })}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Teks Pengumuman</Label>
+                  <Input
+                    value={externalLinks.announcement_bar?.text}
+                    onChange={(e) => setExternalLinks({
+                      ...externalLinks,
+                      announcement_bar: { ...externalLinks.announcement_bar, text: e.target.value }
+                    })}
+                    placeholder="Contoh: Layanan poliklinik tetap buka selama libur nasional"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tipe Bar</Label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    value={externalLinks.announcement_bar?.type}
+                    onChange={(e) => setExternalLinks({
+                      ...externalLinks,
+                      announcement_bar: { ...externalLinks.announcement_bar, type: e.target.value as 'info' | 'alert' }
+                    })}
+                  >
+                    <option value="info">Informasi (Biru/Hijau)</option>
+                    <option value="alert">Peringatan (Merah)</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Link Tujuan (Opsional)</Label>
+                  <Input
+                    value={externalLinks.announcement_bar?.link}
+                    onChange={(e) => setExternalLinks({
+                      ...externalLinks,
+                      announcement_bar: { ...externalLinks.announcement_bar, link: e.target.value }
+                    })}
+                    placeholder="https://..."
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Announcement Popup Settings */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+                      <Bell className="w-5 h-5 text-secondary" />
+                    </div>
+                    <div>
+                      <CardTitle>Global Popup</CardTitle>
+                      <CardDescription>Modal pop-up saat pertama kali kunjungan</CardDescription>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={externalLinks.announcement_popup?.enabled}
+                    onCheckedChange={(checked) => setExternalLinks({
+                      ...externalLinks,
+                      announcement_popup: { ...externalLinks.announcement_popup, enabled: checked }
+                    })}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Judul Popup</Label>
+                  <Input
+                    value={externalLinks.announcement_popup?.title}
+                    onChange={(e) => setExternalLinks({
+                      ...externalLinks,
+                      announcement_popup: { ...externalLinks.announcement_popup, title: e.target.value }
+                    })}
+                    placeholder="Judul Pengumuman"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Konten / Deskripsi</Label>
+                  <Textarea
+                    value={externalLinks.announcement_popup?.content}
+                    onChange={(e) => setExternalLinks({
+                      ...externalLinks,
+                      announcement_popup: { ...externalLinks.announcement_popup, content: e.target.value }
+                    })}
+                    className="min-h-[100px]"
+                    placeholder="Isi detail pengumuman..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>URL Gambar (Opsional)</Label>
+                  <Input
+                    value={externalLinks.announcement_popup?.image}
+                    onChange={(e) => setExternalLinks({
+                      ...externalLinks,
+                      announcement_popup: { ...externalLinks.announcement_popup, image: e.target.value }
+                    })}
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Teks Tombol (CTA)</Label>
+                    <Input
+                      value={externalLinks.announcement_popup?.cta_text}
+                      onChange={(e) => setExternalLinks({
+                        ...externalLinks,
+                        announcement_popup: { ...externalLinks.announcement_popup, cta_text: e.target.value }
+                      })}
+                      placeholder="Contoh: Lihat Detail"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Link Tombol</Label>
+                    <Input
+                      value={externalLinks.announcement_popup?.cta_link}
+                      onChange={(e) => setExternalLinks({
+                        ...externalLinks,
+                        announcement_popup: { ...externalLinks.announcement_popup, cta_link: e.target.value }
+                      })}
+                      placeholder="https://..."
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex justify-end p-4 bg-background/50 backdrop-blur sticky bottom-0 border-t z-10 rounded-xl">
+            <Button onClick={() => updateSettingsMutation.mutate({ external_links: externalLinks })} className="gap-2" disabled={updateSettingsMutation.isPending}>
+              <Save className="w-4 h-4" />
+              {updateSettingsMutation.isPending ? 'Menyimpan...' : 'Simpan Pengumuman'}
             </Button>
           </div>
         </TabsContent>
