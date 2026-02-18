@@ -4,6 +4,7 @@ import * as knowledgeController from '../controllers/knowledge.controller.js';
 import * as doctorManagementController from '../controllers/doctor-management.controller.js';
 import { verifyToken, requireAdmin, requireRole, requireMenuAccess } from '../middleware/auth.js';
 import { excelUpload } from '../middleware/upload.js';
+import { validateFileType } from '../middleware/fileValidation.js';
 
 const router = express.Router();
 
@@ -40,7 +41,7 @@ router.put('/appointments/:id', requireAppointments, adminController.updateAppoi
 // Doctors
 const requireDoctors = requireMenuAccess('/admin/doctors');
 router.post('/doctors', requireDoctors, adminController.createDoctor);
-router.post('/doctors/import', excelUpload.single('file'), requireDoctors, adminController.importDoctors);
+router.post('/doctors/import', excelUpload.single('file'), validateFileType, requireDoctors, adminController.importDoctors);
 router.put('/doctors/:id', requireDoctors, adminController.updateDoctor);
 router.delete('/doctors/:id', requireDoctors, adminController.deleteDoctor);
 
@@ -78,7 +79,7 @@ router.delete('/services/:id', requireServices, adminController.deleteService);
 const requireTariffs = requireMenuAccess('/admin/tariffs');
 router.get('/tariffs', requireTariffs, adminController.getAllTariffs);
 router.post('/tariffs', requireTariffs, adminController.createTariff);
-router.post('/tariffs/import', excelUpload.single('file'), requireTariffs, adminController.importTariffs);
+router.post('/tariffs/import', excelUpload.single('file'), validateFileType, requireTariffs, adminController.importTariffs);
 router.put('/tariffs/:id', requireTariffs, adminController.updateTariff);
 router.delete('/tariffs/:id', requireTariffs, adminController.deleteTariff);
 

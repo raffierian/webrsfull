@@ -14,43 +14,10 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, Save, Shield } from "lucide-react";
-import {
-    LayoutDashboard,
-    Calendar,
-    FileText,
-    Users,
-    Settings,
-    Building2,
-    DollarSign,
-    MessageSquare,
-    FolderOpen,
-    GraduationCap,
-    Megaphone,
-    Star,
-    Briefcase,
-    Globe
-} from "lucide-react";
+import { ADMIN_MENU_ITEMS } from "@/constants/admin-menus";
 
 // Define menu items locally to match AdminLayout
-// Ideally this should be shared, but for now we duplicate
-const allMenuItems = [
-    { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/admin/content", label: "Konten", icon: Globe },
-    { path: "/admin/appointments", label: "Janji Temu", icon: Calendar },
-    { path: "/admin/articles", label: "Artikel", icon: FileText },
-    { path: "/admin/services", label: "Layanan", icon: Building2 },
-    { path: "/admin/doctors", label: "Dokter", icon: Users },
-    { path: "/admin/tariffs", label: "Tarif", icon: DollarSign },
-    { path: "/admin/inpatient-rooms", label: "Rawat Inap", icon: Building2 },
-    { path: "/admin/complaints", label: "Pengaduan", icon: MessageSquare },
-    { path: "/admin/ppid", label: "PPID", icon: FolderOpen },
-    { path: "/admin/training", label: "Diklat", icon: GraduationCap },
-    { path: "/admin/pkrs", label: "PKRS", icon: Megaphone },
-    { path: "/admin/survey", label: "Survei SKM", icon: Star },
-    { path: "/admin/careers", label: "Karir", icon: Briefcase },
-    { path: "/admin/users", label: "Pengguna", icon: Users },
-    { path: "/admin/settings", label: "Pengaturan", icon: Settings },
-];
+const allMenuItems = ADMIN_MENU_ITEMS;
 
 const AdminRoleMenus = () => {
     const [selectedRole, setSelectedRole] = useState<string>("ADMIN");

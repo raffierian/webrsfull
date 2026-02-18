@@ -2,6 +2,7 @@ import prisma from '../config/database.js';
 import { successResponse, errorResponse, paginatedResponse } from '../utils/response.js';
 import bcrypt from 'bcryptjs';
 import xlsx from 'xlsx';
+import { sanitizeContent } from '../utils/security.utils.js';
 
 // ============================================
 // DASHBOARD ANALYTICS
@@ -499,7 +500,7 @@ export const createArticle = async (req, res, next) => {
             data: {
                 title,
                 slug,
-                content,
+                content: sanitizeContent(content),
                 // excerpt, // Removed: Field does not exist in schema
                 authorId,
                 tags: tagsToSave, // Fixed: category -> tags array
@@ -523,7 +524,7 @@ export const updateArticle = async (req, res, next) => {
         const dataToUpdate = {};
         if (title) dataToUpdate.title = title;
         if (slug) dataToUpdate.slug = slug;
-        if (content) dataToUpdate.content = content;
+        if (content) dataToUpdate.content = sanitizeContent(content);
         if (imageUrl) dataToUpdate.thumbnailUrl = imageUrl;
         if (tags) dataToUpdate.tags = tags;
         if (category && !tags) dataToUpdate.tags = [category];
