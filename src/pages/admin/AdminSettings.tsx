@@ -88,7 +88,8 @@ const AdminSettings = () => {
       patients: "50,000+",
       doctors: "120+",
       experience: "25+",
-      satisfaction: "98%"
+      satisfaction: "98%",
+      beds: "500+"
     }
   };
 
@@ -622,6 +623,14 @@ const AdminSettings = () => {
                     value={profileSettings.stats?.experience || "25+"}
                     onChange={(e) => setProfileSettings({ ...profileSettings, stats: { ...profileSettings.stats, experience: e.target.value } })}
                     placeholder="contoh: 25+"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tempat Tidur</Label>
+                  <Input
+                    value={profileSettings.stats?.beds || "500+"}
+                    onChange={(e) => setProfileSettings({ ...profileSettings, stats: { ...profileSettings.stats, beds: e.target.value } })}
+                    placeholder="contoh: 500+"
                   />
                 </div>
                 <div className="space-y-2">

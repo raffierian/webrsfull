@@ -51,6 +51,7 @@ export interface HospitalSettings {
             doctors: string;
             experience: string;
             satisfaction: string;
+            beds: string;
         };
     };
     service_standards?: {

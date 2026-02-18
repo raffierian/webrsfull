@@ -77,15 +77,15 @@ const ProfilePage: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">25+</div>
+                  <div className="text-3xl font-bold text-primary">{settings?.profile_settings?.stats?.experience || "25+"}</div>
                   <div className="text-sm text-muted-foreground">Tahun Pengalaman</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">500+</div>
+                  <div className="text-3xl font-bold text-primary">{settings?.profile_settings?.stats?.beds || "500+"}</div>
                   <div className="text-sm text-muted-foreground">Tempat Tidur</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-primary">50K+</div>
+                  <div className="text-3xl font-bold text-primary">{settings?.profile_settings?.stats?.patients || "50K+"}</div>
                   <div className="text-sm text-muted-foreground">Pasien/Tahun</div>
                 </div>
               </div>
@@ -97,8 +97,8 @@ const ProfilePage: React.FC = () => {
               viewport={{ once: true }}
             >
               <img
-                src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=600&h=500&fit=crop"
-                alt={settings?.name || "RS Harapan Sehat"}
+                src={settings?.profile_settings?.aboutImages?.[0] || "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=600&h=500&fit=crop"}
+                alt={settings?.name || "RS Soewandhie"}
                 className="rounded-2xl shadow-xl w-full"
               />
             </motion.div>
