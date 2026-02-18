@@ -351,7 +351,7 @@ const Index: React.FC = () => {
                 <span className="text-primary">{settings?.name || "RS Harapan Sehat"}?</span>
               </h2>
               <p className="text-muted-foreground mb-8 leading-relaxed">
-                {settings?.profile_settings?.about || "Selama lebih dari 25 tahun, RS Harapan Sehat telah menjadi pilihan utama masyarakat dalam mendapatkan pelayanan kesehatan berkualitas. Dengan tenaga medis profesional dan fasilitas modern, kami berkomitmen untuk memberikan pelayanan terbaik."}
+                {settings?.profile_settings?.about || `Selama bertahun-tahun, ${settings?.name || "RS Soewandhie"} telah menjadi pilihan utama masyarakat dalam mendapatkan pelayanan kesehatan berkualitas. Dengan tenaga medis profesional dan fasilitas modern, kami berkomitmen untuk memberikan pelayanan terbaik.`}
               </p>
 
               <div className="space-y-4 mb-8">
@@ -428,7 +428,7 @@ const Index: React.FC = () => {
                 viewport={{ once: true }}
                 className="absolute -bottom-6 -left-6 bg-primary text-white rounded-2xl p-6 shadow-xl"
               >
-                <div className="text-4xl font-bold">25+</div>
+                <div className="text-4xl font-bold">{settings?.profile_settings?.stats?.experience || "25+"}</div>
                 <div className="text-sm text-white/80">Tahun Pengalaman</div>
               </motion.div>
             </motion.div>
