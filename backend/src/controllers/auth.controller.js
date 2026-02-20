@@ -137,6 +137,13 @@ export const login = async (req, res, next) => {
                     data: { otpCode, otpExpires }
                 });
 
+                // Send OTP synchronously with error check
+                const emailSent = await sendOTP(user.email, otpCode);
+
+                if (!emailSent) {
+                    return errorResponse(res, 'Gagal mengirim email verifikasi. Silakan coba lagi nanti atau hubungi nomor darurat.', 500);
+                }
+
                 return successResponse(res, {
                     twoFactorRequired: true,
                     twoFactorType: 'EMAIL',
@@ -338,7 +345,12 @@ export const resendOTP = async (req, res, next) => {
             data: { otpCode, otpExpires }
         });
 
-        await sendOTP(user.email, otpCode);
+        // Send OTP synchronously with error check
+        const emailSent = await sendOTP(user.email, otpCode);
+
+        if (!emailSent) {
+            return errorResponse(res, 'Gagal mengirim ulang kode verifikasi. Masalah pada layanan email.', 500);
+        }
 
         return successResponse(res, null, 'Verification code resent');
     } catch (error) {
@@ -481,8 +493,12 @@ export const forgotPassword = async (req, res, next) => {
             data: { otpCode, otpExpires }
         });
 
-        // Send OTP via email
-        await sendOTP(user.email, otpCode);
+        // Send OTP via email synchronously with error check
+        const emailSent = await sendOTP(user.email, otpCode);
+
+        if (!emailSent) {
+            return errorResponse(res, 'Gagal mengirim kode verifikasi ke email Anda. Silakan coba lagi nanti.', 500);
+        }
 
         return successResponse(res, { email }, 'Kode verifikasi telah dikirim ke email Anda.');
     } catch (error) {
