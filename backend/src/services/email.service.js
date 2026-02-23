@@ -1,38 +1,96 @@
+import { google } from 'googleapis';
 import nodemailer from 'nodemailer';
 import { config } from '../config/index.js';
 
-// Create verify transport
-const createTransporter = () => {
-    // Check if SMTP config exists
-    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-        console.warn('⚠️ SMTP credentials missing. Emails will NOT be sent.');
-        return null;
-    }
+// =====================================================
+// Mode 1: Gmail REST API (Diutamakan - tidak butuh port SMTP)
+// =====================================================
+const createGmailAPIClient = () => {
+    const clientId = process.env.GMAIL_CLIENT_ID;
+    const clientSecret = process.env.GMAIL_CLIENT_SECRET;
+    const refreshToken = process.env.GMAIL_REFRESH_TOKEN;
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail', // Use 'gmail' for simplicity if using Gmail, or use host/port
+    if (!clientId || !clientSecret || !refreshToken) return null;
+
+    const oAuth2Client = new google.auth.OAuth2(
+        clientId,
+        clientSecret,
+        'https://developers.google.com/oauthplayground'
+    );
+    oAuth2Client.setCredentials({ refresh_token: refreshToken });
+
+    return google.gmail({ version: 'v1', auth: oAuth2Client });
+};
+
+const sendViaGmailAPI = async ({ to, subject, html }) => {
+    const gmail = createGmailAPIClient();
+    if (!gmail) return null; // null = tidak tersedia, coba fallback
+
+    const fromName = process.env.SMTP_FROM_NAME || 'RS Soewandhie';
+    const fromEmail = process.env.SMTP_USER;
+
+    const messageParts = [
+        `From: "${fromName}" <${fromEmail}>`,
+        `To: ${to}`,
+        `Subject: ${subject}`,
+        'MIME-Version: 1.0',
+        'Content-Type: text/html; charset=utf-8',
+        '',
+        html
+    ];
+
+    const rawMessage = Buffer.from(messageParts.join('\n')).toString('base64url');
+
+    const result = await gmail.users.messages.send({
+        userId: 'me',
+        requestBody: { raw: rawMessage }
+    });
+
+    return result.data.id; // Kembalikan message ID
+};
+
+// =====================================================
+// Mode 2: SMTP Nodemailer (Fallback)
+// =====================================================
+const createSMTPTransporter = () => {
+    if (!process.env.SMTP_USER || !process.env.SMTP_PASS) return null;
+
+    return nodemailer.createTransport({
         host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: process.env.SMTP_PORT || 587,
-        secure: process.env.SMTP_PORT == '465', // true jika port 465
+        port: parseInt(process.env.SMTP_PORT) || 587,
+        secure: process.env.SMTP_PORT == '465',
         auth: {
             user: process.env.SMTP_USER,
             pass: process.env.SMTP_PASS,
         },
-        connectionTimeout: 5000, // 5 seconds
-        greetingTimeout: 5000,   // 5 seconds
-        socketTimeout: 10000,    // 10 seconds
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 10000,
     });
-
-    return transporter;
 };
 
-// Send email
+// =====================================================
+// sendEmail - otomatis pilih metode terbaik
+// =====================================================
 export const sendEmail = async ({ to, subject, html }) => {
     try {
-        const transporter = createTransporter();
+        // Coba Gmail REST API dulu
+        if (process.env.GMAIL_REFRESH_TOKEN) {
+            try {
+                const msgId = await sendViaGmailAPI({ to, subject, html });
+                if (msgId) {
+                    console.log(`✅ Email sent via Gmail API to ${to} (ID: ${msgId})`);
+                    return true;
+                }
+            } catch (apiErr) {
+                console.error('Gmail API error, trying SMTP fallback:', apiErr.message);
+            }
+        }
 
+        // Fallback: SMTP
+        const transporter = createSMTPTransporter();
         if (!transporter) {
-            console.log(`[MOCK EMAIL] To: ${to} | Subject: ${subject}`);
+            console.warn(`[MOCK EMAIL] To: ${to} | Subject: ${subject}`);
             return false;
         }
 
@@ -43,13 +101,14 @@ export const sendEmail = async ({ to, subject, html }) => {
             html,
         });
 
-        console.log('Message sent: %s', info.messageId);
+        console.log(`✅ Email sent via SMTP to ${to} (ID: ${info.messageId})`);
         return true;
     } catch (error) {
         console.error('Error sending email:', error);
         return false;
     }
 };
+
 
 // Templates
 export const emailTemplates = {
