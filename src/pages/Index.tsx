@@ -267,6 +267,58 @@ const Index: React.FC = () => {
         </div>
       </section>
 
+      {/* Medical Tourism Highlight */}
+      <section className="py-16 bg-white relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="bg-gradient-to-r from-teal-900 to-teal-800 rounded-[2.5rem] overflow-hidden shadow-2xl relative"
+          >
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+            </div>
+
+            <div className="flex flex-col lg:flex-row items-center">
+              <div className="w-full lg:w-1/2 p-10 md:p-16 relative z-10">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-teal-400/10 border border-teal-400/20 text-teal-300 text-xs font-bold uppercase tracking-[0.2em] mb-8">
+                  <Globe className="w-4 h-4" /> Layanan Eksklusif
+                </span>
+
+                <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-[1.2]">
+                  Mulai Perjalanan<br />
+                  <span className="text-teal-400">Wisata Medis</span> Anda
+                </h2>
+
+                <p className="text-teal-50 mb-8 max-w-lg leading-relaxed text-lg">
+                  Kombinasi layanan kesehatan berkualitas internasional dan kenyamanan berwisata di Surabaya, khusus dirancang untuk pasien luar kota dan mancanegara.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link to="/wisata-medis">
+                    <Button size="lg" className="w-full sm:w-auto h-14 px-8 rounded-full bg-teal-500 hover:bg-teal-400 text-white font-bold tracking-wide transition-all shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_30px_rgba(20,184,166,0.5)]">
+                      Lihat Paket & Fasilitas
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+
+              <div className="w-full lg:w-1/2 relative h-64 lg:h-auto min-h-[400px]">
+                <div className="absolute inset-0 bg-gradient-to-r from-teal-800 to-transparent z-10 hidden lg:block" />
+                <div className="absolute inset-0 bg-gradient-to-t from-teal-800 to-transparent z-10 lg:hidden" />
+                <img
+                  src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=1000&auto=format&fit=crop"
+                  alt="Medical Tourism RS Soewandhie"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       <section className="py-16 md:py-24 bg-gradient-to-b from-muted/30 to-white">
         <div className="container mx-auto px-4">
           <motion.div
@@ -579,7 +631,7 @@ const Index: React.FC = () => {
         )
       }
 
-      {/* News Carousel */}
+      {/* NewsCarousel */}
       <NewsCarousel />
 
       {/* CTA Section */}

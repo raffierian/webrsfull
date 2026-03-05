@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { DEFAULT_SERVICE_PAGES } from '@/hooks/useSettings';
 import { motion } from 'framer-motion';
 import {
   Stethoscope,
@@ -37,7 +38,7 @@ const ServiceDetailPage: React.FC = () => {
   };
 
   const service = useMemo(() => {
-    if (!settings?.service_pages || !type) return null;
+    if (!type) return null;
 
     // Map Indonesian slugs to internal keys
     const slugMap: Record<string, string> = {
@@ -57,7 +58,12 @@ const ServiceDetailPage: React.FC = () => {
     };
 
     const key = slugMap[type] || type;
-    return settings.service_pages[key as keyof typeof settings.service_pages];
+    // Use settings data if available, otherwise fall back to DEFAULT_SERVICE_PAGES
+    return (
+      settings?.service_pages?.[key as keyof typeof settings.service_pages] ||
+      DEFAULT_SERVICE_PAGES[key] ||
+      null
+    );
   }, [settings, type]);
 
   if (isLoading) {

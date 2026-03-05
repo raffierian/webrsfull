@@ -114,6 +114,67 @@ export interface HospitalSettings {
         cta_text?: string;
         cta_link?: string;
     };
+    medical_tourism?: {
+        hero?: {
+            title: string;
+            subtitle: string;
+            image: string;
+        };
+        whyUs?: Array<{
+            id: string;
+            title: string;
+            description: string;
+            icon: string;
+        }>;
+        centersOfExcellence?: Array<{
+            id: string;
+            title: string;
+            description: string;
+            image: string;
+            features: string[];
+        }>;
+        packages?: Array<{
+            id: string;
+            title: string;
+            price: string;
+            description: string;
+            image: string;
+            inclusions: string[];
+        }>;
+        process?: Array<{
+            id: string;
+            step: number;
+            title: string;
+            description: string;
+            icon: string;
+        }>;
+        testimonials?: Array<{
+            id: string;
+            name: string;
+            country: string;
+            text: string;
+            rating: number;
+            image?: string;
+        }>;
+        facilities?: Array<{
+            id: string;
+            title: string;
+            image: string;
+            description?: string;
+        }>;
+        faq?: Array<{
+            id: string;
+            question: string;
+            answer: string;
+        }>;
+        contact?: {
+            title: string;
+            description: string;
+            email: string;
+            phone: string;
+            whatsapp: string;
+        };
+    };
 }
 
 export interface ServicePageContent {
@@ -135,7 +196,7 @@ export interface ServicePageContent {
 
 
 
-const DEFAULT_SERVICE_PAGES: Record<string, ServicePageContent> = {
+export const DEFAULT_SERVICE_PAGES: Record<string, ServicePageContent> = {
     outpatient: {
         title: 'Rawat Jalan',
         description: 'Layanan konsultasi dan pemeriksaan kesehatan tanpa rawat inap',
@@ -283,7 +344,8 @@ export const useSettings = () => {
                     enabled: false,
                     title: "",
                     content: ""
-                }
+                },
+                medical_tourism: result?.medical_tourism || {}
             } as HospitalSettings;
 
             // Persist to cache
@@ -323,6 +385,15 @@ export const useSettings = () => {
             enabled: false,
             title: "",
             content: ""
+        },
+        medical_tourism: {
+            whyUs: [],
+            centersOfExcellence: [],
+            packages: [],
+            process: [],
+            testimonials: [],
+            facilities: [],
+            faq: []
         }
     };
 

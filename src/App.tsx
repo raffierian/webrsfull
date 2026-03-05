@@ -57,6 +57,7 @@ import AdminRoleMenus from "./pages/admin/AdminRoleMenus";
 import AdminRoles from "./pages/admin/AdminRoles";
 import AdminProfile from "./pages/admin/AdminProfile";
 import AdminKnowledge from "./pages/admin/AdminKnowledge";
+import AdminMedicalTourism from "./pages/admin/AdminMedicalTourism";
 import HealthPromoPage from "./pages/HealthPromoPage";
 import HealthToolsPage from "./pages/HealthToolsPage";
 import BMICalculatorPage from "./pages/tools/BMICalculatorPage";
@@ -65,6 +66,7 @@ import PregnancyCalculatorPage from "./pages/tools/PregnancyCalculatorPage";
 import IdealWeightCalculatorPage from "./pages/tools/IdealWeightCalculatorPage";
 import WaterIntakeCalculatorPage from "./pages/tools/WaterIntakeCalculatorPage";
 import HeartRateCalculatorPage from "./pages/tools/HeartRateCalculatorPage";
+import MedicalTourismPage from "./pages/MedicalTourismPage";
 import PatientLogin from "./pages/patient/auth/PatientLogin";
 import PatientRegister from "./pages/patient/auth/PatientRegister";
 import PatientDashboard from "./pages/patient/PatientDashboard";
@@ -135,6 +137,7 @@ const App = () => {
                 <Route path="/pkrs" element={<HealthPromoPage />} />
                 <Route path="/ppid" element={<PPIDPage />} />
                 <Route path="/zona-integritas" element={<ZonaIntegritasPage />} />
+                <Route path="/wisata-medis" element={<MedicalTourismPage />} />
                 <Route path="/rawat-inap" element={<InpatientInfoPage />} />
                 <Route path="/tools-kesehatan" element={<HealthToolsPage />} />
                 <Route path="/tools-kesehatan/bmi" element={<BMICalculatorPage />} />
@@ -194,6 +197,7 @@ const App = () => {
                   <Route path="roles" element={<AdminRoles />} />
                   <Route path="profile" element={<AdminProfile />} />
                   <Route path="knowledge" element={<AdminKnowledge />} />
+                  <Route path="medical-tourism" element={<AdminMedicalTourism />} />
                 </Route>
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

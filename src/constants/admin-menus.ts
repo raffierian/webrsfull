@@ -16,7 +16,8 @@ import {
     Star,
     Briefcase,
     Shield,
-    Settings
+    Settings,
+    Plane
 } from "lucide-react";
 
 export interface AdminMenuItem {
@@ -43,6 +44,7 @@ export const ADMIN_MENU_ITEMS: AdminMenuItem[] = [
     { path: "/admin/pkrs", label: "PKRS", icon: Megaphone },
     { path: "/admin/survey", label: "Survei SKM", icon: Star },
     { path: "/admin/careers", label: "Karir", icon: Briefcase },
+    { path: "/admin/medical-tourism", label: "Wisata Medis", icon: Plane },
     { path: "/admin/users", label: "Pengguna", icon: Users },
     { path: "/admin/roles", label: "Manajemen Role", icon: Shield },
     { path: "/admin/role-menus", label: "Akses Menu", icon: Shield },
