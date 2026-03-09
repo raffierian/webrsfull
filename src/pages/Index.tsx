@@ -121,6 +121,7 @@ const Index: React.FC = () => {
     image: doc.photoUrl || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=300',
     experienceYears: doc.experienceYears,
     rating: doc.rating,
+    reviewCount: doc._count?.reviews || 0,
     isAvailable: doc.isAvailable,
   })) : [];
 
@@ -543,10 +544,13 @@ const Index: React.FC = () => {
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-60" />
 
                       {/* Floating Rating Badge - Signature Style */}
-                      {doctor.rating > 0 && (
+                      {(doctor.rating > 0 || doctor.reviewCount > 0) && (
                         <div className="absolute top-6 right-6 bg-black/40 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-2xl flex items-center gap-2 shadow-2xl">
                           <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                          <span className="text-sm font-black text-white">{Number(doctor.rating).toFixed(1)}</span>
+                          <div className="flex flex-col leading-none">
+                            <span className="text-sm font-black text-white">{doctor.rating ? Number(doctor.rating).toFixed(1) : '0.0'}</span>
+                            <span className="text-[8px] text-white/60 font-medium">({doctor.reviewCount} ulasan)</span>
+                          </div>
                         </div>
                       )}
 

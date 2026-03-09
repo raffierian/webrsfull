@@ -58,6 +58,9 @@ export const getAllDoctors = async (req, res, next) => {
                     licenseNumber: true,
                     education: true,
                     schedule: true,
+                    _count: {
+                        select: { reviews: true }
+                    }
                 },
             }),
             prisma.doctor.count({ where }),

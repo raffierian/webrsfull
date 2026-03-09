@@ -2,6 +2,7 @@ import express from 'express';
 import * as adminController from '../controllers/admin.controller.js';
 import * as knowledgeController from '../controllers/knowledge.controller.js';
 import * as doctorManagementController from '../controllers/doctor-management.controller.js';
+import * as reviewsController from '../controllers/reviews.controller.js';
 import { verifyToken, requireAdmin, requireRole, requireMenuAccess } from '../middleware/auth.js';
 import { excelUpload } from '../middleware/upload.js';
 import { validateFileType } from '../middleware/fileValidation.js';
@@ -98,6 +99,11 @@ router.get('/doctor-accounts', requireDoctorManagement, doctorManagementControll
 router.post('/doctor-accounts', requireDoctorManagement, doctorManagementController.createDoctor);
 router.get('/doctor-accounts/:id', requireDoctorManagement, doctorManagementController.getDoctorById);
 router.put('/doctor-accounts/:id', requireDoctorManagement, doctorManagementController.updateDoctor);
+
+// Reviews Management
+const requireReviews = requireMenuAccess('/admin/dashboard'); // Use dashboard access for now if no specific menu
+router.get('/reviews', requireReviews, reviewsController.getAllReviewsAdmin);
+router.delete('/reviews/:id', requireReviews, reviewsController.deleteReviewAdmin);
 router.put('/doctor-accounts/:id/toggle-status', requireDoctorManagement, doctorManagementController.toggleDoctorStatus);
 router.delete('/doctor-accounts/:id', requireDoctorManagement, doctorManagementController.deleteDoctor);
 

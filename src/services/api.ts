@@ -211,6 +211,10 @@ export const api = {
         getStats: (period: string = 'month') => fetcher<any>(`/surveys/stats?period=${period}`),
         submit: (data: any) => fetcher<any>('/surveys', { method: 'POST', body: JSON.stringify(data), requireAuth: false }),
     },
+    reviews: {
+        getAllAdmin: (params?: string) => fetcher<any>(`/admin/reviews${params ? `?${params}` : ''}`),
+        delete: (id: string) => fetcher<any>(`/admin/reviews/${id}`, { method: 'DELETE' }),
+    },
 
     // Admin Users Management
     adminUsers: {

@@ -174,8 +174,8 @@ const DoctorsPage: React.FC = () => {
                                                     </h3>
                                                     <div className="flex items-center gap-1 text-yellow-500 mb-3 text-sm">
                                                         <Star className="w-4 h-4 fill-current" />
-                                                        <span className="font-medium">{doctor.rating || '5.0'}</span>
-                                                        <span className="text-muted-foreground ml-1">({Math.floor(Math.random() * 50) + 10} ulasan)</span>
+                                                        <span className="font-medium">{doctor.rating ? Number(doctor.rating).toFixed(1) : '0.0'}</span>
+                                                        <span className="text-muted-foreground ml-1">({doctor._count?.reviews || 0} ulasan)</span>
                                                     </div>
 
                                                     <div className="mt-auto pt-4 space-y-3">

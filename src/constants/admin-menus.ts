@@ -17,7 +17,8 @@ import {
     Briefcase,
     Shield,
     Settings,
-    Plane
+    Plane,
+    MessageCircle
 } from "lucide-react";
 
 export interface AdminMenuItem {
@@ -39,6 +40,7 @@ export const ADMIN_MENU_ITEMS: AdminMenuItem[] = [
     { path: "/admin/tariffs", label: "Tarif", icon: DollarSign },
     { path: "/admin/inpatient-rooms", label: "Rawat Inap", icon: Building2 },
     { path: "/admin/complaints", label: "Pengaduan", icon: MessageSquare },
+    { path: "/admin/reviews", label: "Ulasan", icon: MessageCircle },
     { path: "/admin/ppid", label: "PPID", icon: FolderOpen },
     { path: "/admin/training", label: "Diklat", icon: GraduationCap },
     { path: "/admin/pkrs", label: "PKRS", icon: Megaphone },
