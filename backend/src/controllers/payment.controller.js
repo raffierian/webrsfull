@@ -455,3 +455,31 @@ export const getAllPayments = async (req, res) => {
         return errorResponse(res, error.message, 500);
     }
 };
+
+export const deletePayment = async (req, res) => {
+    try {
+        const { paymentId } = req.params;
+
+        const payment = await prisma.payment.findUnique({
+            where: { id: paymentId }
+        });
+
+        if (!payment) {
+            return errorResponse(res, 'Payment not found', 404);
+        }
+
+        // Only Admin/SuperAdmin can delete
+        if (!['ADMIN', 'SUPER_ADMIN'].includes(req.user.role)) {
+            return errorResponse(res, 'Unauthorized', 403);
+        }
+
+        await prisma.payment.delete({
+            where: { id: paymentId }
+        });
+
+        return successResponse(res, null, 'Payment deleted successfully');
+    } catch (error) {
+        return errorResponse(res, error.message, 500);
+    }
+};
+

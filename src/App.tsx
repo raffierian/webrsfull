@@ -59,6 +59,7 @@ import AdminProfile from "./pages/admin/AdminProfile";
 import AdminKnowledge from "./pages/admin/AdminKnowledge";
 import AdminMedicalTourism from "./pages/admin/AdminMedicalTourism";
 import AdminReviews from "./pages/admin/AdminReviews";
+import AdminConsultations from "./pages/admin/AdminConsultations";
 import HealthPromoPage from "./pages/HealthPromoPage";
 import HealthToolsPage from "./pages/HealthToolsPage";
 import BMICalculatorPage from "./pages/tools/BMICalculatorPage";
@@ -177,6 +178,7 @@ const App = () => {
                 <Route path="/admin" element={<AdminLayout />}>
                   <Route path="dashboard" element={<AdminDashboard />} />
                   <Route path="appointments" element={<AdminAppointments />} />
+                  <Route path="consultations" element={<AdminConsultations />} />
                   <Route path="payments" element={<AdminPayments />} />
                   <Route path="payment-settings" element={<AdminPaymentSettings />} />
                   <Route path="content" element={<AdminContent />} />

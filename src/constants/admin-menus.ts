@@ -31,6 +31,7 @@ export const ADMIN_MENU_ITEMS: AdminMenuItem[] = [
     { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { path: "/admin/content", label: "Konten", icon: Globe },
     { path: "/admin/appointments", label: "Janji Temu", icon: Calendar },
+    { path: "/admin/consultations", label: "Konsultasi Chat", icon: MessageCircle },
     { path: "/admin/payments", label: "Pembayaran", icon: CreditCard },
     { path: "/admin/articles", label: "Artikel", icon: FileText },
     { path: "/admin/knowledge", label: "Pengetahuan AI", icon: Brain },

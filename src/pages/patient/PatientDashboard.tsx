@@ -1,12 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Calendar, User, Clock, MapPin, Plus, History, Activity, AlertCircle, MessageSquare } from 'lucide-react';
+import { Calendar, User, Clock, MapPin, Plus, History, Activity, AlertCircle, MessageSquare, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
+import { toast } from 'sonner';
 
 const PatientDashboard = () => {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -177,10 +178,31 @@ const PatientDashboard = () => {
 };
 
 const ActiveConsultations = () => {
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
+    const isSuperAdmin = userData.role === 'SUPER_ADMIN';
+    const queryClient = useQueryClient();
+
     const { data: sessions, isLoading } = useQuery({
         queryKey: ['my-active-sessions'],
         queryFn: () => api.consultationChat.getMySessions('status=OPEN'),
     });
+
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => api.consultationChat.delete(id),
+        onSuccess: () => {
+            toast.success('Sesi konsultasi dihapus');
+            queryClient.invalidateQueries({ queryKey: ['my-active-sessions'] });
+        },
+        onError: (error: any) => {
+            toast.error(error.message || 'Gagal menghapus sesi');
+        }
+    });
+
+    const handleDelete = (id: string) => {
+        if (confirm('Hapus sesi konsultasi ini?')) {
+            deleteMutation.mutate(id);
+        }
+    };
 
     if (isLoading) return <Card className="border-0 shadow-sm bg-gray-50 animate-pulse h-32" />;
     if (!sessions || sessions.length === 0) return null;
@@ -199,10 +221,10 @@ const ActiveConsultations = () => {
                                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                                     <MessageSquare className="w-6 h-6 text-primary" />
                                 </div>
-                                <div>
-                                    <h3 className="font-bold">{session.doctor?.name || 'Dokter'}</h3>
-                                    <p className="text-sm text-muted-foreground">{session.doctor?.specialization}</p>
-                                    <div className="flex items-center gap-2 mt-1">
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold truncate max-w-[150px] md:max-w-none">{session.doctor?.name || 'Dokter'}</h3>
+                                    <p className="text-sm text-muted-foreground truncate max-w-[150px] md:max-w-none">{session.doctor?.specialization}</p>
+                                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                                         {session.payment?.paymentProof && session.payment?.status === 'PENDING' ? (
                                             <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 text-[10px] py-0">
                                                 Menunggu Konfirmasi
@@ -218,11 +240,24 @@ const ActiveConsultations = () => {
                                     </div>
                                 </div>
                             </div>
-                            <Link to={session.isPaid ? `/patient/consultation/chat/${session.id}` : `/patient/consultation/payment/${session.id}`}>
-                                <Button size="sm" variant={session.isPaid ? "default" : "outline"}>
-                                    {session.isPaid ? 'Masuk Chat' : 'Bayar Sekarang'}
-                                </Button>
-                            </Link>
+                            <div className="flex items-center gap-2">
+                                {isSuperAdmin && (
+                                    <Button
+                                        size="icon"
+                                        variant="ghost"
+                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                        onClick={() => handleDelete(session.id)}
+                                        disabled={deleteMutation.isPending}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                )}
+                                <Link to={session.isPaid ? `/patient/consultation/chat/${session.id}` : `/patient/consultation/payment/${session.id}`}>
+                                    <Button size="sm" variant={session.isPaid ? "default" : "outline"}>
+                                        {session.isPaid ? 'Masuk Chat' : 'Bayar'}
+                                    </Button>
+                                </Link>
+                            </div>
                         </CardContent>
                     </Card>
                 ))}
@@ -230,5 +265,6 @@ const ActiveConsultations = () => {
         </div>
     );
 };
+
 
 export default PatientDashboard;

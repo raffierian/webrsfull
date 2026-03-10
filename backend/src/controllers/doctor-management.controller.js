@@ -142,8 +142,8 @@ export const createDoctor = async (req, res) => {
                 id: result.doctor.id,
                 name: result.doctor.name,
                 specialization: result.doctor.specialization,
-                email: result.doctor.email,
-                phone: result.doctor.phone,
+                email: result.user.email,
+                phone: result.user.phone,
                 licenseNumber: result.doctor.licenseNumber
             },
             credentials: {
@@ -170,6 +170,7 @@ export const getDoctorById = async (req, res) => {
                         id: true,
                         username: true,
                         email: true,
+                        phone: true,
                         isActive: true,
                         createdAt: true
                     }
@@ -185,8 +186,8 @@ export const getDoctorById = async (req, res) => {
             id: doctor.id,
             name: doctor.name,
             specialization: doctor.specialization,
-            email: doctor.email,
-            phone: doctor.phone,
+            email: doctor.user.email,
+            phone: doctor.user.phone,
             username: doctor.user.username,
             isActive: doctor.user.isActive,
             createdAt: doctor.createdAt,
@@ -217,7 +218,7 @@ export const updateDoctor = async (req, res) => {
         }
 
         // If email is being changed, check if new email already exists
-        if (email && email !== existingDoctor.email) {
+        if (email && email !== existingDoctor.user.email) {
             const emailExists = await prisma.user.findFirst({
                 where: {
                     email,
@@ -232,29 +233,28 @@ export const updateDoctor = async (req, res) => {
 
         // Update doctor and user in transaction
         const result = await prisma.$transaction(async (tx) => {
-            // Update doctor profile
+            // Update doctor profile (only fields in Doctor model)
             const doctor = await tx.doctor.update({
                 where: { id },
                 data: {
                     name: name || existingDoctor.name,
-                    specialization: specialization || existingDoctor.specialization,
-                    email: email || existingDoctor.email,
-                    phone: phone || existingDoctor.phone
+                    specialization: specialization || existingDoctor.specialization
                 }
             });
 
-            // Update user if name or email changed
-            if (name || email) {
+            // Update user if name, email or phone changed
+            if (name || email || phone) {
                 await tx.user.update({
                     where: { id: existingDoctor.userId },
                     data: {
                         name: name || existingDoctor.user.name,
-                        email: email || existingDoctor.user.email
+                        email: email || existingDoctor.user.email,
+                        phone: phone || existingDoctor.user.phone
                     }
                 });
             }
 
-            return doctor;
+            return { ...doctor, user: { email: email || existingDoctor.user.email, phone: phone || existingDoctor.user.phone } };
         });
 
         return successResponse(res, result, 'Doctor updated successfully');

@@ -8,7 +8,8 @@ export const errorHandler = (err, req, res, next) => {
 
     // Prisma errors
     if (err.code === 'P2002') {
-        return errorResponse(res, 'Data already exists', 409, {
+        const field = err.meta?.target ? (Array.isArray(err.meta.target) ? err.meta.target.join(', ') : err.meta.target) : 'Data';
+        return errorResponse(res, `Data ini sudah terdaftar (${field})`, 409, {
             field: err.meta?.target,
         });
     }

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { CheckCircle, XCircle, Clock, Eye, Download, Loader2, CreditCard, DollarSign, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Eye, Download, Loader2, CreditCard, DollarSign, AlertCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -84,6 +84,23 @@ const AdminPayments = () => {
     const handleConfirm = (paymentId: string) => {
         if (confirm('Konfirmasi pembayaran ini?')) {
             confirmMutation.mutate(paymentId);
+        }
+    };
+
+    const deleteMutation = useMutation({
+        mutationFn: (paymentId: string) => api.payment.delete(paymentId),
+        onSuccess: () => {
+            toast.success('Pembayaran berhasil dihapus');
+            queryClient.invalidateQueries({ queryKey: ['admin-payments'] });
+        },
+        onError: (error: any) => {
+            toast.error(error.message || 'Gagal menghapus pembayaran');
+        }
+    });
+
+    const handleDelete = (paymentId: string) => {
+        if (confirm('Apakah Anda yakin ingin menghapus data pembayaran ini? Tindakan ini tidak dapat dibatalkan.')) {
+            deleteMutation.mutate(paymentId);
         }
     };
 
@@ -286,6 +303,15 @@ const AdminPayments = () => {
                                                             Bukti
                                                         </Button>
                                                     )}
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                        onClick={() => handleDelete(payment.id)}
+                                                        disabled={deleteMutation.isPending}
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>

@@ -299,3 +299,42 @@ export const closeSession = async (req, res) => {
         return errorResponse(res, error.message, 500);
     }
 };
+
+export const deleteSession = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+
+        // Verify session exists
+        const session = await prisma.chatSession.findUnique({
+            where: { id: sessionId },
+            include: { payment: true }
+        });
+
+        if (!session) {
+            return errorResponse(res, 'Session not found', 404);
+        }
+
+        // Only Admin/SuperAdmin can delete
+        if (!['ADMIN', 'SUPER_ADMIN'].includes(req.user.role)) {
+            return errorResponse(res, 'Unauthorized', 403);
+        }
+
+        // Delete payment first if it exists
+        if (session.payment) {
+            await prisma.payment.delete({
+                where: { id: session.payment.id }
+            });
+        }
+
+        // Delete session (messages and prescriptions will cascade if configured, 
+        // but prisma delete handles them if relations are set to cascade)
+        await prisma.chatSession.delete({
+            where: { id: sessionId }
+        });
+
+        return successResponse(res, null, 'Session and associated data deleted successfully');
+    } catch (error) {
+        return errorResponse(res, error.message, 500);
+    }
+};
+

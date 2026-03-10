@@ -1,6 +1,6 @@
 import express from 'express';
 import * as chatController from '../controllers/consultation-chat.controller.js';
-import { verifyToken, optionalAuth } from '../middleware/auth.js';
+import { verifyToken, optionalAuth, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -14,4 +14,8 @@ router.get('/sessions/:sessionId/messages', verifyToken, chatController.getMessa
 router.patch('/sessions/:sessionId/soap', verifyToken, chatController.updateSOAP);
 router.post('/sessions/:sessionId/close', verifyToken, chatController.closeSession);
 
+// Admin routes
+router.delete('/admin/sessions/:sessionId', verifyToken, requireAdmin, chatController.deleteSession);
+
 export default router;
+

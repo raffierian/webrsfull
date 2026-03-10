@@ -46,7 +46,7 @@ export const createAppointment = async (req, res, next) => {
                         name: patientName,
                         nik: patientNIK,
                         username: patientNIK, // Use NIK as username
-                        email: patientEmail || null, // Email optional
+                        email: patientEmail || `${patientNIK}@noemail.com`, // Email mandatory in schema, use fallback if not provided
                         password: hashedPassword,
                         phone: patientPhone,
                         role: 'PATIENT', // Default role

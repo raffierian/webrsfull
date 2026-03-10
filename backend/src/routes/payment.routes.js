@@ -15,5 +15,6 @@ router.post('/payments/midtrans/notification', paymentController.handleMidtransN
 // Admin routes
 router.get('/admin/payments', requireAdmin, paymentController.getAllPayments);
 router.put('/admin/payments/:paymentId/confirm', requireAdmin, paymentController.confirmManualPayment);
+router.delete('/admin/payments/:paymentId', requireAdmin, paymentController.deletePayment);
 
 export default router;

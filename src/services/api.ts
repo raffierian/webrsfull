@@ -406,6 +406,7 @@ export const api = {
         getMessages: (sessionId: string) => fetcher<any>(`/consultation-chat/sessions/${sessionId}/messages`),
         updateSOAP: (sessionId: string, data: any) => fetcher<any>(`/consultation-chat/sessions/${sessionId}/soap`, { method: 'PATCH', body: data }),
         closeSession: (sessionId: string, data: any) => fetcher<any>(`/consultation-chat/sessions/${sessionId}/close`, { method: 'POST', body: data }),
+        delete: (sessionId: string) => fetcher<any>(`/consultation-chat/admin/sessions/${sessionId}`, { method: 'DELETE' }),
     },
 
     // Doctor Consultation Management
@@ -432,7 +433,8 @@ export const api = {
             }),
         getStatus: (paymentId: string) => fetcher<any>(`/payments/${paymentId}/status`),
         getAll: (params?: string) => fetcher<any>(`/admin/payments${params || ''}`),
-        confirm: (paymentId: string) => fetcher<any>(`/admin/payments/${paymentId}/confirm`, { method: 'PUT' })
+        confirm: (paymentId: string) => fetcher<any>(`/admin/payments/${paymentId}/confirm`, { method: 'PUT' }),
+        delete: (paymentId: string) => fetcher<any>(`/admin/payments/${paymentId}`, { method: 'DELETE' }),
     },
     // Stats & Tracking
     stats: {

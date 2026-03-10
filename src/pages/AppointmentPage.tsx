@@ -134,7 +134,7 @@ const AppointmentPage: React.FC = () => {
     },
     onError: (error: any) => {
       console.error(error);
-      toast.error(error.response?.data?.message || t('common.error_desc'));
+      toast.error(error.message || t('common.error_desc'));
     },
   });
 

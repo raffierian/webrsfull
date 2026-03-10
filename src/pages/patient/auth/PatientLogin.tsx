@@ -27,11 +27,11 @@ const PatientLogin = () => {
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
-            if (data.user.role === 'PATIENT') {
+            if (['PATIENT', 'ADMIN', 'SUPER_ADMIN'].includes(data.user.role)) {
                 toast.success("Login Berhasil", { description: "Selamat datang kembali!" });
                 navigate('/patient/dashboard');
             } else {
-                toast.error("Akses Ditolak", { description: "Akun ini bukan akun pasien." });
+                toast.error("Akses Ditolak", { description: "Akun ini tidak memiliki akses ke portal pasien." });
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
             }

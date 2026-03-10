@@ -135,10 +135,6 @@ const PatientAppointments = () => {
 
     return (
         <div className="p-4 lg:p-8 max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                {/* ... existing header ... */}
-            </div>
-
             {/* Dialog Ticket */}
             <Dialog open={!!selectedTicket} onOpenChange={(open) => !open && setSelectedTicket(null)}>
                 <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-transparent border-none shadow-none text-left">
