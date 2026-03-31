@@ -11,6 +11,7 @@ router.post('/sessions', optionalAuth, chatController.createSession);
 router.get('/sessions', verifyToken, chatController.getMySessions);
 router.get('/sessions/:sessionId', verifyToken, chatController.getSession);
 router.get('/sessions/:sessionId/messages', verifyToken, chatController.getMessages);
+router.post('/sessions/:sessionId/messages', verifyToken, chatController.sendMessage);
 router.patch('/sessions/:sessionId/soap', verifyToken, chatController.updateSOAP);
 router.post('/sessions/:sessionId/close', verifyToken, chatController.closeSession);
 

@@ -232,6 +232,60 @@ export const getMessages = async (req, res) => {
     }
 };
 
+export const sendMessage = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        const { content, type = 'TEXT', fileUrl } = req.body;
+        const senderId = req.user.id;
+
+        if (!content && !fileUrl) {
+            return errorResponse(res, 'Message content cannot be empty', 400);
+        }
+
+        // Verify session
+        const session = await prisma.chatSession.findUnique({
+            where: { id: sessionId }
+        });
+
+        if (!session) {
+            return errorResponse(res, 'Session not found', 404);
+        }
+
+        // Check if user is participant
+        if (session.patientId !== senderId && session.doctorId !== senderId) {
+            const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(req.user.role);
+            if (!isAdmin) {
+                return errorResponse(res, 'Unauthorized to send messages in this session', 403);
+            }
+        }
+
+        // Cannot send message if session is closed
+        if (session.status === 'CLOSED' || session.status === 'CANCELLED') {
+            return errorResponse(res, 'Cannot send message to a closed session', 400);
+        }
+
+        const message = await prisma.chatMessage.create({
+            data: {
+                sessionId,
+                senderId,
+                content: content || '',
+                type,
+                fileUrl
+            }
+        });
+
+        // Update session updatedAt
+        await prisma.chatSession.update({
+            where: { id: sessionId },
+            data: { updatedAt: new Date() }
+        });
+
+        return successResponse(res, message, 'Message sent successfully', 201);
+    } catch (error) {
+        return errorResponse(res, error.message, 500);
+    }
+};
+
 export const updateSOAP = async (req, res) => {
     try {
         const { sessionId } = req.params;
