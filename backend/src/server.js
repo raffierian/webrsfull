@@ -63,10 +63,19 @@ app.use(cors({
 }));
 
 // Rate limiting
+const whitelistedIps = ['10.255.240.123', '127.0.0.1', '::1'];
+
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 1000, // limit each IP to 1000 requests per windowMs
     message: 'Too many requests from this IP, please try again later.',
+    skip: (req, res) => {
+        const ip = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        if (!ip) return false;
+        // Clean IPv6 to IPv4 mapping (e.g. ::ffff:10.255.240.123)
+        const cleanIp = ip.toString().replace(/^.*:/, '');
+        return whitelistedIps.includes(ip) || whitelistedIps.includes(cleanIp);
+    }
 });
 app.use('/api/', limiter);
 
