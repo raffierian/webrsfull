@@ -1,12 +1,6 @@
 ---
 deployment:
   tasks:
-    # --- Contoh Deployment Script cPanel ---
-    # Jika kamu mau website langsung di copy ke folder public_html:
-    # - export DEPLOYPATH=/home/usernamecpanel/public_html
-    # - /bin/cp -R * $DEPLOYPATH
-    
-    # Jika menggunakan Node.js (Phusion Passenger), pastikan file restart tercrigger:
-    # - touch tmp/restart.txt
-    
-    - echo "Deployment berhasil tersinkronisasi dengan baik!" > deploy.log
+    - export DEPLOYPATH=/home/rhwebsco/rumahsakit.rhwebs.com
+    - /bin/cp -R dist/* $DEPLOYPATH/
+    - echo "Deployment frontend tersinkronisasi ke rumahsakit.rhwebs.com!" > deploy.log
