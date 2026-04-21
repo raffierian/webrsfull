@@ -63,7 +63,7 @@ app.use(cors({
 }));
 
 // Rate limiting
-const whitelistedIps = ['10.255.240.123', '127.0.0.1', '::1'];
+const whitelistedIps = ['195.88.211.70', '127.0.0.1', '::1'];
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
