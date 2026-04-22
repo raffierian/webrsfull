@@ -123,7 +123,7 @@ import { startCronJobs } from './services/cron.service.js';
 
 // Start server
 const PORT = config.port;
-httpServer.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, () => {
     // Start Cron Jobs
     startCronJobs();
 
