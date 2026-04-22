@@ -19,21 +19,24 @@ import { initSocket } from './socket/index.js';
 
 // --- LICENSE CHECK START ---
 const licenseKey = process.env.LICENSE_KEY;
-const licenseStatus = await validateLicense(licenseKey);
+validateLicense(licenseKey).then(licenseStatus => {
+    if (!licenseStatus.valid) {
+        console.error('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+        console.error('CRITICAL ERROR: APPLICATION LICENSE CHECK FAILED');
+        console.error('Reason:', licenseStatus.message);
+        console.error('Please contact Roni Hidayat (RH Production) to obtain a valid license.');
+        console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');
+        process.exit(1); // Stop server immediately
+    }
 
-if (!licenseStatus.valid) {
-    console.error('\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
-    console.error('CRITICAL ERROR: APPLICATION LICENSE CHECK FAILED');
-    console.error('Reason:', licenseStatus.message);
-    console.error('Please contact Roni Hidayat (RH Production) to obtain a valid license.');
-    console.error('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n');
-    process.exit(1); // Stop server immediately
-}
-
-console.log(`\n[LICENSE] Verified. Licensed to: ${licenseStatus.data.client}`);
-if (licenseStatus.data.expiry !== 'PERMANENT') {
-    console.log(`[LICENSE] Expires on: ${licenseStatus.data.expiry}`);
-}
+    console.log(`\n[LICENSE] Verified. Licensed to: ${licenseStatus.data.client}`);
+    if (licenseStatus.data.expiry !== 'PERMANENT') {
+        console.log(`[LICENSE] Expires on: ${licenseStatus.data.expiry}`);
+    }
+}).catch(err => {
+    console.error('CRITICAL ERROR: APPLICATION LICENSE CHECK FAILED', err);
+    process.exit(1);
+});
 // --- LICENSE CHECK END ---
 
 const app = express();
