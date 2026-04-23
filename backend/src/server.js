@@ -102,7 +102,7 @@ if (config.nodeEnv === 'development') {
 }
 
 // Static files - served under /api/uploads so Passenger proxies them to Node.js
-app.use('/api/uploads', express.static(path.join(__dirname, '../../public/uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 // Health check
 app.get('/health', (req, res) => {
