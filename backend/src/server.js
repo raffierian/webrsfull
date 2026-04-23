@@ -11,11 +11,16 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { config } from './config/index.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import routes from './routes/index.js';
 import { validateLicense } from './utils/licenseValidator.js';
 import { initSocket } from './socket/index.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // --- LICENSE CHECK START ---
 const licenseKey = process.env.LICENSE_KEY;
@@ -97,7 +102,7 @@ if (config.nodeEnv === 'development') {
 }
 
 // Static files
-app.use('/uploads', express.static('public/uploads'));
+app.use('/uploads', express.static(path.join(__dirname, '../../public/uploads')));
 
 // Health check
 app.get('/health', (req, res) => {
