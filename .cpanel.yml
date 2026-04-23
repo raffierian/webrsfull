@@ -2,5 +2,5 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/rhwebsco/rumahsakit.rhwebs.com
-    - /bin/cp -R dist/* $DEPLOYPATH/
+    - /bin/cp -RT dist/ $DEPLOYPATH/
     - echo "Deployment frontend tersinkronisasi ke rumahsakit.rhwebs.com!" > deploy.log
