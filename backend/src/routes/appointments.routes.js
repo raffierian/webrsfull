@@ -1,11 +1,13 @@
 import express from 'express';
 import * as appointmentsController from '../controllers/appointments.controller.js';
-import { verifyToken } from '../middleware/auth.js';
+import { verifyToken, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Public route for creating appointment
-router.post('/', appointmentsController.createAppointment);
+// Public/Optional-auth route for creating appointment
+// optionalAuth: jika ada Bearer token, req.user akan terisi (login mode)
+// Jika tidak ada token (guest), req.user tetap null → jalur guest
+router.post('/', optionalAuth, appointmentsController.createAppointment);
 
 // Protected routes
 router.use(verifyToken);
