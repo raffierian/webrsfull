@@ -403,7 +403,10 @@ export const api = {
         toggle: (id: string) => fetcher<any>(`/admin/knowledge/${id}/toggle`, { method: 'PUT' }),
     },
     consultationChat: {
-        createSession: (data: any) => fetcher<any>('/consultation-chat/sessions', { method: 'POST', body: data }),
+        createSession: (doctorId: string, guestData?: any) => fetcher<any>('/consultation-chat/sessions', {
+            method: 'POST',
+            body: JSON.stringify({ doctorId, guestData })
+        }),
         getMySessions: (params?: string) => {
             const query = params ? (params.startsWith('?') ? params : `?${params}`) : '';
             return fetcher<any>(`/consultation-chat/sessions${query}`);
