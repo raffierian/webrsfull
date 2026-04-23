@@ -150,7 +150,7 @@ export const api = {
             method: 'PUT',
             body: JSON.stringify({ status, notes, appointmentDate, appointmentTime })
         }),
-        create: (data: any) => fetcher<any>('/appointments', { method: 'POST', body: JSON.stringify(data), requireAuth: false }), // Public booking allowed
+        create: (data: any) => fetcher<any>('/appointments', { method: 'POST', body: JSON.stringify(data) }), // Token sent if logged in (optionalAuth on backend)
         delete: (id: string) => fetcher<any>(`/appointments/${id}`, { method: 'DELETE' }),
         cancel: (id: string) => fetcher<any>(`/appointments/${id}/cancel`, { method: 'PUT' }),
     },
