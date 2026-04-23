@@ -93,7 +93,15 @@ const AppointmentTicket: React.FC<AppointmentTicketProps> = ({
                         <div className="flex justify-between">
                             <span className="text-slate-400">Tanggal</span>
                             <span className="font-semibold text-slate-700">
-                                {appointment?.appointmentDate ? format(new Date(appointment.appointmentDate), 'd MMM yyyy', { locale: id }) : '-'}
+                                {(() => {
+                                    if (!appointment?.appointmentDate) return '-';
+                                    try {
+                                        const d = new Date(appointment.appointmentDate);
+                                        return isNaN(d.getTime()) ? String(appointment.appointmentDate) : format(d, 'd MMM yyyy', { locale: id });
+                                    } catch (e) {
+                                        return String(appointment.appointmentDate);
+                                    }
+                                })()}
                             </span>
                         </div>
                         <div className="flex justify-between">

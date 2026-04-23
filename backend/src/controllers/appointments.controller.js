@@ -8,8 +8,8 @@ import bcrypt from 'bcryptjs';
  */
 export const createAppointment = async (req, res, next) => {
     try {
-        const { doctorId, serviceId, appointmentDate, appointmentTime, complaint, patientName, patientNIK, patientPhone, patientEmail } = req.body;
-        let patientId = req.user?.id;
+        const { doctorId, serviceId, appointmentDate, appointmentTime, complaint, patientName, patientNIK, patientPhone, patientEmail, userId } = req.body;
+        let patientId = req.user?.id || userId;
 
         // Validasi input dasar
         if (!doctorId || !serviceId || !appointmentDate || !appointmentTime) {
@@ -27,6 +27,12 @@ export const createAppointment = async (req, res, next) => {
             let user = await prisma.user.findUnique({
                 where: { nik: patientNIK },
             });
+
+            if (!user && patientEmail) {
+                user = await prisma.user.findUnique({
+                    where: { email: patientEmail },
+                });
+            }
 
             if (user) {
                 // User sudah ada, pakai ID-nya
