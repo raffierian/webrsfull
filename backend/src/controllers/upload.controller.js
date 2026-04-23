@@ -11,9 +11,8 @@ export const uploadFile = (req, res) => {
             return errorResponse(res, 'No file uploaded', 400);
         }
 
-        // Strip /api from the end of apiUrl so uploads don't become /api/uploads
-        const baseUrl = config.apiUrl.replace(/\/api$/, '');
-        const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        // Construct URL - uses /api/uploads so it's proxied via Passenger to Node.js
+        const fileUrl = `${config.apiUrl}/uploads/${req.file.filename}`;
 
         return successResponse(res, {
             url: fileUrl,

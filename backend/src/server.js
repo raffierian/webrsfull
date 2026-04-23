@@ -101,8 +101,8 @@ if (config.nodeEnv === 'development') {
     app.use(morgan('combined'));
 }
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, '../../public/uploads')));
+// Static files - served under /api/uploads so Passenger proxies them to Node.js
+app.use('/api/uploads', express.static(path.join(__dirname, '../../public/uploads')));
 
 // Health check
 app.get('/health', (req, res) => {
