@@ -11,8 +11,9 @@ export const uploadFile = (req, res) => {
             return errorResponse(res, 'No file uploaded', 400);
         }
 
-        // Construct public URL using configured API_URL to ensure correct protocol/domain
-        const fileUrl = `${config.apiUrl}/uploads/${req.file.filename}`;
+        // Strip /api from the end of apiUrl so uploads don't become /api/uploads
+        const baseUrl = config.apiUrl.replace(/\/api$/, '');
+        const fileUrl = `${baseUrl}/uploads/${req.file.filename}`;
 
         return successResponse(res, {
             url: fileUrl,
