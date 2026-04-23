@@ -34,7 +34,13 @@ async function fetcher<T>(endpoint: string, options: FetchOptions = {}): Promise
             headers,
         });
 
-        const data = await response.json();
+        const text = await response.text();
+        let data;
+        try {
+            data = text ? JSON.parse(text) : {};
+        } catch (e) {
+            data = { message: text }; // Fallback for plain text proxy/WAF errors
+        }
 
         if (!response.ok) {
             if (response.status === 401) {
