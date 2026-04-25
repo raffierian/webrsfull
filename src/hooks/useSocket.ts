@@ -19,8 +19,10 @@ export const useSocket = (sessionId?: string) => {
     useEffect(() => {
         if (!sessionId) return;
 
-        // Initialize socket
-        const socketInstance = io(SOCKET_URL, {
+        const baseUrl = SOCKET_URL === '' ? window.location.origin : SOCKET_URL;
+
+        const socketInstance = io(baseUrl, {
+            path: '/api/socket.io',
             transports: ['polling', 'websocket'],
             autoConnect: true,
         });

@@ -5,6 +5,7 @@ let io;
 
 export const initSocket = (server) => {
     io = new Server(server, {
+        path: '/api/socket.io',
         cors: {
             origin: "*", // Allow all for development, restrict in production
             methods: ["GET", "POST"]
