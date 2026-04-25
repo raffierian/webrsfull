@@ -21,7 +21,7 @@ export const useSocket = (sessionId?: string) => {
 
         // Initialize socket
         const socketInstance = io(SOCKET_URL, {
-            transports: ['websocket'],
+            transports: ['polling', 'websocket'],
             autoConnect: true,
         });
 
