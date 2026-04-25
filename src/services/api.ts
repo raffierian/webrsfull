@@ -240,6 +240,7 @@ export const api = {
         getById: (id: string) => fetcher<any>(`/admin/doctor-accounts/${id}`),
         update: (id: string, data: any) => fetcher<any>(`/admin/doctor-accounts/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
         toggleStatus: (id: string) => fetcher<any>(`/admin/doctor-accounts/${id}/toggle-status`, { method: 'PUT' }),
+        resetPassword: (id: string) => fetcher<any>(`/admin/doctor-accounts/${id}/reset-password`, { method: 'PUT' }),
         delete: (id: string) => fetcher<any>(`/admin/doctor-accounts/${id}`, { method: 'DELETE' }),
     },
 

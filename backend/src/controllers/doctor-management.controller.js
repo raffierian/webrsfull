@@ -47,6 +47,7 @@ export const getAllDoctors = async (req, res) => {
                 email: doctor.user.email,
                 phone: doctor.user.phone,
                 username: doctor.user.username,
+                userId: doctor.user.id,
                 isActive: doctor.user.isActive,
                 createdAt: doctor.createdAt
             }));
@@ -205,7 +206,7 @@ export const getDoctorById = async (req, res) => {
 export const updateDoctor = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, specialization, email, phone } = req.body;
+        const { name, specialization, email, phone, username } = req.body;
 
         // Check if doctor exists
         const existingDoctor = await prisma.doctor.findUnique({
@@ -242,14 +243,15 @@ export const updateDoctor = async (req, res) => {
                 }
             });
 
-            // Update user if name, email or phone changed
-            if (name || email || phone) {
+            // Update user if name, email, phone or username changed
+            if (name || email || phone || username) {
                 await tx.user.update({
                     where: { id: existingDoctor.userId },
                     data: {
                         name: name || existingDoctor.user.name,
                         email: email || existingDoctor.user.email,
-                        phone: phone || existingDoctor.user.phone
+                        phone: phone || existingDoctor.user.phone,
+                        username: username || existingDoctor.user.username
                     }
                 });
             }

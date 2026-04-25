@@ -105,6 +105,7 @@ const requireReviews = requireMenuAccess('/admin/dashboard'); // Use dashboard a
 router.get('/reviews', requireReviews, reviewsController.getAllReviewsAdmin);
 router.delete('/reviews/:id', requireReviews, reviewsController.deleteReviewAdmin);
 router.put('/doctor-accounts/:id/toggle-status', requireDoctorManagement, doctorManagementController.toggleDoctorStatus);
+router.put('/doctor-accounts/:id/reset-password', requireDoctorManagement, doctorManagementController.resetPasswordForDoctor);
 router.delete('/doctor-accounts/:id', requireDoctorManagement, doctorManagementController.deleteDoctor);
 
 export default router;

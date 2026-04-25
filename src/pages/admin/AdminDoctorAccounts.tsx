@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Power, PowerOff, Search, Copy, Check, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Power, PowerOff, Search, Copy, Check, Trash2, Key } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,7 @@ export default function AdminDoctorAccounts() {
     const [copiedField, setCopiedField] = useState<string>('');
     const [toggleDialog, setToggleDialog] = useState<{ open: boolean; doctor: any | null }>({ open: false, doctor: null });
     const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; doctor: any | null }>({ open: false, doctor: null });
+    const [resetDialog, setResetDialog] = useState<{ open: boolean; doctor: any | null }>({ open: false, doctor: null });
 
     // Fetch doctors
     const { data: response, isLoading } = useQuery({
@@ -93,6 +94,23 @@ export default function AdminDoctorAccounts() {
         }
     });
 
+    // Reset password mutation
+    const resetPasswordMutation = useMutation({
+        mutationFn: (id: string) => api.adminDoctors.resetPassword(id),
+        onSuccess: (response: any) => {
+            setResetDialog({ open: false, doctor: null });
+
+            // Backend returns { username: '...', password: '...' } inside data or root
+            const credentials = response?.data || response;
+            setGeneratedCredentials(credentials);
+            setCredentialsOpen(true);
+            toast.success('Password reset successfully!');
+        },
+        onError: (error: any) => {
+            toast.error(error.message || 'Failed to reset password');
+        }
+    });
+
 
     // Filter doctors
     const filteredDoctors = doctors.filter((doctor: any) =>
@@ -111,6 +129,7 @@ export default function AdminDoctorAccounts() {
             specialization: formData.get('specialization') as string,
             email: formData.get('email') as string,
             phone: formData.get('phone') as string,
+            username: formData.get('username') as string,
         };
 
         if (editingDoctor) {
@@ -258,6 +277,15 @@ export default function AdminDoctorAccounts() {
                                                     >
                                                         <Trash2 className="w-4 h-4 text-destructive" />
                                                     </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="text-orange-500 hover:text-orange-600"
+                                                        title="Reset Password"
+                                                        onClick={() => setResetDialog({ open: true, doctor })}
+                                                    >
+                                                        <Key className="w-4 h-4" />
+                                                    </Button>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
@@ -292,6 +320,20 @@ export default function AdminDoctorAccounts() {
                                 <p className="text-xs text-muted-foreground">
                                     Username will be: <span className="font-mono">dr.{(document.getElementById('name') as HTMLInputElement)?.value?.split(' ')[0]?.toLowerCase() || 'firstname'}</span>
                                 </p>
+                            )}
+                            {editingDoctor && (
+                                <div className="space-y-2 mt-4">
+                                    <Label htmlFor="username">Username</Label>
+                                    <Input
+                                        id="username"
+                                        name="username"
+                                        defaultValue={editingDoctor?.username}
+                                        placeholder="dr.johndoe"
+                                    />
+                                    <p className="text-xs text-muted-foreground">
+                                        You can modify the username
+                                    </p>
+                                </div>
                             )}
                         </div>
                         <div className="space-y-2">
@@ -441,6 +483,27 @@ export default function AdminDoctorAccounts() {
                             className="bg-destructive hover:bg-destructive/90"
                         >
                             Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Reset Password Confirmation Dialog */}
+            <AlertDialog open={resetDialog.open} onOpenChange={(open) => setResetDialog({ open, doctor: null })}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Reset Password?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will generate a new randomized password for <strong>{resetDialog.doctor?.name}</strong> and immediately overwrite the old one.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={() => resetDialog.doctor && resetPasswordMutation.mutate(resetDialog.doctor.id)}
+                            className="bg-orange-500 hover:bg-orange-600"
+                        >
+                            Reset Password
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
