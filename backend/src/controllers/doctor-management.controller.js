@@ -361,3 +361,34 @@ export const deleteDoctor = async (req, res) => {
         return errorResponse(res, error.message, 500);
     }
 };
+
+// PUT /api/admin/doctors/:id/reset-password
+export const resetPasswordForDoctor = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const doctor = await prisma.doctor.findUnique({
+            where: { id },
+            include: { user: true }
+        });
+
+        if (!doctor || !doctor.user) {
+            return errorResponse(res, 'Doctor account not found', 404);
+        }
+
+        const newPassword = generatePassword();
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await prisma.user.update({
+            where: { id: doctor.userId },
+            data: { password: hashedPassword }
+        });
+
+        return successResponse(res, {
+            username: doctor.user.username,
+            password: newPassword
+        }, 'Password reset successfully');
+    } catch (error) {
+        console.error('Reset password error:', error);
+        return errorResponse(res, 'Internal server error', 500);
+    }
+};

@@ -1,0 +1,13 @@
+C:\laragon\www\webrsfull\backend\node_modules\express\lib\router\route.js:216
+        throw new Error(msg);
+              ^
+
+Error: Route.put() requires a callback function but got a [object Undefined]
+    at Route.<computed> [as put] (C:\laragon\www\webrsfull\backend\node_modules\express\lib\router\route.js:216:15)
+    at proto.<computed> [as put] (C:\laragon\www\webrsfull\backend\node_modules\express\lib\router\index.js:521:19)
+    at file:///C:/laragon/www/webrsfull/backend/src/routes/admin.routes.js:108:8
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.19.0
