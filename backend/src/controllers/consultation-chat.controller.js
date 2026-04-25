@@ -50,8 +50,8 @@ export const getSession = async (req, res) => {
 
 export const createSession = async (req, res) => {
     try {
-        const { doctorId, guestData } = req.body;
-        let patientId = req.user?.id;
+        const { doctorId, guestData, userId } = req.body;
+        let patientId = req.user?.id || userId;
         let authToken = null;
         let isGuestRegistration = false;
         let newUser = null;
