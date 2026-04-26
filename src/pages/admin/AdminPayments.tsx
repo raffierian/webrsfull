@@ -53,7 +53,7 @@ const AdminPayments = () => {
             p.status === 'PENDING' && (p.paymentMethod === 'midtrans' || !p.paymentProof)
         ).length,
         waitingConfirmationCount: payments.filter((p: any) =>
-            p.status === 'PENDING' && p.paymentMethod === 'manual' && p.paymentProof
+            p.status === 'PENDING' && p.paymentMethod !== 'midtrans' && p.paymentProof
         ).length,
         revenueToday: payments
             .filter((p: any) =>
@@ -107,7 +107,7 @@ const AdminPayments = () => {
     const getStatusBadge = (payment: any) => {
         const { status, paymentProof, paymentMethod } = payment;
 
-        if (status === 'PENDING' && paymentMethod === 'manual' && paymentProof) {
+        if (status === 'PENDING' && paymentMethod !== 'midtrans' && paymentProof) {
             return (
                 <Badge variant="secondary" className="gap-1 bg-yellow-100 text-yellow-700 hover:bg-yellow-100 italic border-yellow-200">
                     <Clock className="w-3 h-3" />
@@ -292,7 +292,7 @@ const AdminPayments = () => {
                                             </TableCell>
                                             <TableCell>
                                                 <div className="flex gap-2">
-                                                    {payment.status === 'PENDING' && payment.paymentMethod === 'manual' && (
+                                                    {payment.status === 'PENDING' && payment.paymentMethod !== 'midtrans' && (
                                                         <Button
                                                             size="sm"
                                                             onClick={() => handleConfirm(payment.id)}
@@ -372,7 +372,7 @@ const AdminPayments = () => {
                                 </div>
                             </div>
 
-                            {selectedPayment.status === 'PENDING' && selectedPayment.paymentMethod === 'manual' && (
+                            {selectedPayment.status === 'PENDING' && selectedPayment.paymentMethod !== 'midtrans' && (
                                 <div className="flex justify-end gap-3 pt-4 border-t">
                                     <Button variant="outline" onClick={() => setSelectedPayment(null)}>
                                         Tutup
