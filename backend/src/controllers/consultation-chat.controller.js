@@ -183,17 +183,19 @@ export const createSession = async (req, res) => {
 export const getMySessions = async (req, res) => {
     try {
         const userId = req.user.id;
-        // User can be patient or doctor. Check database to see role or just query both columns?
-        // Assuming req.user has role information or we check both.
+        const role = req.user.role;
 
         const { status, isPaid } = req.query;
 
-        const where = {
-            OR: [
+        const where = {};
+
+        // If not Admin, filter by user's ID
+        if (!['ADMIN', 'SUPER_ADMIN'].includes(role)) {
+            where.OR = [
                 { patientId: userId },
                 { doctor: { userId: userId } }
-            ]
-        };
+            ];
+        }
 
         if (status) where.status = status;
         if (isPaid !== undefined) where.isPaid = isPaid === 'true';
