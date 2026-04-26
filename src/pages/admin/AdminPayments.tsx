@@ -217,8 +217,10 @@ const AdminPayments = () => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">Semua Metode</SelectItem>
+                                    <SelectItem value="TRANSFER">Transfer Manual</SelectItem>
+                                    <SelectItem value="VIRTUAL_ACCOUNT">Virtual Account</SelectItem>
+                                    <SelectItem value="CASH">Tunai (Kasir)</SelectItem>
                                     <SelectItem value="midtrans">Midtrans</SelectItem>
-                                    <SelectItem value="manual">Transfer Manual</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -273,8 +275,15 @@ const AdminPayments = () => {
                                                 Rp {Number(payment.amount).toLocaleString('id-ID')}
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant="outline">
-                                                    {payment.paymentMethod === 'manual' ? 'Manual' : 'Midtrans'}
+                                                <Badge variant="outline" className="capitalize">
+                                                    {(() => {
+                                                        const m = payment.paymentMethod?.toLowerCase() || '';
+                                                        if (m.includes('transfer')) return 'Transfer Manual';
+                                                        if (m.includes('virtual')) return 'Virtual Account';
+                                                        if (m.includes('cash')) return 'Tunai';
+                                                        if (m === 'midtrans') return 'Midtrans';
+                                                        return m || 'N/A';
+                                                    })()}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>{getStatusBadge(payment)}</TableCell>

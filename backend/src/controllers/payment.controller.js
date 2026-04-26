@@ -4,19 +4,17 @@ import { successResponse, errorResponse } from '../utils/response.js';
 
 // Initialize Midtrans Snap
 const getSnapClient = async () => {
-    // TODO: Implement HospitalSettings model to store Midtrans config
-    // For now, throw error to force manual payment
-    throw new Error('Midtrans not configured. Please use manual payment.');
+    const settings = await prisma.hospitalSettings.findFirst();
 
-    // const settings = await prisma.hospitalSettings.findFirst();
-    // if (!settings || !settings.midtransServerKey) {
-    //     throw new Error('Midtrans not configured');
-    // }
-    // return new midtransClient.Snap({
-    //     isProduction: settings.midtransIsProduction || false,
-    //     serverKey: settings.midtransServerKey,
-    //     clientKey: settings.midtransClientKey
-    // });
+    if (!settings || !settings.midtransServerKey) {
+        throw new Error('Midtrans not configured. Please use manual payment.');
+    }
+
+    return new midtransClient.Snap({
+        isProduction: settings.midtransIsProduction || false,
+        serverKey: settings.midtransServerKey,
+        clientKey: settings.midtransClientKey
+    });
 };
 
 export const createPayment = async (req, res) => {

@@ -261,9 +261,13 @@ export const sendMessage = async (req, res) => {
             }
         }
 
-        // Cannot send message if session is closed
+        // Cannot send message if session is closed or NOT PAID
         if (session.status === 'CLOSED' || session.status === 'CANCELLED') {
             return errorResponse(res, 'Cannot send message to a closed session', 400);
+        }
+
+        if (!session.isPaid) {
+            return errorResponse(res, 'Pesan tidak dapat dikirim karena pembayaran belum diverifikasi.', 402);
         }
 
         const message = await prisma.chatMessage.create({
