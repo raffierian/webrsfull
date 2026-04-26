@@ -219,16 +219,20 @@ const DoctorChatPage = () => {
     const isClosed = consultation.status === 'CLOSED';
 
     return (
-        <div className="flex flex-col h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)]">
-            <div className="flex flex-1 overflow-hidden relative">
+        <div className="flex flex-col h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)] bg-slate-50 relative">
+            {/* Soft background gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-teal-50/40 via-transparent to-transparent pointer-events-none" />
+
+            <div className="flex flex-1 overflow-hidden relative z-10 w-full max-w-7xl mx-auto rounded-none md:rounded-2xl md:my-4 md:border md:shadow-xl bg-white/80 backdrop-blur-sm">
                 {/* Main Chat Area */}
                 <div className={`flex flex-col flex-1 transition-all duration-300 ${showSoapSidebar ? 'md:mr-80 lg:mr-96' : ''}`}>
-                    {/* Header - Fixed */}
-                    <div className="bg-white border-b px-4 py-3 flex items-center justify-between">
+                    {/* Header - Glassmorphism */}
+                    <div className="bg-white/90 backdrop-blur-md border-b px-4 py-3 flex items-center justify-between z-20 shadow-sm">
                         <div className="flex items-center gap-3">
                             <Button
                                 variant="ghost"
                                 size="icon"
+                                className="hover:bg-slate-100 rounded-full"
                                 onClick={() => navigate('/doctor/consultations')}
                             >
                                 <ArrowLeft className="w-5 h-5" />
@@ -270,8 +274,8 @@ const DoctorChatPage = () => {
                     </div>
 
                     {/* Messages - Scrollable */}
-                    <div className="flex-1 overflow-y-auto p-4 bg-slate-50">
-                        <div className="max-w-3xl mx-auto space-y-4">
+                    <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50/50">
+                        <div className="w-full mx-auto space-y-4 md:px-4">
                             {messages.map((msg: any) => {
                                 const isFromMe = msg.senderId !== consultation.patientId;
                                 return (
@@ -280,9 +284,9 @@ const DoctorChatPage = () => {
                                         className={`flex ${isFromMe ? 'justify-end' : 'justify-start'}`}
                                     >
                                         <div
-                                            className={`max-w-[85%] md:max-w-[75%] rounded-2xl px-4 py-2 ${isFromMe
-                                                ? 'bg-teal-600 text-white rounded-tr-none shadow-md'
-                                                : 'bg-white text-slate-800 border shadow-sm rounded-tl-none'
+                                            className={`max-w-[85%] md:max-w-[70%] px-5 py-3 shadow-sm ${isFromMe
+                                                ? 'bg-gradient-to-br from-teal-600 to-teal-700 text-white rounded-2xl rounded-tr-sm shadow-teal-600/10'
+                                                : 'bg-white text-slate-800 border border-slate-100 rounded-2xl rounded-tl-sm'
                                                 }`}
                                         >
                                             {msg.type === 'IMAGE' ? (
@@ -329,26 +333,27 @@ const DoctorChatPage = () => {
 
                     {/* Input - Fixed Bottom */}
                     {!isClosed ? (
-                        <div className="bg-white border-t p-4">
-                            <div className="max-w-3xl mx-auto flex gap-2">
-                                <Input
-                                    placeholder="Ketik pesan..."
+                        <div className="bg-white/90 backdrop-blur-md border-t p-4 px-4 md:px-6 z-20">
+                            <div className="w-full mx-auto flex items-end gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100 focus-within:border-teal-300 focus-within:ring-4 focus-within:ring-teal-500/10 transition-all">
+                                <Textarea
+                                    placeholder="Ketik balasan untuk pasien..."
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
                                     onKeyPress={handleKeyPress}
-                                    className="flex-1 bg-slate-50 border-slate-200 focus:ring-teal-500"
+                                    rows={1}
+                                    className="flex-1 bg-transparent border-0 focus-visible:ring-0 resize-none min-h-[44px] py-3 px-2 shadow-none"
                                 />
                                 <Button
                                     onClick={handleSendMessage}
                                     disabled={!message.trim()}
-                                    className="bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/10"
+                                    className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl h-11 w-11 p-0 shadow-md shadow-teal-600/20 shrink-0 mb-0.5"
                                 >
-                                    <Send className="w-4 h-4" />
+                                    <Send className="w-5 h-5 ml-1" />
                                 </Button>
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-yellow-50 border-t border-yellow-200 p-4 text-center">
+                        <div className="bg-yellow-50/90 backdrop-blur-md border-t border-yellow-200 p-4 text-center">
                             <p className="text-yellow-800 font-medium">Konsultasi telah ditutup</p>
                         </div>
                     )}
@@ -356,9 +361,9 @@ const DoctorChatPage = () => {
 
                 {/* SOAP & Prescription Sidebar */}
                 {showSoapSidebar && (
-                    <div className="hidden md:flex flex-col w-80 lg:w-96 bg-white border-l absolute right-0 top-0 bottom-0 z-10 shadow-xl transition-all duration-300">
-                        <div className="p-2 border-b bg-slate-50 flex items-center justify-between">
-                            <div className="flex w-full bg-slate-200/50 p-1 rounded-lg">
+                    <div className="hidden md:flex flex-col w-80 lg:w-96 bg-slate-50/50 backdrop-blur-xl border-l border-slate-200 absolute right-0 top-0 bottom-0 z-30 shadow-2xl transition-all duration-300">
+                        <div className="p-3 border-b bg-white flex items-center justify-between shadow-sm relative z-10">
+                            <div className="flex w-full bg-slate-100 p-1 rounded-xl">
                                 <button
                                     onClick={() => setSidebarTab('soap')}
                                     className={`flex-1 flex items-center justify-center gap-2 py-1.5 px-3 rounded-md text-xs font-bold transition-all ${sidebarTab === 'soap' ? 'bg-white text-teal-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
