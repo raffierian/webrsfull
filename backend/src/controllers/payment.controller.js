@@ -1,6 +1,7 @@
 import midtransClient from 'midtrans-client';
 import prisma from '../config/database.js';
 import { successResponse, errorResponse } from '../utils/response.js';
+import { createInternalNotification } from './notification.controller.js';
 
 // Initialize Midtrans Snap
 const getSnapClient = async () => {
@@ -270,34 +271,27 @@ export const handleMidtransNotification = async (req, res) => {
                 }
             });
 
-            // 1. Send Doctor Alert
-            if (payment.chatSession?.doctor?.user?.email) {
-                const doctorEmail = payment.chatSession.doctor.user.email;
-                const doctorName = payment.chatSession.doctor.name;
-                const patientName = payment.user.name;
-                const date = new Date().toLocaleString('id-ID');
-                const link = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/doctor/chat/${payment.chatSessionId}`;
-
-                await sendEmail({
-                    to: doctorEmail,
-                    subject: '🚨 Pasien Baru Menunggu (PAID)',
-                    html: emailTemplates.doctorAlert(doctorName, patientName, date, link)
-                });
+            // 3. Send In-App Notifications
+            // To Doctor
+            if (payment.chatSession?.doctor?.userId) {
+                await createInternalNotification(
+                    payment.chatSession.doctor.userId,
+                    'Pembayaran Terverifikasi (Midtrans)',
+                    `Pasien ${payment.user.name} telah melunasi pembayaran. Silakan mulai konsultasi.`,
+                    'CONSULTATION',
+                    { sessionId: payment.chatSessionId }
+                );
             }
 
-            // 2. Send Patient Receipt
-            if (payment.user?.email) {
-                const patientEmail = payment.user.email;
-                const patientName = payment.user.name;
-                const amount = payment.amount;
-                const date = new Date().toLocaleString('id-ID');
-                const link = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/patient/consultation/chat/${payment.chatSessionId}`;
-
-                await sendEmail({
-                    to: patientEmail,
-                    subject: '✅ Pembayaran Berhasil - RS Soewandhie',
-                    html: emailTemplates.paymentSuccess(patientName, amount, date, link)
-                });
+            // To Patient
+            if (payment.userId) {
+                await createInternalNotification(
+                    payment.userId,
+                    'Pembayaran Berhasil',
+                    `Pembayaran via Midtrans sebesar Rp${payment.amount.toLocaleString('id-ID')} telah dikonfirmasi.`,
+                    'PAYMENT',
+                    { sessionId: payment.chatSessionId }
+                );
             }
         }
 
@@ -333,42 +327,37 @@ export const confirmManualPayment = async (req, res) => {
         if (payment.chatSessionId) {
             await prisma.chatSession.update({
                 where: { id: payment.chatSessionId },
-                data: { isPaid: true }
+                data: {
+                    isPaid: true,
+                    status: 'PENDING' // Set to PENDING so doctor sees it
+                }
             });
+
+            // 3. Send In-App Notifications
+            // To Doctor
+            if (payment.chatSession?.doctor?.userId) {
+                await createInternalNotification(
+                    payment.chatSession.doctor.userId,
+                    'Pembayaran Terverifikasi (Manual)',
+                    `Pasien ${payment.user.name} telah diverifikasi pembayarannya. Silakan mulai konsultasi.`,
+                    'CONSULTATION',
+                    { sessionId: payment.chatSessionId }
+                );
+            }
+
+            // To Patient
+            if (payment.userId) {
+                await createInternalNotification(
+                    payment.userId,
+                    'Pembayaran Berhasil',
+                    `Pembayaran Anda sebesar Rp${payment.amount.toLocaleString('id-ID')} telah dikonfirmasi.`,
+                    'PAYMENT',
+                    { sessionId: payment.chatSessionId }
+                );
+            }
         }
 
-        // SEND EMAILS
-        // 1. Send Doctor Alert
-        if (payment.chatSession?.doctor?.user?.email) {
-            const doctorEmail = payment.chatSession.doctor.user.email;
-            const doctorName = payment.chatSession.doctor.name;
-            const patientName = payment.user.name;
-            const date = new Date().toLocaleString('id-ID');
-            const link = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/doctor/chat/${payment.chatSessionId}`;
-
-            await sendEmail({
-                to: doctorEmail,
-                subject: '🚨 Pasien Baru Menunggu (PAID)',
-                html: emailTemplates.doctorAlert(doctorName, patientName, date, link)
-            });
-        }
-
-        // 2. Send Patient Receipt
-        if (payment.user?.email) {
-            const patientEmail = payment.user.email;
-            const patientName = payment.user.name;
-            const amount = payment.amount;
-            const date = new Date().toLocaleString('id-ID');
-            const link = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/patient/consultation/chat/${payment.chatSessionId}`;
-
-            await sendEmail({
-                to: patientEmail,
-                subject: '✅ Pembayaran Berhasil - RS Soewandhie',
-                html: emailTemplates.paymentSuccess(patientName, amount, date, link)
-            });
-        }
-
-        return successResponse(res, payment, 'Payment confirmed and emails sent');
+        return successResponse(res, payment, 'Payment confirmed and notifications sent');
     } catch (error) {
         return errorResponse(res, error.message, 500);
     }

@@ -27,6 +27,7 @@ import hospitalSettingsRoutes from './hospital-settings.routes.js';
 import doctorRoutes from './doctor.routes.js';
 import statsRoutes from './stats.routes.js';
 import prescriptionRoutes from './prescription.routes.js';
+import notificationRoutes from './notification.routes.js';
 
 const router = express.Router();
 
@@ -85,4 +86,5 @@ router.use('/doctor', doctorRoutes);
 router.use('/roles', roleRoutes);
 router.use('/stats', statsRoutes);
 router.use('/prescriptions', prescriptionRoutes);
+router.use('/notifications', notificationRoutes);
 export default router;

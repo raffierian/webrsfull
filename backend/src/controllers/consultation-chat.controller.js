@@ -6,6 +6,7 @@ import { config } from '../config/index.js';
 
 // Import email service at top
 import { sendEmail, emailTemplates } from '../services/email.service.js';
+import { createInternalNotification } from './notification.controller.js';
 
 export const getSession = async (req, res) => {
     try {
@@ -149,8 +150,24 @@ export const createSession = async (req, res) => {
                     status: 'OPEN',
                     isPaid: false
                 },
-                include: { doctor: true }
+                include: {
+                    doctor: true,
+                    patient: {
+                        select: { name: true }
+                    }
+                }
             });
+
+            // Notify Doctor (User ID of the doctor)
+            if (session.doctor?.userId) {
+                await createInternalNotification(
+                    session.doctor.userId,
+                    'Permintaan Konsultasi Baru',
+                    `Pasien ${session.patient.name} mengirim permintaan konsultasi. Menunggu pembayaran.`,
+                    'CONSULTATION',
+                    { sessionId: session.id }
+                );
+            }
         }
 
         // Get consultation fee (doctor fee or default)
