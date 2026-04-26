@@ -12,7 +12,8 @@ import {
     Smartphone,
     Save,
     Loader2,
-    Key
+    Key,
+    Stethoscope
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -122,251 +123,302 @@ const DoctorProfile = () => {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="flex justify-center items-center h-[calc(100vh-4rem)]">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="w-10 h-10 animate-spin text-teal-600" />
+                    <p className="text-slate-500 font-medium animate-pulse">Memuat data profil Anda...</p>
+                </div>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold text-slate-800">Profil Dokter</h1>
-                <p className="text-slate-500">Kelola informasi akun dan pengaturan keamanan pribadi anda</p>
+        <div className="min-h-screen bg-slate-50/50 pb-12">
+            {/* Premium Hero Header */}
+            <div className="bg-gradient-to-r from-teal-900 via-teal-800 to-teal-700 text-white pb-24 pt-8 md:pt-12 px-4 shadow-inner">
+                <div className="container mx-auto max-w-5xl">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <div className="space-y-2">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-teal-50 text-xs font-medium backdrop-blur-sm border border-white/10 mb-2">
+                                <Stethoscope className="w-3.5 h-3.5" />
+                                <span>Portal Telemedicine</span>
+                            </div>
+                            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Profil Dokter</h1>
+                            <p className="text-teal-100 max-w-xl text-sm md:text-base leading-relaxed">
+                                Kelola informasi akun pribadi Anda, tingkatkan keamanan menggunakan autentikasi 2 langkah, dan perbarui kata sandi secara berkala.
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <Tabs defaultValue="profile" className="space-y-6">
-                <TabsList className="bg-white border p-1 rounded-xl">
-                    <TabsTrigger value="profile" className="flex items-center gap-2 rounded-lg">
-                        <User className="w-4 h-4" />
-                        Profil
-                    </TabsTrigger>
-                    <TabsTrigger value="security" className="flex items-center gap-2 rounded-lg">
-                        <Shield className="w-4 h-4" />
-                        Keamanan (2FA)
-                    </TabsTrigger>
-                    <TabsTrigger value="password" className="flex items-center gap-2 rounded-lg">
-                        <Key className="w-4 h-4" />
-                        Ganti Password
-                    </TabsTrigger>
-                </TabsList>
-
-                {/* Profile Settings */}
-                <TabsContent value="profile" className="space-y-4">
-                    <Card className="border-none shadow-sm bg-white/50 backdrop-blur-sm">
-                        <CardHeader>
-                            <CardTitle className="text-xl">Informasi Akun</CardTitle>
-                            <CardDescription>Perbarui nama, email, dan nomor telepon Anda.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <Label className="text-slate-600">Username</Label>
-                                    <Input
-                                        value={formData.username}
-                                        disabled
-                                        className="bg-slate-50 border-slate-200"
-                                    />
-                                    <p className="text-[10px] text-slate-400">Username tidak dapat diubah.</p>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-slate-600">Nama Lengkap</Label>
-                                    <Input
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="border-slate-200 focus:ring-primary/20"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-slate-600">Email</Label>
-                                    <Input
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="border-slate-200 focus:ring-primary/20"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="text-slate-600">Nomor Telepon</Label>
-                                    <Input
-                                        value={formData.phone}
-                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                        className="border-slate-200 focus:ring-primary/20"
-                                    />
-                                </div>
-                            </div>
-                            <Button
-                                onClick={handleSaveProfile}
-                                disabled={updateProfileMutation.isPending}
-                                className="bg-primary hover:bg-primary/90 text-white rounded-xl px-8 shadow-lg shadow-primary/20 transition-all active:scale-95"
+            <div className="container mx-auto px-4 max-w-5xl -mt-16">
+                <Tabs defaultValue="profile" className="space-y-8">
+                    {/* Modern Pill Toggles */}
+                    <div className="bg-white p-2 rounded-2xl shadow-sm border border-slate-100 flex overflow-x-auto scrollbar-hide max-w-2xl mx-auto">
+                        <TabsList className="bg-transparent border-none w-full grid grid-cols-3 h-auto p-0">
+                            <TabsTrigger
+                                value="profile"
+                                className="flex items-center gap-2 rounded-xl py-3 data-[state=active]:bg-teal-50 data-[state=active]:text-teal-700 data-[state=active]:shadow-sm transition-all"
                             >
-                                <Save className="w-4 h-4 mr-2" />
-                                {updateProfileMutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                                <User className="w-4 h-4" />
+                                Profil
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="security"
+                                className="flex items-center gap-2 rounded-xl py-3 data-[state=active]:bg-teal-50 data-[state=active]:text-teal-700 data-[state=active]:shadow-sm transition-all"
+                            >
+                                <Shield className="w-4 h-4" />
+                                2FA
+                            </TabsTrigger>
+                            <TabsTrigger
+                                value="password"
+                                className="flex items-center gap-2 rounded-xl py-3 data-[state=active]:bg-teal-50 data-[state=active]:text-teal-700 data-[state=active]:shadow-sm transition-all"
+                            >
+                                <Key className="w-4 h-4" />
+                                Sandi
+                            </TabsTrigger>
+                        </TabsList>
+                    </div>
 
-                {/* Security Settings */}
-                <TabsContent value="security" className="space-y-4">
-                    <Card className="border-none shadow-sm bg-white/50 backdrop-blur-sm">
-                        <CardHeader>
-                            <CardTitle className="text-xl">Keamanan Akun</CardTitle>
-                            <CardDescription>Kelola metode autentikasi tambahan.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
-                            <div className="space-y-4 p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-primary/10 rounded-xl">
-                                        <Smartphone className="w-6 h-6 text-primary" />
+                    {/* Profile Settings */}
+                    <TabsContent value="profile" className="focus-visible:outline-none focus-visible:ring-0">
+                        <Card className="border-slate-100 shadow-xl shadow-slate-200/40 bg-white/80 backdrop-blur-xl rounded-2xl overflow-hidden max-w-3xl mx-auto">
+                            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6 md:p-8">
+                                <CardTitle className="text-2xl text-slate-800">Informasi Akun</CardTitle>
+                                <CardDescription className="text-slate-500">Perbarui identitas, kontak, dan detail profil Anda di sini.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-6 md:p-8 space-y-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                    <div className="space-y-3">
+                                        <Label className="text-slate-700 font-semibold">Username</Label>
+                                        <Input
+                                            value={formData.username}
+                                            disabled
+                                            className="bg-slate-50 border-slate-200 shadow-none text-slate-500 cursor-not-allowed rounded-xl h-11"
+                                        />
+                                        <p className="text-xs text-slate-400 font-medium">Username tidak dapat diubah setelah registrasi.</p>
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="font-semibold text-slate-800">Google Authenticator (2FA)</p>
-                                        <p className="text-sm text-slate-500">Amankan akun dokter Anda dengan verifikasi 2 langkah.</p>
+                                    <div className="space-y-3">
+                                        <Label className="text-slate-700 font-semibold">Nama Lengkap</Label>
+                                        <Input
+                                            value={formData.name}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                            className="border-slate-200 focus-visible:ring-teal-500 focus-visible:border-teal-500 rounded-xl h-11 shadow-sm"
+                                        />
                                     </div>
-                                    <div>
-                                        {isPersonal2FAEnabled ? (
-                                            <Button
-                                                variant="outline"
-                                                className="text-rose-500 border-rose-200 hover:bg-rose-50 rounded-xl"
-                                                onClick={handleDisable2FA}
-                                            >
-                                                Nonaktifkan
-                                            </Button>
-                                        ) : twoFactorStep === "IDLE" ? (
-                                            <Button
-                                                onClick={handleSetup2FA}
-                                                className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-6"
-                                            >
-                                                Aktifkan Sekarang
-                                            </Button>
-                                        ) : null}
+                                    <div className="space-y-3">
+                                        <Label className="text-slate-700 font-semibold">Alamat Email</Label>
+                                        <Input
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className="border-slate-200 focus-visible:ring-teal-500 focus-visible:border-teal-500 rounded-xl h-11 shadow-sm"
+                                        />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <Label className="text-slate-700 font-semibold">Nomor Telepon</Label>
+                                        <Input
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            className="border-slate-200 focus-visible:ring-teal-500 focus-visible:border-teal-500 rounded-xl h-11 shadow-sm"
+                                            placeholder="+62 8..."
+                                        />
                                     </div>
                                 </div>
+                                <div className="pt-4 flex justify-end">
+                                    <Button
+                                        onClick={handleSaveProfile}
+                                        disabled={updateProfileMutation.isPending}
+                                        className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-8 h-12 shadow-lg shadow-teal-600/20 transition-all active:scale-95 text-base font-medium"
+                                    >
+                                        {updateProfileMutation.isPending ? (
+                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                        ) : (
+                                            <Save className="w-5 h-5 mr-2" />
+                                        )}
+                                        {updateProfileMutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
 
-                                {twoFactorStep === "SETUP" && (
-                                    <div className="mt-8 space-y-8 pt-8 border-t border-slate-100 animate-in fade-in slide-in-from-top-4 duration-500">
-                                        <div className="flex flex-col md:flex-row gap-10 items-center md:items-start">
-                                            <div className="bg-white p-5 border border-slate-100 rounded-2xl shadow-xl shadow-slate-200/50">
-                                                <img src={qrCodeUrl} alt="QR Code" className="w-44 h-44" />
-                                            </div>
-                                            <div className="space-y-6 flex-1 text-center md:text-left">
-                                                <div className="space-y-2">
-                                                    <p className="font-bold text-lg text-slate-800">1. Scan QR Code</p>
-                                                    <p className="text-sm text-slate-500 leading-relaxed">
-                                                        Buka aplikasi Google Authenticator,
-                                                        lalu scan kode QR ini untuk menambahkan akun Anda.
-                                                    </p>
-                                                </div>
-                                                <div className="space-y-3">
-                                                    <p className="font-bold text-lg text-slate-800">2. Verifikasi Kode</p>
-                                                    <p className="text-sm text-slate-500">
-                                                        Masukkan 6 digit kode dari aplikasi:
-                                                    </p>
-                                                    <div className="flex flex-col sm:flex-row gap-3 pt-2 justify-center md:justify-start">
-                                                        <Input
-                                                            placeholder="000000"
-                                                            className="max-w-[140px] text-center text-xl font-mono tracking-widest border-slate-200 focus:ring-primary/20 rounded-xl"
-                                                            value={verificationCode}
-                                                            onChange={(e) => setVerificationCode(e.target.value)}
-                                                            maxLength={6}
-                                                        />
-                                                        <Button
-                                                            onClick={handleVerify2FA}
-                                                            disabled={verificationCode.length !== 6}
-                                                            className="bg-primary hover:bg-primary/90 text-white rounded-xl px-8"
-                                                        >
-                                                            Aktifkan Sekarang
-                                                        </Button>
-                                                    </div>
-                                                </div>
+                    {/* Security Settings */}
+                    <TabsContent value="security" className="focus-visible:outline-none focus-visible:ring-0">
+                        <Card className="border-slate-100 shadow-xl shadow-slate-200/40 bg-white/80 backdrop-blur-xl rounded-2xl overflow-hidden max-w-3xl mx-auto">
+                            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6 md:p-8">
+                                <CardTitle className="text-2xl text-slate-800">Keamanan Tambahan</CardTitle>
+                                <CardDescription className="text-slate-500">Tingkatkan keamanan akun Anda agar terhindar dari akses tidak sah.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-6 md:p-8">
+                                <div className="space-y-4 p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
+                                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                                        <div className="p-3 bg-teal-50/80 border border-teal-100 rounded-xl w-fit">
+                                            <Smartphone className="w-6 h-6 text-teal-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-bold text-slate-800 text-lg">Google Authenticator (2FA)</p>
+                                            <p className="text-sm text-slate-500 mt-1 max-w-sm">Berikan lapisan keamanan ekstra pada saat Anda login (Disarankan).</p>
+                                        </div>
+                                        <div>
+                                            {isPersonal2FAEnabled ? (
                                                 <Button
-                                                    variant="ghost"
-                                                    className="text-slate-400 hover:text-slate-600 p-0 h-auto text-xs"
-                                                    onClick={() => setTwoFactorStep("IDLE")}
+                                                    variant="outline"
+                                                    className="text-rose-600 border-rose-200 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 rounded-xl font-semibold h-11"
+                                                    onClick={handleDisable2FA}
                                                 >
-                                                    Batalkan Pengaturan
+                                                    Nonaktifkan Fitur
                                                 </Button>
+                                            ) : twoFactorStep === "IDLE" ? (
+                                                <Button
+                                                    onClick={handleSetup2FA}
+                                                    className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-6 h-11 shadow-md shadow-slate-900/10 font-semibold"
+                                                >
+                                                    Aktifkan 2FA Sekarang
+                                                </Button>
+                                            ) : null}
+                                        </div>
+                                    </div>
+
+                                    {twoFactorStep === "SETUP" && (
+                                        <div className="mt-8 space-y-8 pt-8 border-t border-slate-100 animate-in fade-in slide-in-from-top-4 duration-500">
+                                            <div className="flex flex-col md:flex-row gap-10 items-center md:items-start">
+                                                <div className="bg-white p-5 border border-slate-100 rounded-2xl shadow-xl shadow-slate-200/50">
+                                                    <img src={qrCodeUrl} alt="QR Code" className="w-44 h-44 rounded-lg mix-blend-multiply" />
+                                                </div>
+                                                <div className="space-y-6 flex-1 text-center md:text-left">
+                                                    <div className="space-y-2">
+                                                        <p className="font-bold text-lg text-slate-800 flex items-center justify-center md:justify-start gap-2">
+                                                            <span className="flex items-center justify-center bg-teal-100 text-teal-700 w-6 h-6 rounded-full text-sm">1</span>
+                                                            Scan Kode QR Ini
+                                                        </p>
+                                                        <p className="text-sm text-slate-500 leading-relaxed font-medium">
+                                                            Gunakan aplikasi authenticator apapun (contoh: Google Auth, Authy).
+                                                        </p>
+                                                    </div>
+                                                    <div className="space-y-4">
+                                                        <p className="font-bold text-lg text-slate-800 flex items-center justify-center md:justify-start gap-2">
+                                                            <span className="flex items-center justify-center bg-teal-100 text-teal-700 w-6 h-6 rounded-full text-sm">2</span>
+                                                            Pindai & Masukkan Kode Validasi
+                                                        </p>
+                                                        <p className="text-sm text-slate-500 font-medium text-balance">
+                                                            Ketikkan 6 angka yang tertera di aplikasi authenticator dari handphone Anda.
+                                                        </p>
+                                                        <div className="flex flex-col sm:flex-row gap-3 pt-2 justify-center md:justify-start">
+                                                            <Input
+                                                                placeholder="0 0 0 0 0 0"
+                                                                className="max-w-[160px] h-12 text-center text-xl font-mono tracking-[0.3em] border-slate-200 focus-visible:ring-teal-500 focus-visible:border-teal-500 rounded-xl shadow-sm"
+                                                                value={verificationCode}
+                                                                onChange={(e) => setVerificationCode(e.target.value)}
+                                                                maxLength={6}
+                                                            />
+                                                            <Button
+                                                                onClick={handleVerify2FA}
+                                                                disabled={verificationCode.length !== 6}
+                                                                className="bg-teal-600 hover:bg-teal-700 text-white rounded-xl px-8 h-12 shadow-lg shadow-teal-600/20 font-semibold"
+                                                            >
+                                                                Selesaikan Setup
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        variant="ghost"
+                                                        className="text-slate-400 hover:text-slate-600 p-0 h-auto text-xs font-semibold"
+                                                        onClick={() => setTwoFactorStep("IDLE")}
+                                                    >
+                                                        Batalkan Setelan
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
 
-                                {isPersonal2FAEnabled && (
-                                    <div className="mt-4 p-4 bg-emerald-50 text-emerald-700 rounded-xl flex items-center gap-3 border border-emerald-100 text-sm font-medium">
-                                        <div className="p-1.5 bg-emerald-100 rounded-full">
-                                            <Shield className="w-4 h-4" />
+                                    {isPersonal2FAEnabled && (
+                                        <div className="mt-6 p-4 bg-teal-50 text-teal-800 rounded-xl flex items-center gap-3 border border-teal-100/50 shadow-sm animate-in fade-in">
+                                            <div className="p-1.5 bg-teal-100 text-teal-700 rounded-full shrink-0">
+                                                <Shield className="w-5 h-5" />
+                                            </div>
+                                            <span className="font-semibold text-sm">Hebat! Akun Anda kini terlindungi secara maksimal menggunakan autentikasi ganda (2FA).</span>
                                         </div>
-                                        Akun Anda telah diamankan dengan Google Authenticator.
-                                    </div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
 
-                {/* Password Settings */}
-                <TabsContent value="password" className="space-y-4">
-                    <Card className="border-none shadow-sm bg-white/50 backdrop-blur-sm">
-                        <CardHeader>
-                            <CardTitle className="text-xl">Ganti Password</CardTitle>
-                            <CardDescription>Perbarui password Anda secara berkala untuk menjaga keamanan akun.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6 max-w-md">
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Password Saat Ini</Label>
-                                    <Input
-                                        type="password"
-                                        value={formData.currentPassword}
-                                        onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-                                        className="border-slate-200"
-                                    />
+                    {/* Password Settings */}
+                    <TabsContent value="password" className="focus-visible:outline-none focus-visible:ring-0">
+                        <Card className="border-slate-100 shadow-xl shadow-slate-200/40 bg-white/80 backdrop-blur-xl rounded-2xl overflow-hidden max-w-xl mx-auto">
+                            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-6 md:p-8">
+                                <CardTitle className="text-2xl text-slate-800">Password</CardTitle>
+                                <CardDescription className="text-slate-500">Pastikan akun Anda memakai password unik dan kuat.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="p-6 md:p-8 space-y-6">
+                                <div className="space-y-5">
+                                    <div className="space-y-2">
+                                        <Label className="text-slate-700 font-semibold">Password Saat Ini</Label>
+                                        <Input
+                                            type="password"
+                                            value={formData.currentPassword}
+                                            onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
+                                            className="border-slate-200 focus-visible:ring-teal-500 focus-visible:border-teal-500 rounded-xl h-11"
+                                            placeholder="Masukkan password saat ini..."
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-slate-700 font-semibold">Password Baru</Label>
+                                        <Input
+                                            type="password"
+                                            value={formData.newPassword}
+                                            onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
+                                            className="border-slate-200 focus-visible:ring-teal-500 focus-visible:border-teal-500 rounded-xl h-11"
+                                            placeholder="Password baru Anda..."
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-slate-700 font-semibold">Konfirmasi Password Baru</Label>
+                                        <Input
+                                            type="password"
+                                            value={formData.confirmPassword}
+                                            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                                            className="border-slate-200 focus-visible:ring-teal-500 focus-visible:border-teal-500 rounded-xl h-11"
+                                            placeholder="Ketik persis seperti password baru..."
+                                        />
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Password Baru</Label>
-                                    <Input
-                                        type="password"
-                                        value={formData.newPassword}
-                                        onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                                        className="border-slate-200"
-                                    />
+                                <div className="pt-2">
+                                    <Button
+                                        onClick={() => {
+                                            if (!formData.currentPassword || !formData.newPassword) {
+                                                toast.error("Password harus diisi");
+                                                return;
+                                            }
+                                            if (formData.newPassword !== formData.confirmPassword) {
+                                                toast.error("Konfirmasi password tidak cocok");
+                                                return;
+                                            }
+                                            changePasswordMutation.mutate({
+                                                currentPassword: formData.currentPassword,
+                                                newPassword: formData.newPassword
+                                            });
+                                        }}
+                                        disabled={changePasswordMutation.isPending}
+                                        className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl h-12 shadow-md font-semibold transition-all active:scale-95"
+                                    >
+                                        {changePasswordMutation.isPending ? (
+                                            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                        ) : (
+                                            <Key className="w-5 h-5 mr-2" />
+                                        )}
+                                        {changePasswordMutation.isPending ? 'Memproses...' : 'Ubah Password'}
+                                    </Button>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label>Konfirmasi Password Baru</Label>
-                                    <Input
-                                        type="password"
-                                        value={formData.confirmPassword}
-                                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                                        className="border-slate-200"
-                                    />
-                                </div>
-                            </div>
-                            <Button
-                                onClick={() => {
-                                    if (!formData.currentPassword || !formData.newPassword) {
-                                        toast.error("Password harus diisi");
-                                        return;
-                                    }
-                                    if (formData.newPassword !== formData.confirmPassword) {
-                                        toast.error("Konfirmasi password tidak cocok");
-                                        return;
-                                    }
-                                    changePasswordMutation.mutate({
-                                        currentPassword: formData.currentPassword,
-                                        newPassword: formData.newPassword
-                                    });
-                                }}
-                                disabled={changePasswordMutation.isPending}
-                                className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl px-8"
-                            >
-                                <Key className="w-4 h-4 mr-2" />
-                                {changePasswordMutation.isPending ? 'Memproses...' : 'Ganti Password'}
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+            </div>
         </div>
     );
 };
